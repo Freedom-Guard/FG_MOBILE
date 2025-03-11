@@ -43,6 +43,10 @@ class _FreedomGuardHomeState extends State<FreedomGuardHome> {
 
   @override
   Widget build(BuildContext context) {
+    return _buildMenuItem(context);
+  }
+
+  Scaffold _buildMenuItem(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(54, 85, 59, 79),
       appBar: AppBar(
@@ -64,56 +68,105 @@ class _FreedomGuardHomeState extends State<FreedomGuardHome> {
         ],
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        backgroundColor: Colors.black87,
+        child: Column(
           children: [
-            DrawerHeader(
+            // هدر مدرن
+            Container(
+              height: 180,
+              width: double.infinity,
               decoration: BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage("assets/images/menu_background.png"),
                   fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.6),
+                    BlendMode.darken,
+                  ),
                 ),
               ),
-              child: Container(),
+              child: const Center(
+                child: Text(
+                  "Freedom Guard",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text("صفحه اصلی"),
-              onTap: () {
-                // رفتن به صفحه اصلی
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text("درباره ما"),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text("درباره ما"),
-                      content: Text(
-                        " گارد آزادی یک پروژه متن‌باز برای دسترسی آزاد به اینترنت است.",
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text("بستن"),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text("تنظیمات"),
-              onTap: () {
-                // رفتن به صفحه تنظیمات
-              },
+
+            // لیست آیتم‌های منو
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.home, color: Colors.purpleAccent),
+                    title: Text(
+                      "صفحه اصلی",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    tileColor: Colors.black54,
+                    hoverColor: Colors.purple.withOpacity(0.2),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 5),
+                  ListTile(
+                    leading: Icon(Icons.info, color: Colors.purpleAccent),
+                    title: Text(
+                      "درباره ما",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    tileColor: Colors.black54,
+                    hoverColor: Colors.purple.withOpacity(0.2),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: const Text("درباره ما"),
+                              content: const Text(
+                                "گارد آزادی یک پروژه متن‌باز برای دسترسی آزاد به اینترنت است.",
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text("بستن"),
+                                ),
+                              ],
+                            ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 5),
+                  ListTile(
+                    leading: Icon(Icons.settings, color: Colors.purpleAccent),
+                    title: Text(
+                      "تنظیمات",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    tileColor: Colors.black54,
+                    hoverColor: Colors.purple.withOpacity(0.2),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
             ),
           ],
         ),
