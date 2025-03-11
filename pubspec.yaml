@@ -1,0 +1,29 @@
+name: Freedom_Guard
+description: "Freedom Guard +x Freedom Vibe +x Freedom Warp +x Freedom Link"
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.0-209.1.beta
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
+  flutter_test:
+    sdk: flutter
+
+flutter_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/ico.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
