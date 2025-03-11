@@ -12,6 +12,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1
@@ -25,3 +26,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/core/vibe/
+    - assets/core/vibe/lib/
+

@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'pages/settings.dart';
 import 'pages/servers.dart';
+import 'components/connect.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:flutter/services.dart' show ByteData, rootBundle;
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await copyCoreFolder();
   runApp(const FreedomGuardApp());
 }
 
@@ -38,6 +44,7 @@ class _HomePageState extends State<HomePage> {
   bool isPressed = false;
 
   void toggleConnection() {
+    CoreService.showHelpDialog(context);
     setState(() {
       isConnected = !isConnected;
     });
@@ -192,5 +199,38 @@ class _HomePageState extends State<HomePage> {
       ),
       label: label,
     );
+  }
+}
+
+Future<void> copyCoreFolder() async {
+  try {
+    Directory appDir = await getApplicationSupportDirectory();
+    String coreDir = "${appDir.path}/core";
+
+    List<String> files = ["vibe/vibe-core", "vibe/lib/libcore.so"];
+
+    for (String file in files) {
+      String assetPath = "assets/core/$file";
+      String destPath = "$coreDir/$file";
+      File destFile = File(destPath);
+
+      await Directory(destFile.parent.path).create(recursive: true);
+
+      if (!await destFile.exists()) {
+        print("📥 در حال کپی کردن: $assetPath → $destPath");
+
+        ByteData data = await rootBundle.load(
+          assetPath,
+        ); // ⬅ ممکنه اینجا ارور بده
+        List<int> bytes = data.buffer.asUint8List();
+        await destFile.writeAsBytes(bytes, flush: true);
+
+        if (file.contains("-core")) {
+          await Process.run('chmod', ['+x', destPath]);
+        }
+      }
+    }
+  } catch (e) {
+    print("❌ خطا در کپی کردن فایل‌ها: $e");
   }
 }
