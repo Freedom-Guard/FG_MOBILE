@@ -1,62 +1,90 @@
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:1320827024.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:1569211286.
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:convert';
 
-class CoreService {
-  static Future<void> showHelpDialog(BuildContext context) async {
-    String output = await _runHelp();
+class publicConnect {
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Hiddify Help"),
-          content: SingleChildScrollView(
-            child: Text(output, style: const TextStyle(fontSize: 14)),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("باشه"),
-            ),
-          ],
-        );
-      },
-    );
+    return directory.path;
   }
 
-  static Future<String> _runHelp() async {
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/log.txt');
+  }
+
+  Future<File> LOGLOG(text, type) async {
+    final file = await _localFile;
+    return file.writeAsString('[$type]: $text \n', mode: FileMode.append);
+  }
+
+  Future<String> setupVibeCore() async {
+    final Directory? appDir =
+        await getExternalStorageDirectory(); // 🚀 تغییر مسیر
+    if (appDir == null) throw Exception('عدم دسترسی به حافظه خارجی');
+
+    final String coreDirPath = '${appDir.path}/core';
+    final String libDirPath = '$coreDirPath/lib';
+    final String coreBinaryPath = '$coreDirPath/vibe-core';
+
+    await Directory(coreDirPath).create(recursive: true);
+    await Directory(libDirPath).create(recursive: true);
+
+    // انتقال vibe-core
+    final ByteData coreData = await rootBundle.load('assets/core/vibe-core');
+    final File coreFile = File(coreBinaryPath);
+    await coreFile.writeAsBytes(coreData.buffer.asUint8List(), flush: true);
+    await Process.run('chmod', ['777', coreBinaryPath]); // 🔥 دادن مجوز اجرا
+
+    // انتقال libcore.so
+    final ByteData soData = await rootBundle.load('assets/core/lib/libcore.so');
+    final File soFile = File('$libDirPath/libcore.so');
+    await soFile.writeAsBytes(soData.buffer.asUint8List(), flush: true);
+
+    print('✅ Vibe-Core آماده اجرا شد! مسیر: $coreBinaryPath');
+    return coreBinaryPath;
+  }
+}
+
+class ConnectAuto extends publicConnect {
+  Future<String> runVibeCore(List<String> args) async {
+    final Directory? appDir = await getExternalStorageDirectory();
+    if (appDir == null) throw Exception('عدم دسترسی به حافظه خارجی');
+
+    final String coreDirPath = '${appDir.path}/core';
+    final String coreBinaryPath = '$coreDirPath/vibe-core';
+    final String libDirPath = '$coreDirPath/lib';
+
+    final process = await Process.start('sh', [
+      '-c',
+      'LD_LIBRARY_PATH=$libDirPath $coreBinaryPath ${args.join(' ')}',
+    ]);
+    String Result = '';
+    process.stdout.transform(SystemEncoding().decoder).listen((data) {
+      Result = 'stdout: $data';
+    });
+
+    process.stderr.transform(SystemEncoding().decoder).listen((data) {
+      Result = 'stdout: $data';
+    });
+
+    final exitCode = await process.exitCode;
+    Result += 'Vibe-Core اجرا شد. کد خروج: $exitCode';
+    return Result;
+  }
+
+  Future<String> connect(List<String> args) async {
     try {
-      final dir = await getApplicationSupportDirectory();
-      final corePath = "${dir.path}/core/vibe/vibe-core";
-      final newPath = "/data/local/tmp/vibe-core";
-      await File(corePath).copy(newPath);
-      await Process.run('chmod', ['777', newPath]);
-      ProcessResult result = await Process.run(newPath, ['--help']);
-      if (!await File(corePath).exists()) {
-        return "هسته پیدا نشد: $corePath";
-      }
-
-      if (result.exitCode != 0) {
-        return "خطا در اتمام: ${result.stderr}";
-      }
-
-      if (result.stdout is String) {
-        return result.stdout;
-      } else if (result.stdout is List<int>) {
-        try {
-          return utf8.decode(result.stdout);
-        } catch (e) {
-          File outputFile = File("${dir.path}/core/output.bin");
-          await outputFile.writeAsBytes(result.stdout);
-          return "خروجی باینری بود و در فایل ذخیره شد!";
-        }
-      }
-
-      return "هیچ خروجی‌ای دریافت نشد!";
+      await setupVibeCore();
+      var resu = await runVibeCore(["--help"]);
+      return resu;
     } catch (e) {
-      return "خطا در اجرا: $e";
+      return "Error: $e";
     }
   }
 }
+
+class Connect extends publicConnect {}

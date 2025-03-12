@@ -26,6 +26,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-    - assets/core/vibe/
-    - assets/core/vibe/lib/
+    - assets/core/vibe-core
+    - assets/core/lib/libcore.so
 
