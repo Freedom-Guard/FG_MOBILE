@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.myapp"
+    namespace = "fg.mobile.freedomguard"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
