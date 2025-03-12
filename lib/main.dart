@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'pages/settings.dart';
 import 'pages/servers.dart';
-import 'components/connect.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
   runApp(const FreedomGuardApp());
 }
 
@@ -16,12 +14,15 @@ class FreedomGuardApp extends StatelessWidget {
     return MaterialApp(
       locale: const Locale('fa', 'IR'),
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
+      theme: ThemeData(
         colorScheme: const ColorScheme.dark(
           primary: Colors.deepPurpleAccent,
           secondary: Colors.purpleAccent,
           surface: Colors.black,
         ),
+        splashColor: Colors.transparent, 
+        highlightColor: Colors.transparent,
+        hoverColor: Colors.transparent, 
       ),
       home: const HomePage(),
     );
@@ -40,14 +41,9 @@ class _HomePageState extends State<HomePage> {
   bool isPressed = false;
 
   Future<void> toggleConnection() async {
-    ConnectAuto connectAuto = new ConnectAuto();
-    final result = await connectAuto.connect(["--help"]);
-    if (result.isNotEmpty) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(content: Text(result)),
-      );
-    }
+    // connect if isconnect == false
+    // disconnect if isconnect == true
+
     setState(() {
       isConnected = !isConnected;
     });
