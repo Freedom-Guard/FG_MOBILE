@@ -12,17 +12,23 @@ class FreedomGuardApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      locale: const Locale('fa', 'IR'),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        brightness: Brightness.dark,
         colorScheme: const ColorScheme.dark(
-          primary: Colors.deepPurpleAccent,
-          secondary: Colors.purpleAccent,
-          surface: Colors.black,
+          primary: Color(0xFF0099FF),
+          secondary: Color(0xFF8A2BE2),
+          surface: Color(0xFF1A1B26), // پس‌زمینه اصلی
+          error: Color(0xFFFF1744), // قرمز نئونی
+          onPrimary: Colors.black, // متن روی دکمه‌های آبی
+          onSecondary: Colors.white, // متن روی دکمه‌های بنفش
+          onSurface: Color(0xFFB0BEC5), // متن و آیکون‌ها
+          onError: Colors.white, // متن روی دکمه‌های قرمز
         ),
-        splashColor: Colors.transparent, 
+        scaffoldBackgroundColor: const Color(0xFF121212), // پس‌زمینه کل صفحه
+        splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
-        hoverColor: Colors.transparent, 
+        hoverColor: Colors.transparent,
       ),
       home: const HomePage(),
     );
@@ -41,9 +47,6 @@ class _HomePageState extends State<HomePage> {
   bool isPressed = false;
 
   Future<void> toggleConnection() async {
-    // connect if isconnect == false
-    // disconnect if isconnect == true
-
     setState(() {
       isConnected = !isConnected;
     });
@@ -52,13 +55,13 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           "Freedom Guard",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.black87,
         foregroundColor: Colors.white,
         centerTitle: true,
         elevation: 4,
@@ -120,7 +123,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 20),
             Text(
-              isConnected ? "متصل شد" : "متصل نیست",
+              isConnected ? "Connected" : "Not connected",
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
