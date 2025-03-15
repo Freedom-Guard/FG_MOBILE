@@ -1,4 +1,3 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:3334502997.
 import 'dart:convert';
 import 'dart:io';
 
@@ -41,7 +40,7 @@ class serversM extends StatelessWidget {
       File settingsFile = File(settingsPath);
       if (settingsFile.existsSync()) {
         String content = await settingsFile.readAsString();
-        return json.decode(content)["servers"];
+        return json.decode(content);
       }
       return {};
     } catch (e) {

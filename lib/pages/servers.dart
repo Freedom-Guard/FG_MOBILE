@@ -1,4 +1,3 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:3623181278.
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,31 +17,57 @@ class _ServersPageState extends State<ServersPage> {
   @override
   void initState() {
     super.initState();
-    _initServers();
+    _loadServersAndInit();
   }
 
-  Future<void> _initServers() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> _loadServersAndInit() async {
+    await _restoreServers();
+    await _restoreSelectedServer();
+  }
 
+  Future<void> _restoreServers() async {
+    final prefs = await SharedPreferences.getInstance();
     if (!prefs.containsKey('servers') ||
         prefs.getStringList('servers')!.isEmpty) {
-      final oldServersMap = await serversManage.oldServers();
+      await _setOldServers();
+    } else {
+      await _loadServers();
+    }
+  }
+
+  Future<void> _setOldServers() async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      Map<String, dynamic> oldServersMap = await serversManage.oldServers();
       final oldServers = oldServersMap.keys.toList();
       await prefs.setStringList('servers', oldServers);
+      await _loadServers();
+    } catch (e) {
+      await _loadServers();
     }
+  }
 
-    _loadServers();
+  Future<void> _restoreSelectedServer() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? selectedServer = prefs.getString('selectedServer');
+    if (selectedServer != null) {
+      serversManage.selectServer(selectedServer);
+    }
   }
 
   Future<void> _loadServers() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      servers = (prefs.getStringList('servers') ?? []);
-    });
+    final prefs = await SharedPreferences.getInstance();
+    final serverList = prefs.getStringList('servers') ?? [];
+    setState(() => servers = serverList);
   }
 
   Future<void> _saveServers() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
+    if (servers.isEmpty) {
+      await prefs.remove('servers');
+      return;
+    }
+
     await prefs.setStringList('servers', servers);
   }
 
@@ -77,9 +102,24 @@ class _ServersPageState extends State<ServersPage> {
                 Expanded(
                   child: TextField(
                     controller: serverController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: "لینک سرور",
-                      border: OutlineInputBorder(),
+                      labelStyle: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.blue, width: 2),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 16,
+                      ),
+                      prefixIcon: Icon(Icons.link, color: Colors.blue),
                     ),
                   ),
                 ),
@@ -99,6 +139,9 @@ class _ServersPageState extends State<ServersPage> {
               itemBuilder: (context, index) {
                 return Card(
                   child: ListTile(
+                    onTap: () {
+                      serversManage.selectServer(servers[index]);
+                    },
                     title: Text(
                       servers[index] +
                           (servers[index] == (serversManage.getSelectedServer())
@@ -109,7 +152,6 @@ class _ServersPageState extends State<ServersPage> {
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () => _removeServer(index),
                     ),
-                    onTap: () => serversManage.selectServer(servers[index]),
                   ),
                 );
               },
