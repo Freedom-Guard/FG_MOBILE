@@ -1,9 +1,16 @@
+import 'package:Freedom_Guard/components/servers.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'pages/settings.dart';
 import 'pages/servers.dart';
 
 Future<void> main() async {
-  runApp(const FreedomGuardApp());
+  runApp(
+    MultiProvider(
+      providers: [ChangeNotifierProvider(create: (context) => ServersM())],
+      child: FreedomGuardApp(),
+    ),
+  );
 }
 
 class FreedomGuardApp extends StatelessWidget {

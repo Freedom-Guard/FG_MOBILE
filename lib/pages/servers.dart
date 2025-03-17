@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:provider/provider.dart';
 import '../components/servers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ServersPage extends StatefulWidget {
   const ServersPage({super.key});
@@ -12,11 +12,14 @@ class ServersPage extends StatefulWidget {
 
 class _ServersPageState extends State<ServersPage> {
   List<String> servers = [];
-  serversM serversManage = serversM();
 
   @override
   void initState() {
     super.initState();
+    Future.microtask(() {
+      final serversManage = Provider.of<ServersM>(context, listen: false);
+      serversManage.getSelectedServer();
+    });
     _loadServersAndInit();
   }
 
@@ -38,27 +41,33 @@ class _ServersPageState extends State<ServersPage> {
   Future<void> _setOldServers() async {
     final prefs = await SharedPreferences.getInstance();
     try {
+      final serversManage = context.read<ServersM>();
       Map<String, dynamic> oldServersMap = await serversManage.oldServers();
       final oldServers = oldServersMap.keys.toList();
       await prefs.setStringList('servers', oldServers);
-      await _loadServers();
-    } catch (e) {
+    } catch (_) {
+    } finally {
       await _loadServers();
     }
   }
 
   Future<void> _restoreSelectedServer() async {
     final prefs = await SharedPreferences.getInstance();
+    final serversManage = Provider.of<ServersM>(context, listen: false);
     String? selectedServer = prefs.getString('selectedServer');
     if (selectedServer != null) {
-      serversManage.selectServer(selectedServer);
+      await serversManage.selectServer(selectedServer);
     }
   }
 
   Future<void> _loadServers() async {
     final prefs = await SharedPreferences.getInstance();
     final serverList = prefs.getStringList('servers') ?? [];
-    setState(() => servers = serverList);
+    if (mounted) {
+      setState(() => servers = serverList);
+    } else {
+      servers = serverList;
+    }
   }
 
   Future<void> _saveServers() async {
@@ -67,28 +76,32 @@ class _ServersPageState extends State<ServersPage> {
       await prefs.remove('servers');
       return;
     }
-
     await prefs.setStringList('servers', servers);
   }
 
   void _addServer(String serverName) {
     if (serverName.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          servers.add(serverName);
+          _saveServers();
+        });
+      }
+    }
+  }
+
+  void _removeServer(int index) {
+    if (mounted) {
       setState(() {
-        servers.add(serverName);
+        servers.removeAt(index);
         _saveServers();
       });
     }
   }
 
-  void _removeServer(int index) {
-    setState(() {
-      servers.removeAt(index);
-      _saveServers();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final serversManage = Provider.of<ServersM>(context);
     TextEditingController serverController = TextEditingController();
 
     return Scaffold(
@@ -104,10 +117,6 @@ class _ServersPageState extends State<ServersPage> {
                     controller: serverController,
                     decoration: InputDecoration(
                       labelText: "لینک سرور",
-                      labelStyle: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -137,16 +146,24 @@ class _ServersPageState extends State<ServersPage> {
             child: ListView.builder(
               itemCount: servers.length,
               itemBuilder: (context, index) {
+                final server = servers[index];
+                final isSelected = server == serversManage.selectedServer;
                 return Card(
+                  color: isSelected ? Colors.blue.shade100 : null,
                   child: ListTile(
-                    onTap: () {
-                      serversManage.selectServer(servers[index]);
+                    onTap: () async {
+                      await serversManage.selectServer(server);
+                      if (mounted) {
+                        setState(() {});
+                      }
                     },
                     title: Text(
-                      servers[index] +
-                          (servers[index] == (serversManage.getSelectedServer())
-                              ? ' (selected)'
-                              : ''),
+                      server + (isSelected ? ' (انتخاب شده)' : ''),
+                      style: TextStyle(
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? Colors.blue : Colors.black,
+                      ),
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),

@@ -1,31 +1,28 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class serversM extends StatelessWidget {
+class ServersM extends ChangeNotifier {
+  String? selectedServer;
+
+  ServersM() {
+    _loadSelectedServer();
+  }
+
+  Future<void> _loadSelectedServer() async {
+    final prefs = await SharedPreferences.getInstance();
+    selectedServer = prefs.getString('selectedServer') ?? "";
+    notifyListeners();
+  }
+
   Future<bool> selectServer(String server) async {
     try {
-      // Get the application's document directory
-      Directory appDocDir = await getApplicationDocumentsDirectory();
-      String appDocPath = appDocDir.path;
-
-      // Define the path to the settings.json file
-      String settingsPath = '$appDocPath/settings.json';
-
-      // Read the existing JSON data from the file
-      File settingsFile = File(settingsPath);
-      Map<String, dynamic> jsonData = {};
-      if (settingsFile.existsSync()) {
-        String content = await settingsFile.readAsString();
-        jsonData = json.decode(content);
-      }
-
-      // Update the server field
-      jsonData['server'] = server;
-      await settingsFile.writeAsString(json.encode(jsonData));
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('selectedServer', server);
+      selectedServer = server;
+      notifyListeners();
       return true;
     } catch (e) {
       return false;
@@ -40,7 +37,7 @@ class serversM extends StatelessWidget {
       File settingsFile = File(settingsPath);
       if (settingsFile.existsSync()) {
         String content = await settingsFile.readAsString();
-        return json.decode(content);
+        return json.decode(content) as Map<String, dynamic>;
       }
       return {};
     } catch (e) {
@@ -57,7 +54,7 @@ class serversM extends StatelessWidget {
       Map<String, dynamic> jsonData = {};
       if (settingsFile.existsSync()) {
         String content = await settingsFile.readAsString();
-        jsonData = json.decode(content);
+        jsonData = json.decode(content) as Map<String, dynamic>;
       }
       jsonData['servers'] = servers;
       await settingsFile.writeAsString(json.encode(jsonData));
@@ -68,24 +65,7 @@ class serversM extends StatelessWidget {
   }
 
   Future<String> getSelectedServer() async {
-    try {
-      Directory appDocDir = await getApplicationDocumentsDirectory();
-      String appDocPath = appDocDir.path;
-      String settingsPath = '$appDocPath/settings.json';
-      File settingsFile = File(settingsPath);
-      if (settingsFile.existsSync()) {
-        String content = await settingsFile.readAsString();
-        return json.decode(content)["server"];
-      }
-      return "";
-    } catch (e) {
-      return "";
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('selectedServer') ?? "";
   }
 }
