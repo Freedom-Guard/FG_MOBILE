@@ -1,3 +1,4 @@
+import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -52,8 +53,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   bool isConnected = false;
   bool isPressed = false;
-
+  Connect connect = new Connect();
   Future<void> toggleConnection() async {
+    connect.ConnectVibe(
+      "https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link#VIBE | VPN FAIL",
+      "--tun",
+    );
     setState(() {
       isConnected = !isConnected;
     });
