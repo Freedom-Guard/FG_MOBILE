@@ -1,3 +1,4 @@
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:557228138.
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:flutter/material.dart';
@@ -54,11 +55,37 @@ class _HomePageState extends State<HomePage> {
   bool isConnected = false;
   bool isPressed = false;
   Connect connect = new Connect();
+  String userConfig = '';
   Future<void> toggleConnection() async {
-    connect.ConnectVibe(
-      "https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link#VIBE | VPN FAIL",
-      "--tun",
-    );
+    if (userConfig.isEmpty) {
+      final result = await showDialog<String>(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Enter Config'),
+              content: TextField(
+                onChanged: (value) {
+                  userConfig = value;
+                },
+                decoration: const InputDecoration(
+                  hintText: "Paste config here",
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, userConfig),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+      );
+      if (result == null || result.isEmpty) return;
+    }
+    connect.ConnectVibe(userConfig, "--tun");
     setState(() {
       isConnected = !isConnected;
     });
