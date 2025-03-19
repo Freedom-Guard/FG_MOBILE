@@ -9,6 +9,11 @@ class Connect {
 
   void test() {}
 
+  Future<void> disConnect() async {
+    await flutterV2ray.initializeV2Ray();
+    flutterV2ray.stopV2Ray();
+  }
+
   // Connects to a single V2Ray config
   Future<void> ConnectVibe(String config, dynamic args) async {
     await flutterV2ray.initializeV2Ray();
@@ -96,10 +101,10 @@ class Connect {
 
       await flutterV2ray.initializeV2Ray(); // Initialize before pinging
       List<Map<String, dynamic>> configPings = [];
+      var succConfig = 0;
       for (String config in configs) {
-        if (!config.startsWith('vmess://') && !config.startsWith('vless://')) {
-          LogOverlay.showLog('Skipping unsupported config: $config');
-          continue;
+        if (succConfig > 10) {
+          break;
         }
         try {
           V2RayURL parser = FlutterV2ray.parseFromURL(config);
@@ -108,6 +113,7 @@ class Connect {
             config: parser.getFullConfiguration(),
           );
           if (ping > 0) {
+            succConfig++;
             configPings.add({'config': config, 'ping': ping});
           }
         } catch (e) {

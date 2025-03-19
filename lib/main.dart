@@ -55,7 +55,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool isConnected = false;
-  bool isPressed = false;
+  bool isConnecting = false;
   Connect connect = new Connect();
   String userConfig = '';
   Future<void> toggleConnection() async {
@@ -63,6 +63,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         isConnected = false;
       });
+      await connect.disConnect();
     } else {
       try {
         await connect.ConnectAuto(
@@ -77,6 +78,7 @@ class _HomePageState extends State<HomePage> {
         //       as String,
         //   "",
         // );
+
         setState(() {
           isConnected = true;
         });
@@ -108,12 +110,12 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GestureDetector(
-              onTapDown: (_) => setState(() => isPressed = true),
-              onTapUp: (_) => setState(() => isPressed = false),
+              onTapDown: (_) => setState(() => isConnecting = true),
+              onTapUp: (_) => setState(() => isConnecting = false),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                width: isPressed ? 110 : 120,
-                height: isPressed ? 110 : 120,
+                width: isConnecting ? 110 : 120,
+                height: isConnecting ? 110 : 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
