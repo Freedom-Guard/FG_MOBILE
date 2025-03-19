@@ -65,18 +65,18 @@ class _HomePageState extends State<HomePage> {
       });
     } else {
       try {
-        // await connect.ConnectAuto(
-        //   "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/index.json",
-        //   60000,
-        // );
-
-        await connect.ConnectVibe(
-          await connect.sortAndBestConfigFromSub(
-                "https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link",
-              )
-              as String,
-          "",
+        await connect.ConnectAuto(
+          "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/index.json",
+          60000,
         );
+
+        // await connect.ConnectVibe(
+        //   await connect.sortAndBestConfigFromSub(
+        //         "https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link",
+        //       )
+        //       as String,
+        //   "",
+        // );
         setState(() {
           isConnected = true;
         });

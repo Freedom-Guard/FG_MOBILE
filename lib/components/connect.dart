@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:flutter_v2ray/flutter_v2ray.dart';
 import 'package:http/http.dart' as http;
@@ -98,6 +97,10 @@ class Connect {
       await flutterV2ray.initializeV2Ray(); // Initialize before pinging
       List<Map<String, dynamic>> configPings = [];
       for (String config in configs) {
+        if (!config.startsWith('vmess://') && !config.startsWith('vless://')) {
+          LogOverlay.showLog('Skipping unsupported config: $config');
+          continue;
+        }
         try {
           V2RayURL parser = FlutterV2ray.parseFromURL(config);
           if (parser.getFullConfiguration().isEmpty) continue;
