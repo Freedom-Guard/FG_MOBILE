@@ -55,29 +55,33 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool isConnected = false;
+  bool isPressed = false;
   bool isConnecting = false;
   Connect connect = new Connect();
   String userConfig = '';
   Future<void> toggleConnection() async {
+    setState(() {
+      isConnecting = true;
+    });
     if (isConnected) {
       setState(() {
         isConnected = false;
       });
-      await connect.disConnect();
+      // await connect.disConnect();
     } else {
       try {
-        await connect.ConnectAuto(
-          "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/index.json",
-          60000,
-        );
-
-        // await connect.ConnectVibe(
-        //   await connect.sortAndBestConfigFromSub(
-        //         "https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link",
-        //       )
-        //       as String,
-        //   "",
+        // await connect.ConnectAuto(
+        //   "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/index.json",
+        //   60000,
         // );
+
+         await connect.ConnectVibe(
+           await connect.sortAndBestConfigFromSub(
+                "https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link",
+              )
+              as String,
+          "",
+         );
 
         setState(() {
           isConnected = true;
@@ -89,6 +93,9 @@ class _HomePageState extends State<HomePage> {
         LogOverlay.showLog("خطا در اتصال: $e");
       }
     }
+    setState(() {
+      isConnecting = false;
+    });
   }
 
   @override
@@ -110,12 +117,12 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GestureDetector(
-              onTapDown: (_) => setState(() => isConnecting = true),
-              onTapUp: (_) => setState(() => isConnecting = false),
+              onTapDown: (_) => setState(() => isPressed = true),
+              onTapUp: (_) => setState(() => isPressed = false),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                width: isConnecting ? 110 : 120,
-                height: isConnecting ? 110 : 120,
+                width: isPressed ? 110 : 120,
+                height: isPressed ? 110 : 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
@@ -165,7 +172,11 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 20),
             Text(
-              isConnected ? "Connected" : "Not connected",
+              isConnecting
+                  ? "Connecting..."
+                  : isConnected
+                  ? "Connected"
+                  : "Not connected",
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
