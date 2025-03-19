@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'pages/settings.dart';
 import 'pages/servers.dart';
+import 'components/LOGLOG.dart';
 
 Future<void> main() async {
   runApp(
@@ -21,20 +22,21 @@ class FreedomGuardApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: LogOverlay.navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFF0099FF),
           secondary: Color(0xFF8A2BE2),
-          surface: Color(0xFF1A1B26), // پس‌زمینه اصلی
-          error: Color(0xFFFF1744), // قرمز نئونی
-          onPrimary: Colors.black, // متن روی دکمه‌های آبی
-          onSecondary: Colors.white, // متن روی دکمه‌های بنفش
-          onSurface: Color(0xFFB0BEC5), // متن و آیکون‌ها
-          onError: Colors.white, // متن روی دکمه‌های قرمز
+          surface: Color(0xFF1A1B26),
+          error: Color(0xFFFF1744),
+          onPrimary: Colors.black,
+          onSecondary: Colors.white,
+          onSurface: Color(0xFFB0BEC5),
+          onError: Colors.white,
         ),
-        scaffoldBackgroundColor: const Color(0xFF121212), // پس‌زمینه کل صفحه
+        scaffoldBackgroundColor: const Color(0xFF121212),
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
         hoverColor: Colors.transparent,
@@ -57,38 +59,22 @@ class _HomePageState extends State<HomePage> {
   Connect connect = new Connect();
   String userConfig = '';
   Future<void> toggleConnection() async {
-    if (userConfig.isEmpty) {
-      final result = await showDialog<String>(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text('Enter Config'),
-              content: TextField(
-                onChanged: (value) {
-                  userConfig = value;
-                },
-                decoration: const InputDecoration(
-                  hintText: "Paste config here",
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, userConfig),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
+    LogOverlay.showLog("دکمه زده شد"); // تست اولیه
+    try {
+      await connect.ConnectAuto(
+        "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/index.json",
+        60000,
       );
-      if (result == null || result.isEmpty) return;
+      setState(() {
+        isConnected = true;
+      });
+      LogOverlay.showLog("اتصال با موفقیت برقرار شد");
+    } catch (e) {
+      setState(() {
+        isConnected = false;
+      });
+      LogOverlay.showLog("خطا در اتصال: $e");
     }
-    connect.ConnectVibe(userConfig, "--tun");
-    setState(() {
-      isConnected = !isConnected;
-    });
   }
 
   @override
@@ -118,12 +104,15 @@ class _HomePageState extends State<HomePage> {
                 height: isPressed ? 110 : 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 4),
+                  border: Border.all(
+                    color: Color.fromARGB(100, 44, 21, 46),
+                    width: 2,
+                  ),
                   gradient: LinearGradient(
                     colors:
                         isConnected
                             ? [Colors.greenAccent, Colors.green]
-                            : [Colors.deepPurpleAccent, Colors.indigo],
+                            : [Color(0xFF252836), Color(0x802f3542)],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -196,10 +185,7 @@ class _HomePageState extends State<HomePage> {
               );
             }),
             _buildNavItem(Icons.home_filled, "خانه", () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomePage()),
-              );
+              LogOverlay.showLog("message");
             }),
             _buildNavItem(Icons.cloud_sync, "سرور ها", () {
               Navigator.push(
