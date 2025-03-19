@@ -59,21 +59,33 @@ class _HomePageState extends State<HomePage> {
   Connect connect = new Connect();
   String userConfig = '';
   Future<void> toggleConnection() async {
-    LogOverlay.showLog("دکمه زده شد"); // تست اولیه
-    try {
-      await connect.ConnectAuto(
-        "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/index.json",
-        60000,
-      );
-      setState(() {
-        isConnected = true;
-      });
-      LogOverlay.showLog("اتصال با موفقیت برقرار شد");
-    } catch (e) {
+    if (isConnected) {
       setState(() {
         isConnected = false;
       });
-      LogOverlay.showLog("خطا در اتصال: $e");
+    } else {
+      try {
+        // await connect.ConnectAuto(
+        //   "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/index.json",
+        //   60000,
+        // );
+
+        await connect.ConnectVibe(
+          await connect.sortAndBestConfigFromSub(
+                "https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link",
+              )
+              as String,
+          "",
+        );
+        setState(() {
+          isConnected = true;
+        });
+      } catch (e) {
+        setState(() {
+          isConnected = false;
+        });
+        LogOverlay.showLog("خطا در اتصال: $e");
+      }
     }
   }
 
