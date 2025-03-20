@@ -56,9 +56,9 @@ class Connect {
           if (config.split(",;,")[0] == "vibe") {
             config = config.split(",;,")[1];
             if (config.startsWith("http")) {
-              String? bestConfig = await sortAndBestConfigFromSub(config);
-              if (bestConfig != null) await ConnectVibe(bestConfig, "args");
-              if (bestConfig != null) break;
+              String? bestConfig = await getBestConfigFromSub(config);
+              await ConnectVibe(bestConfig!, "args");
+              break;
             } else {
               await ConnectVibe(config, "args");
             }
@@ -74,7 +74,7 @@ class Connect {
     }
   }
 
-  Future<String?> sortAndBestConfigFromSub(String sub) async {
+  Future<String?> getBestConfigFromSub(String sub) async {
     try {
       final uri = Uri.parse(sub);
       final response = await http.get(uri);
@@ -92,31 +92,29 @@ class Connect {
       if (configs.isEmpty) return null;
 
       await flutterV2ray.initializeV2Ray();
-      final results = <Map<String, dynamic>>[];
+
       final stopwatch = Stopwatch()..start();
-
-      for (final config in configs) {
-        if (results.length >= 3 || stopwatch.elapsed.inSeconds >= 45) break;
-
-        try {
-          final parser = FlutterV2ray.parseFromURL(config);
-          final ping = await flutterV2ray
-              .getServerDelay(config: parser.getFullConfiguration())
-              .timeout(Duration(seconds: 3), onTimeout: () => -1);
-
-          if (ping > 0) {
-            results.add({'config': config, 'ping': ping});
+      final results = await Future.wait(
+        configs.take(5).map((config) async {
+          try {
+            final parser = FlutterV2ray.parseFromURL(config);
+            final ping = await flutterV2ray
+                .getServerDelay(config: parser.getFullConfiguration())
+                .timeout(Duration(seconds: 3), onTimeout: () => -1);
+            return ping > 0 ? {'config': config, 'ping': ping} : null;
+          } catch (_) {
+            return null;
           }
-        } catch (_) {
-          continue;
-        }
-      }
+        }),
+      );
 
       stopwatch.stop();
-      if (results.isEmpty) return null;
 
-      results.sort((a, b) => a['ping'].compareTo(b['ping']));
-      return results.first['config'] as String;
+      final validResults = results.whereType<Map<String, dynamic>>().toList();
+      if (validResults.isEmpty) return null;
+
+      validResults.sort((a, b) => a['ping'].compareTo(b['ping']));
+      return validResults.first['config'] as String;
     } catch (_) {
       return null;
     }

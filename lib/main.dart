@@ -71,7 +71,7 @@ class _HomePageState extends State<HomePage> {
     } else {
       try {
         await connect.ConnectVibe(
-          await connect.sortAndBestConfigFromSub(
+          await connect.getBestConfigFromSub(
                 "https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link",
               )
               as String,
