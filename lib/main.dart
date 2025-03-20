@@ -62,29 +62,23 @@ class _HomePageState extends State<HomePage> {
   Future<void> toggleConnection() async {
     setState(() {
       isConnecting = true;
+      isPressed = true;
     });
     if (isConnected) {
+      await connect.disConnect();
       setState(() {
         isConnected = false;
+        isPressed = false;
       });
-      // await connect.disConnect();
     } else {
       try {
-        // await connect.ConnectAuto(
-        //   "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/index.json",
-        //   60000,
-        // );
-
-         await connect.ConnectVibe(
-           await connect.sortAndBestConfigFromSub(
-                "https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link",
-              )
-              as String,
-          "",
-         );
-
+        await connect.ConnectAuto(
+          "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/index.json",
+          60000,
+        );
         setState(() {
           isConnected = true;
+          isPressed = false;
         });
       } catch (e) {
         setState(() {
@@ -96,6 +90,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       isConnecting = false;
     });
+    isPressed = false;
   }
 
   @override

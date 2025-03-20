@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:flutter_v2ray/flutter_v2ray.dart';
 import 'package:http/http.dart' as http;
+import 'package:synchronized/extension.dart';
 import 'dart:async';
 
 class Connect {
@@ -73,64 +74,56 @@ class Connect {
     }
   }
 
-  // Finds the best config from a subscription link based on ping
   Future<String?> sortAndBestConfigFromSub(String sub) async {
     try {
       final uri = Uri.parse(sub);
       final response = await http.get(uri);
-      if (response.statusCode != 200) {
-        LogOverlay.showLog('Failed to fetch sub link: ${response.statusCode}');
-        return null;
-      }
+      if (response.statusCode != 200) return null;
 
       String data = response.body;
-      List<String> configs = [];
       if (sub.startsWith('http')) {
-        data = utf8.decode(base64Decode(data));
-      }
-      configs =
-          data
-              .split('\n')
-              .where((element) => element.trim().isNotEmpty)
-              .toList();
-
-      if (configs.isEmpty) {
-        LogOverlay.showLog('No configs found in sub link');
-        return null;
-      }
-
-      await flutterV2ray.initializeV2Ray(); // Initialize before pinging
-      List<Map<String, dynamic>> configPings = [];
-      var succConfig = 0;
-      for (String config in configs) {
-        if (succConfig > 2) {
-          break;
-        }
         try {
-          V2RayURL parser = FlutterV2ray.parseFromURL(config);
-          if (parser.getFullConfiguration().isEmpty) continue;
-          final ping = await flutterV2ray.getServerDelay(
-            config: parser.getFullConfiguration(),
-          );
-          if (ping > 0) {
-            succConfig++;
-            configPings.add({'config': config, 'ping': ping});
+          data = utf8.decode(base64Decode(data));
+        } catch (_) {}
+      }
+
+      final configs =
+          data.split('\n').where((e) => e.trim().isNotEmpty).toList();
+      if (configs.isEmpty) return null;
+
+      await flutterV2ray.initializeV2Ray();
+      final results = <Map<String, dynamic>>[];
+      final stopwatch = Stopwatch()..start();
+
+      final futures = configs.map((config) async {
+        if (results.length >= 3 || stopwatch.elapsed.inSeconds >= 45)
+          return null;
+        try {
+          final parser = FlutterV2ray.parseFromURL(config);
+          final fullConfig = parser.getFullConfiguration();
+          if (fullConfig.isEmpty) return null;
+
+          final ping = await flutterV2ray
+              .getServerDelay(config: fullConfig)
+              .timeout(Duration(seconds: 3), onTimeout: () => -1);
+
+          if (ping > 0 && ping < 2000) {
+            results.add({'config': config, 'ping': ping});
           }
-        } catch (e) {
-          LogOverlay.showLog('Error pinging config: $e');
+          return ping > 0 ? {'config': config, 'ping': ping} : null;
+        } catch (_) {
+          return null;
         }
-      }
+      });
 
-      if (configPings.isEmpty) {
-        LogOverlay.showLog('No valid configs found in sub link');
-        return null;
-      }
+      await Future.wait(futures).timeout(Duration(seconds: 45));
+      stopwatch.stop();
 
-      configPings.sort((a, b) => a['ping'].compareTo(b['ping']));
-      LogOverlay.showLog('Best config ping: ${configPings.first['ping']}ms');
-      return configPings.first['config'] as String;
-    } catch (e) {
-      LogOverlay.showLog('Error in sortAndBestConfigFromSub: $e');
+      if (results.isEmpty) return null;
+
+      results.sort((a, b) => a['ping'].compareTo(b['ping']));
+      return results.first['config'] as String;
+    } catch (_) {
       return null;
     }
   }
