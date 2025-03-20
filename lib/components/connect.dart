@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:flutter_v2ray/flutter_v2ray.dart';
 import 'package:http/http.dart' as http;
-import 'package:synchronized/extension.dart';
 import 'dart:async';
 
 class Connect {
@@ -58,9 +57,10 @@ class Connect {
             config = config.split(",;,")[1];
             if (config.startsWith("http")) {
               String? bestConfig = await sortAndBestConfigFromSub(config);
-              if (bestConfig != null) ConnectVibe(bestConfig, "args");
+              if (bestConfig != null) await ConnectVibe(bestConfig, "args");
+              if (bestConfig != null) break;
             } else {
-              ConnectVibe(config, "args");
+              await ConnectVibe(config, "args");
             }
           }
           await Future.delayed(const Duration(milliseconds: 500));
@@ -95,30 +95,24 @@ class Connect {
       final results = <Map<String, dynamic>>[];
       final stopwatch = Stopwatch()..start();
 
-      final futures = configs.map((config) async {
-        if (results.length >= 3 || stopwatch.elapsed.inSeconds >= 45)
-          return null;
+      for (final config in configs) {
+        if (results.length >= 3 || stopwatch.elapsed.inSeconds >= 45) break;
+
         try {
           final parser = FlutterV2ray.parseFromURL(config);
-          final fullConfig = parser.getFullConfiguration();
-          if (fullConfig.isEmpty) return null;
-
           final ping = await flutterV2ray
-              .getServerDelay(config: fullConfig)
+              .getServerDelay(config: parser.getFullConfiguration())
               .timeout(Duration(seconds: 3), onTimeout: () => -1);
 
-          if (ping > 0 && ping < 2000) {
+          if (ping > 0) {
             results.add({'config': config, 'ping': ping});
           }
-          return ping > 0 ? {'config': config, 'ping': ping} : null;
         } catch (_) {
-          return null;
+          continue;
         }
-      });
+      }
 
-      await Future.wait(futures).timeout(Duration(seconds: 45));
       stopwatch.stop();
-
       if (results.isEmpty) return null;
 
       results.sort((a, b) => a['ping'].compareTo(b['ping']));
