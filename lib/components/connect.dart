@@ -103,7 +103,7 @@ class Connect {
       List<Map<String, dynamic>> configPings = [];
       var succConfig = 0;
       for (String config in configs) {
-        if (succConfig > 10) {
+        if (succConfig > 2) {
           break;
         }
         try {
