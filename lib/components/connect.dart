@@ -7,10 +7,26 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class Connect {
-  final FlutterV2ray flutterV2ray = FlutterV2ray(onStatusChanged: (status) {
-    LogOverlay.showLog("CH STATUS CORE: "+status.toString());
-  });
+  bool isConnected = false;
+  final FlutterV2ray flutterV2ray = FlutterV2ray(
+    onStatusChanged: (status) {
+      if (status.state.toString() == "V2RayStatusState.connected") {
+        LogOverlay.showLog(
+          "Connected To VIBE",
+          backgroundColor: Colors.greenAccent,
+        );
+      }
+    },
+  );
   final wireguard = WireGuardFlutter.instance;
+
+  Future<void> connected() async {
+    isConnected = true;
+  }
+
+  Future<bool> connectedQ() async {
+    return isConnected;
+  }
 
   Future<bool> test() async {
     try {
@@ -143,9 +159,11 @@ Endpoint = engage.cloudflareclient.com:2408''';
       return false;
     }
   }
+
   debugPrint(message) {
     LogOverlay.addLog(message);
   }
+
   Future<String?> getBestConfigFromSub(
     String sub, {
     int batchSize = 5,
@@ -175,8 +193,7 @@ Endpoint = engage.cloudflareclient.com:2408''';
         try {
           data = utf8.decode(base64Decode(data));
           debugPrint('Successfully decoded base64 data');
-        } catch (_) {
-        }
+        } catch (_) {}
       }
       final configs =
           data.split('\n').where((e) => e.trim().isNotEmpty).toList();

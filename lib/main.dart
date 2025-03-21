@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connect.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'pages/settings.dart';
 import 'pages/servers.dart';
+import 'pages/LOGPAGE.dart';
 import 'components/LOGLOG.dart';
 import 'widgets/PingWidget.dart';
 
@@ -62,6 +64,19 @@ class _HomePageState extends State<HomePage> {
   Connect connect = new Connect();
   ServersM serverM = new ServersM();
   String userConfig = '';
+
+
+  @override
+  void initState() {
+    super.initState();
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      if(connect.connectedQ == true){
+        setState(() {
+          isConnected = true;
+        });
+      }
+    });
+  }
 
   Future<void> toggleConnection() async {
     setState(() {
@@ -143,6 +158,17 @@ class _HomePageState extends State<HomePage> {
                   backgroundColor: Colors.black.withOpacity(0.3),
                   elevation: 0,
                   centerTitle: true,
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.bug_report_sharp),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => LogPage()),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
