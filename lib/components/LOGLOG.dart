@@ -1,10 +1,39 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 class LogOverlay {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
   static final List<_LogData> _logQueue = [];
   static bool _isShowingLog = false;
+  
+  static Future<void> addLog(String message) async {
+    final now = DateTime.now();
+    final logMessage = '[${now.toIso8601String()}] $message\n';
+    final file = await _getLogFile();
+    await file.writeAsString(logMessage, mode: FileMode.append);
+  }
+
+  static Future<String> loadLogs() async {
+    try {
+      final file = await _getLogFile();
+      return await file.readAsString();
+    } catch (e) {
+      return 'Error reading logs: $e';
+    }
+  }
+
+  static Future<File> _getLogFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final path = directory.path;
+    final file = File('$path/app_logs.txt');
+    if (!await file.exists()) {
+      await file.create();
+    }
+    return file;
+  }
 
   static void showLog(
     String message, {

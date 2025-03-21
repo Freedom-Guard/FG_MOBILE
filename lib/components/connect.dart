@@ -115,17 +115,19 @@ Endpoint = engage.cloudflareclient.com:2408''';
               }
             } else {
               await ConnectVibe(config, "args");
-            }
-          } else if (config.split(",;,")[0] == "warp") {
-            config = config.split(",;,")[1].split("#")[0];
-            LogOverlay.showLog(config);
-            await ConnectWarp();
-            if (await test()) {
               connStat = true;
               break;
-            } else {
-              await disConnect();
             }
+          } else if (config.split(",;,")[0] == "warp") {
+            // config = config.split(",;,")[1].split("#")[0];
+            // LogOverlay.showLog(config);
+            // await ConnectWarp();
+            // if (await test()) {
+            //   connStat = true;
+            //   break;
+            // } else {
+            //   await disConnect();
+            // }
           }
           await Future.delayed(const Duration(milliseconds: 500));
         }
@@ -133,59 +135,132 @@ Endpoint = engage.cloudflareclient.com:2408''';
         return connStat;
       } else {
         LogOverlay.showLog('Failed to load config: ${response.statusCode}');
+        return false;
       }
-    } catch (e) {
-      LogOverlay.showLog('Error in ConnectAuto: $e');
+    } catch (e, stackTrace) {
+      LogOverlay.showLog('Error in ConnectAuto: $e\nStackTrace: $stackTrace');
+      return false;
     }
-    return false;
   }
-
-  Future<String?> getBestConfigFromSub(String sub) async {
+  debugPrint(message) {
+    LogOverlay.addLog(message);
+  }
+  Future<String?> getBestConfigFromSub(
+    String sub, {
+    int batchSize = 5,
+    Duration batchTimeout = const Duration(seconds: 15),
+    Duration requestTimeout = const Duration(seconds: 10),
+    Duration pingTimeout = const Duration(seconds: 5),
+  }) async {
+    final stopwatch = Stopwatch()..start();
     try {
       final uri = Uri.parse(sub);
-      final response = await http.get(uri);
-      if (response.statusCode != 200) return null;
-
+      debugPrint('Fetching subscription from: $sub');
+      final response = await http
+          .get(uri)
+          .timeout(
+            requestTimeout,
+            onTimeout: () {
+              debugPrint('HTTP request timed out for: $sub');
+              throw TimeoutException('Failed to fetch subscription');
+            },
+          );
+      if (response.statusCode != 200) {
+        debugPrint('HTTP request failed with status: ${response.statusCode}');
+        return null;
+      }
       String data = response.body;
-      if (sub.startsWith('http')) {
+      if (sub.toLowerCase().startsWith('http')) {
         try {
           data = utf8.decode(base64Decode(data));
-        } catch (_) {}
+          debugPrint('Successfully decoded base64 data');
+        } catch (_) {
+        }
       }
-
       final configs =
           data.split('\n').where((e) => e.trim().isNotEmpty).toList();
-      if (configs.isEmpty) return null;
-      await flutterV2ray.initializeV2Ray();
+      if (configs.isEmpty) {
+        debugPrint('No valid configs found in subscription');
+        return null;
+      }
+      try {
+        await flutterV2ray.initializeV2Ray();
+        debugPrint('Initialized V2Ray successfully');
+      } catch (e, stackTrace) {
+        debugPrint('Failed to initialize V2Ray: $e\nStackTrace: $stackTrace');
+        return null;
+      }
+      final List<Map<String, dynamic>> results = [];
+      Future<void> processBatch(List<String> batch) async {
+        final batchResults = await Future.wait(
+          batch.map((config) async {
+            try {
+              final parser = FlutterV2ray.parseFromURL(config);
+              final ping = await flutterV2ray
+                  .getServerDelay(config: parser.getFullConfiguration())
+                  .timeout(
+                    pingTimeout,
+                    onTimeout: () {
+                      debugPrint('Ping timeout for config: $config');
+                      return -1;
+                    },
+                  );
+              if (ping > 0) {
+                return {'config': config, 'ping': ping};
+              } else {
+                debugPrint('Invalid ping ($ping) for config: $config');
+                return null;
+              }
+            } catch (e, stackTrace) {
+              debugPrint(
+                'Error for config: $config\nError: $e\nStackTrace: $stackTrace',
+              );
+              return null;
+            }
+          }),
+          cleanUp: (result) => null,
+        );
+        results.addAll(
+          batchResults
+              .where((result) => result != null)
+              .cast<Map<String, dynamic>>(),
+        );
+      }
 
-      final stopwatch = Stopwatch()..start();
-      final results = await Future.wait(
-        configs.take(configs.length).map((config) async {
-          try {
-            final parser = FlutterV2ray.parseFromURL(config);
-            final ping = await flutterV2ray
-                .getServerDelay(config: parser.getFullConfiguration())
-                .timeout(
-                  const Duration(seconds: 5),
-                  onTimeout: () {
-                    return -1;
-                  },
-                );
-            return ping > 0 ? {'config': config, 'ping': ping} : null;
-          } catch ($e) {
-            return null;
-          }
-        }),
-      );
-
+      for (var i = 0; i < configs.length; i += batchSize) {
+        final batch = configs.sublist(
+          i,
+          i + batchSize > configs.length ? configs.length : i + batchSize,
+        );
+        try {
+          await processBatch(batch).timeout(
+            batchTimeout,
+            onTimeout: () {
+              debugPrint(
+                'Batch processing timed out for batch starting at index $i',
+              );
+            },
+          );
+        } catch (e, stackTrace) {
+          debugPrint('Batch error at index $i: $e\nStackTrace: $stackTrace');
+        }
+      }
       stopwatch.stop();
-
-      final validResults = results.whereType<Map<String, dynamic>>().toList();
-      if (validResults.isEmpty) return null;
-      validResults.sort((a, b) => a['ping'].compareTo(b['ping']));
-      LogOverlay.showLog(validResults.first['config']);
-      return validResults.first['config'] as String;
-    } catch (_) {
+      debugPrint('Processing took ${stopwatch.elapsed.inSeconds} seconds');
+      if (results.isEmpty) {
+        debugPrint('No valid results found');
+        return null;
+      }
+      results.sort((a, b) => a['ping'].compareTo(b['ping']));
+      LogOverlay.showLog(results.first['config']);
+      debugPrint(
+        'Best config: ${results.first['config']} with ping: ${results.first['ping']}',
+      );
+      return results.first['config'] as String;
+    } catch (e, stackTrace) {
+      debugPrint(
+        'Unexpected error in getBestConfigFromSub: $e\nStackTrace: $stackTrace',
+      );
       return null;
     }
   }

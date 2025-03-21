@@ -1,0 +1,1 @@
+/home/user/FG_MOBILE/build/app/intermediates/cxx/RelWithDebInfo/246g4n6x/obj/armeabi-v7a

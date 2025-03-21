@@ -1,0 +1,2 @@
+/home/user/FG_MOBILE/android/app/.cxx/RelWithDebInfo/246g4n6x/x86/CMakeFiles/edit_cache.dir
+/home/user/FG_MOBILE/android/app/.cxx/RelWithDebInfo/246g4n6x/x86/CMakeFiles/rebuild_cache.dir

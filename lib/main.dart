@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'pages/settings.dart';
 import 'pages/servers.dart';
 import 'components/LOGLOG.dart';
+import 'pages/LOGPAGE.dart';
 
 Future<void> main() async {
   runApp(
@@ -81,7 +82,7 @@ class _HomePageState extends State<HomePage> {
           ).timeout(
             Duration(milliseconds: 60000),
             onTimeout: () {
-              LogOverlay.showLog("timeout");
+              LogOverlay.showLog("timeout connect Auto");
               return false;
             },
           );
@@ -125,6 +126,17 @@ class _HomePageState extends State<HomePage> {
         foregroundColor: Colors.white,
         centerTitle: true,
         elevation: 4,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.list_alt_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LogPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: Center(
         child: Column(
