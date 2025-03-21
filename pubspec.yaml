@@ -18,7 +18,7 @@ dependencies:
   ffi: ^2.1.3
   flutter_v2ray: ^1.0.10
   http: ^1.3.0
-  synchronized: ^3.3.1
+  synchronized: ^3.3.0+3
   wireguard_flutter: ^0.1.3
 
 dev_dependencies:
