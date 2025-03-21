@@ -10,7 +10,22 @@ class Connect {
   final FlutterV2ray flutterV2ray = FlutterV2ray(onStatusChanged: (status) {});
   final wireguard = WireGuardFlutter.instance;
 
-  void test() {}
+  Future<bool> test() async {
+    try {
+      final response = await http
+          .get(Uri.parse('https://www.google.com'))
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        LogOverlay.showLog(
+          "Connected To internet",
+          backgroundColor: Colors.greenAccent,
+        );
+        return true;
+      }
+    } catch (_) {}
+    LogOverlay.showLog("No internet");
+    return false;
+  }
 
   Future<void> disConnect() async {
     await flutterV2ray.initializeV2Ray();
@@ -43,9 +58,9 @@ class Connect {
     try {
       await wireguard.initialize(interfaceName: 'wg0');
       const String conf = '''[Interface]
-PrivateKey = 9yYN5X+bmODkpAv0nhSjA3GgpN6J/iCXYnXD50uVTz0=
-Address = 172.16.0.2/32, 2606:4700:110:8b5e:1ee6:342f:58da:2b4b/128
-DNS = 1.1.1.1, 1.0.0.1, 2606:4700:4700::1111, 2606:4700:4700::1001
+PrivateKey =
+Address = 172.16.0.2/32
+DNS = 1.1.1.1, 1.0.0.1
 MTU = 1280
 
 [Peer]
@@ -104,9 +119,12 @@ Endpoint = engage.cloudflareclient.com:2408''';
           } else if (config.split(",;,")[0] == "warp") {
             config = config.split(",;,")[1].split("#")[0];
             LogOverlay.showLog(config);
-            if (await ConnectWarp()) {
+            await ConnectWarp();
+            if (await test()) {
               connStat = true;
               break;
+            } else {
+              await disConnect();
             }
           }
           await Future.delayed(const Duration(milliseconds: 500));
@@ -148,7 +166,7 @@ Endpoint = engage.cloudflareclient.com:2408''';
             final ping = await flutterV2ray
                 .getServerDelay(config: parser.getFullConfiguration())
                 .timeout(
-                  const Duration(seconds: 10),
+                  const Duration(seconds: 5),
                   onTimeout: () {
                     return -1;
                   },
