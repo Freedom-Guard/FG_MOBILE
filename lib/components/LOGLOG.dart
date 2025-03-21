@@ -9,7 +9,7 @@ class LogOverlay {
   static void showLog(
     String message, {
     Duration duration = const Duration(seconds: 3),
-    Color backgroundColor = Colors.black87, // رنگ پیش‌فرض
+    Color backgroundColor = Colors.black87, 
   }) {
     _logQueue.add(_LogData(message, duration, backgroundColor));
     _processQueue();

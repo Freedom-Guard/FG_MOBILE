@@ -12,6 +12,7 @@ class ServersPage extends StatefulWidget {
 
 class _ServersPageState extends State<ServersPage> {
   List<String> servers = [];
+  ServersM serversManage = new ServersM();
 
   @override
   void initState() {
@@ -55,9 +56,7 @@ class _ServersPageState extends State<ServersPage> {
     final prefs = await SharedPreferences.getInstance();
     final serversManage = Provider.of<ServersM>(context, listen: false);
     String? selectedServer = prefs.getString('selectedServer');
-    if (selectedServer != null) {
-      await serversManage.selectServer(selectedServer);
-    }
+    await serversManage.selectServer(selectedServer!);
   }
 
   Future<void> _loadServers() async {
@@ -92,6 +91,7 @@ class _ServersPageState extends State<ServersPage> {
 
   void _removeServer(int index) {
     if (mounted) {
+      serversManage.selectServer("");
       setState(() {
         servers.removeAt(index);
         _saveServers();

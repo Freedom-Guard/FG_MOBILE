@@ -1,17 +1,21 @@
 import 'dart:convert';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_v2ray/flutter_v2ray.dart';
+import 'package:wireguard_flutter/wireguard_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class Connect {
   final FlutterV2ray flutterV2ray = FlutterV2ray(onStatusChanged: (status) {});
+  final wireguard = WireGuardFlutter.instance;
 
   void test() {}
 
   Future<void> disConnect() async {
     await flutterV2ray.initializeV2Ray();
     flutterV2ray.stopV2Ray();
+    wireguard.stopVpn();
   }
 
   // Connects to a single V2Ray config
@@ -30,6 +34,36 @@ class Connect {
         bypassSubnets: null,
         proxyOnly: false,
       );
+    } else {
+      LogOverlay.showLog("Please Allow");
+    }
+  }
+
+  Future<bool> ConnectWarp() async {
+    try {
+      await wireguard.initialize(interfaceName: 'wg0');
+      const String conf = '''[Interface]
+PrivateKey = 9yYN5X+bmODkpAv0nhSjA3GgpN6J/iCXYnXD50uVTz0=
+Address = 172.16.0.2/32, 2606:4700:110:8b5e:1ee6:342f:58da:2b4b/128
+DNS = 1.1.1.1, 1.0.0.1, 2606:4700:4700::1111, 2606:4700:4700::1001
+MTU = 1280
+
+[Peer]
+PublicKey = bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=
+AllowedIPs = 0.0.0.0/0, ::/0
+Endpoint = engage.cloudflareclient.com:2408''';
+      await wireguard.startVpn(
+        serverAddress: "engage.cloudflareclient.com:2408",
+        wgQuickConfig: conf,
+        providerBundleIdentifier: 'com.freedom.guard',
+      );
+      LogOverlay.showLog(
+        "Connected To warp",
+        backgroundColor: Colors.greenAccent,
+      );
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -66,6 +100,13 @@ class Connect {
               }
             } else {
               await ConnectVibe(config, "args");
+            }
+          } else if (config.split(",;,")[0] == "warp") {
+            config = config.split(",;,")[1].split("#")[0];
+            LogOverlay.showLog(config);
+            if (await ConnectWarp()) {
+              connStat = true;
+              break;
             }
           }
           await Future.delayed(const Duration(milliseconds: 500));
@@ -120,11 +161,11 @@ class Connect {
       );
 
       stopwatch.stop();
-      LogOverlay.showLog(results.toString());
 
       final validResults = results.whereType<Map<String, dynamic>>().toList();
       if (validResults.isEmpty) return null;
       validResults.sort((a, b) => a['ping'].compareTo(b['ping']));
+      LogOverlay.showLog(validResults.first['config']);
       return validResults.first['config'] as String;
     } catch (_) {
       return null;
