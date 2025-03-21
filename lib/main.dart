@@ -1,4 +1,3 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:557228138.
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:flutter/material.dart';
@@ -58,7 +57,9 @@ class _HomePageState extends State<HomePage> {
   bool isPressed = false;
   bool isConnecting = false;
   Connect connect = new Connect();
+  ServersM serverM = new ServersM();
   String userConfig = '';
+
   Future<void> toggleConnection() async {
     setState(() {
       isConnecting = true;
@@ -70,16 +71,34 @@ class _HomePageState extends State<HomePage> {
       await connect.disConnect();
     } else {
       try {
-        await connect.ConnectVibe(
-          await connect.getBestConfigFromSub(
-                "https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link",
-              )
-              as String,
-          "",
-        );
-
+        var connStat = false;
+        var selectedServer = await serverM.getSelectedServer() as String;
+        if (selectedServer == "") {
+          LogOverlay.showLog("connecting to auto mode");
+          connStat = await connect.ConnectAuto(
+            "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
+            60000,
+          ).timeout(
+            Duration(milliseconds: 60000),
+            onTimeout: () {
+              LogOverlay.showLog("timeout");
+              return false;
+            },
+          );
+        } else {
+          LogOverlay.showLog("connecting to config:" + selectedServer);
+          if (selectedServer.startsWith("http")) {
+            var bestConfig = await connect.getBestConfigFromSub(selectedServer);
+            if (bestConfig != null) {
+              await connect.ConnectVibe(bestConfig, "args");
+            }
+          } else {
+            await connect.ConnectVibe(selectedServer, "args");
+          }
+          connStat = true;
+        }
         setState(() {
-          isConnected = true;
+          isConnected = connStat;
         });
       } catch (e) {
         setState(() {

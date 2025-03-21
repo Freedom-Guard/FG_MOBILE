@@ -64,7 +64,7 @@ class ServersM extends ChangeNotifier {
     }
   }
 
-  Future<String> getSelectedServer() async {
+  Future<String?> getSelectedServer() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('selectedServer') ?? "";
   }

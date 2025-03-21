@@ -34,7 +34,7 @@ class Connect {
   }
 
   // Fetches and processes configs from a URL
-  Future<void> ConnectAuto(String fgconfig, int timeout) async {
+  Future<bool> ConnectAuto(String fgconfig, int timeout) async {
     try {
       final uri = Uri.parse(fgconfig);
       final response = await http
@@ -50,15 +50,20 @@ class Connect {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        List<String> publicServers = List<String>.from(data["PUBLIC"] ?? []);
-
+        List<String> publicServers = List<String>.from(data["MOBILE"] ?? []);
+        var connStat = false;
         for (var config in publicServers) {
           if (config.split(",;,")[0] == "vibe") {
-            config = config.split(",;,")[1];
+            config = config.split(",;,")[1].split("#")[0];
+            LogOverlay.showLog(config);
             if (config.startsWith("http")) {
-              String? bestConfig = await getBestConfigFromSub(config);
-              await ConnectVibe(bestConfig!, "args");
-              break;
+              var bestConfig = await getBestConfigFromSub(config);
+              if (bestConfig != null) {
+                LogOverlay.showLog(bestConfig);
+                await ConnectVibe(bestConfig, "args");
+                connStat = true;
+                break;
+              }
             } else {
               await ConnectVibe(config, "args");
             }
@@ -66,12 +71,14 @@ class Connect {
           await Future.delayed(const Duration(milliseconds: 500));
         }
         LogOverlay.showLog('Config fetched successfully');
+        return connStat;
       } else {
         LogOverlay.showLog('Failed to load config: ${response.statusCode}');
       }
     } catch (e) {
       LogOverlay.showLog('Error in ConnectAuto: $e');
     }
+    return false;
   }
 
   Future<String?> getBestConfigFromSub(String sub) async {
@@ -90,29 +97,33 @@ class Connect {
       final configs =
           data.split('\n').where((e) => e.trim().isNotEmpty).toList();
       if (configs.isEmpty) return null;
-
       await flutterV2ray.initializeV2Ray();
 
       final stopwatch = Stopwatch()..start();
       final results = await Future.wait(
-        configs.take(5).map((config) async {
+        configs.take(configs.length).map((config) async {
           try {
             final parser = FlutterV2ray.parseFromURL(config);
             final ping = await flutterV2ray
                 .getServerDelay(config: parser.getFullConfiguration())
-                .timeout(Duration(seconds: 3), onTimeout: () => -1);
+                .timeout(
+                  const Duration(seconds: 10),
+                  onTimeout: () {
+                    return -1;
+                  },
+                );
             return ping > 0 ? {'config': config, 'ping': ping} : null;
-          } catch (_) {
+          } catch ($e) {
             return null;
           }
         }),
       );
 
       stopwatch.stop();
+      LogOverlay.showLog(results.toString());
 
       final validResults = results.whereType<Map<String, dynamic>>().toList();
       if (validResults.isEmpty) return null;
-
       validResults.sort((a, b) => a['ping'].compareTo(b['ping']));
       return validResults.first['config'] as String;
     } catch (_) {
