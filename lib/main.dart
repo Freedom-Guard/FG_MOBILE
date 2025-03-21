@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'pages/settings.dart';
 import 'pages/servers.dart';
 import 'components/LOGLOG.dart';
-import 'pages/LOGPAGE.dart';
+import 'widgets/PingWidget.dart';
 
 Future<void> main() async {
   runApp(
@@ -78,9 +80,9 @@ class _HomePageState extends State<HomePage> {
           LogOverlay.showLog("connecting to auto mode");
           connStat = await connect.ConnectAuto(
             "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
-            60000,
+            90000,
           ).timeout(
-            Duration(milliseconds: 60000),
+            Duration(milliseconds: 90000),
             onTimeout: () {
               LogOverlay.showLog("timeout connect Auto");
               return false;
@@ -115,138 +117,195 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text(
-          "Freedom Guard",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        backgroundColor: Colors.black87,
-        foregroundColor: Colors.white,
-        centerTitle: true,
-        elevation: 4,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.list_alt_outlined),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LogPage()),
-              );
-            },
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/background.jpg"),
+              fit: BoxFit.cover,
+            ),
           ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTapDown: (_) => setState(() => isPressed = true),
-              onTapUp: (_) => setState(() => isPressed = false),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: isPressed ? 110 : 120,
-                height: isPressed ? 110 : 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Color.fromARGB(100, 44, 21, 46),
-                    width: 2,
+        ),
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          extendBodyBehindAppBar: true,
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(kToolbarHeight),
+            child: ClipRRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: AppBar(
+                  title: const Text(
+                    "Freedom Guard",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                   ),
-                  gradient: LinearGradient(
-                    colors:
-                        isConnected
-                            ? [Colors.greenAccent, Colors.green]
-                            : [Color(0xFF252836), Color(0x802f3542)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          isConnected
-                              ? Colors.green.withOpacity(0.5)
-                              : Colors.purple.withOpacity(0.5),
-                      blurRadius: 10,
-                      spreadRadius: 3,
-                    ),
-                  ],
+                  backgroundColor: Colors.black.withOpacity(0.3),
+                  elevation: 0,
+                  centerTitle: true,
                 ),
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: toggleConnection,
-                  child: Center(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      transitionBuilder:
-                          (child, animation) =>
-                              ScaleTransition(scale: animation, child: child),
-                      child: Icon(
-                        isConnected
-                            ? Icons.lock_outline
-                            : Icons.power_settings_new,
-                        key: ValueKey<bool>(isConnected),
-                        size: 60,
-                        color: Colors.white,
+              ),
+            ),
+          ),
+          body: Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/background.jpg"),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTapDown: (_) => setState(() => isPressed = true),
+                  onTapUp: (_) => setState(() => isPressed = false),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: isPressed ? 115 : 130,
+                    height: isPressed ? 115 : 130,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors:
+                            isConnected
+                                ? [
+                                  Colors.greenAccent.shade400,
+                                  Colors.green.shade800,
+                                ]
+                                : isConnecting
+                                ? [Colors.blue.shade400, Colors.blue.shade800]
+                                : [
+                                  const Color(0xFF2A2D3E),
+                                  const Color(0xFF1A1B26),
+                                ],
+                        center: Alignment.center,
+                        radius: isPressed ? 1.0 : 0.9,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color:
+                              isConnected
+                                  ? Colors.green.shade700.withOpacity(0.4)
+                                  : isConnecting
+                                  ? Colors.blue.shade700.withOpacity(0.1)
+                                  : Colors.purple.shade700.withOpacity(0.1),
+                          blurRadius: isPressed ? 20 : 15,
+                          spreadRadius: isPressed ? 5 : 3,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: toggleConnection,
+                      child: Center(
+                        child: TweenAnimationBuilder(
+                          tween: Tween<double>(
+                            begin: 1.0,
+                            end: isPressed ? 0.8 : 1.0,
+                          ),
+                          duration: const Duration(milliseconds: 200),
+                          builder: (context, value, child) {
+                            return Transform.scale(
+                              scale: value,
+                              child: Icon(
+                                isConnected
+                                    ? Icons.lock
+                                    : Icons.power_settings_new,
+                                size: 70,
+                                color: Colors.white.withOpacity(
+                                  isConnecting ? 0.7 : 1.0,
+                                ),
+                                shadows: [
+                                  Shadow(
+                                    color:
+                                        isConnected
+                                            ? Colors.green.shade900.withOpacity(
+                                              0.5,
+                                            )
+                                            : isConnecting
+                                            ? Colors.blue.shade900.withOpacity(
+                                              0.5,
+                                            )
+                                            : Colors.purple.shade900
+                                                .withOpacity(0.4),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),
+                Text(
+                  isConnecting
+                      ? "Connecting..."
+                      : isConnected
+                      ? "Connected"
+                      : "Not connected",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                PingWidget(),
+              ],
+            ),
+          ),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black54,
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: BottomNavigationBar(
+                  backgroundColor: Colors.transparent,
+                  selectedItemColor: Colors.transparent,
+                  unselectedItemColor: Colors.transparent,
+                  showSelectedLabels: false,
+                  showUnselectedLabels: false,
+                  elevation: 0,
+                  type: BottomNavigationBarType.fixed,
+                  currentIndex: 1,
+                  items: [
+                    _buildNavItem(Icons.settings, "تنظیمات", () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SettingsPage()),
+                      );
+                    }),
+                    _buildNavItem(Icons.home_filled, "خانه", () {
+                      LogOverlay.showLog("message");
+                    }),
+                    _buildNavItem(Icons.cloud_sync, "سرور ها", () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ServersPage()),
+                      );
+                    }),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 20),
-            Text(
-              isConnecting
-                  ? "Connecting..."
-                  : isConnected
-                  ? "Connected"
-                  : "Not connected",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.black87,
-          boxShadow: [
-            BoxShadow(color: Colors.black54, blurRadius: 10, spreadRadius: 2),
-          ],
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          selectedItemColor: Colors.transparent,
-          unselectedItemColor: Colors.transparent,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          currentIndex: 1,
-          items: [
-            _buildNavItem(Icons.settings, "تنظیمات", () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SettingsPage()),
-              );
-            }),
-            _buildNavItem(Icons.home_filled, "خانه", () {
-              LogOverlay.showLog("message");
-            }),
-            _buildNavItem(Icons.cloud_sync, "سرور ها", () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ServersPage()),
-              );
-            }),
-          ],
-        ),
-      ),
+      ],
     );
   }
 
@@ -258,24 +317,46 @@ class _HomePageState extends State<HomePage> {
     return BottomNavigationBarItem(
       icon: GestureDetector(
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(8),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: 70,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.transparent, width: 2),
+            borderRadius: BorderRadius.circular(16),
+            color: const Color.fromARGB(255, 51, 26, 61),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: Icon(icon, size: 28, color: Colors.grey.shade400),
+          child: Icon(icon, size: 26, color: Colors.grey.shade300),
         ),
       ),
-      activeIcon: Container(
-        padding: const EdgeInsets.all(8),
+      activeIcon: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        width: 70,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.purpleAccent, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          color: const Color(0xFF7C3AED),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF7C3AED).withOpacity(0.4),
+              blurRadius: 8,
+              spreadRadius: 1,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-        child: Icon(icon, size: 28, color: Colors.purpleAccent),
+        child: Icon(icon, size: 28, color: Colors.white),
       ),
-      label: label,
+      label: '',
+      tooltip: label,
     );
   }
 }

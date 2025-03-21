@@ -7,7 +7,9 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class Connect {
-  final FlutterV2ray flutterV2ray = FlutterV2ray(onStatusChanged: (status) {});
+  final FlutterV2ray flutterV2ray = FlutterV2ray(onStatusChanged: (status) {
+    LogOverlay.showLog("CH STATUS CORE: "+status.toString());
+  });
   final wireguard = WireGuardFlutter.instance;
 
   Future<bool> test() async {
@@ -104,7 +106,6 @@ Endpoint = engage.cloudflareclient.com:2408''';
         for (var config in publicServers) {
           if (config.split(",;,")[0] == "vibe") {
             config = config.split(",;,")[1].split("#")[0];
-            LogOverlay.showLog(config);
             if (config.startsWith("http")) {
               var bestConfig = await getBestConfigFromSub(config);
               if (bestConfig != null) {
