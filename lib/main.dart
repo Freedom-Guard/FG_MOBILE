@@ -12,7 +12,23 @@ import 'pages/LOGPAGE.dart';
 import 'components/LOGLOG.dart';
 import 'widgets/PingWidget.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp();
+    print("🔥 Firebase Initialized Successfully");
+  } catch (e) {
+    print("❌ Firebase Initialization Failed: $e");
+  }
+
+  FirebaseAnalytics.instance.logEvent(
+    name: "app_opened",
+    parameters: {"time": DateTime.now().toString()},
+  );
+
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (context) => ServersM())],
