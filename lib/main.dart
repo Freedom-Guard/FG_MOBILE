@@ -63,14 +63,12 @@ class _HomePageState extends State<HomePage> {
   bool isConnecting = false;
   Connect connect = new Connect();
   ServersM serverM = new ServersM();
-  String userConfig = '';
-
 
   @override
   void initState() {
     super.initState();
     Timer.periodic(Duration(seconds: 5), (timer) {
-      if(connect.connectedQ == true){
+      if (connect.connectedQ == true) {
         setState(() {
           isConnected = true;
         });
@@ -97,7 +95,7 @@ class _HomePageState extends State<HomePage> {
             "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
             90000,
           ).timeout(
-            Duration(milliseconds: 90000),
+            Duration(milliseconds: 110000),
             onTimeout: () {
               LogOverlay.showLog("timeout connect Auto");
               return false;
@@ -184,6 +182,7 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Spacer(flex: isConnected ? 2 : 1),
                 GestureDetector(
                   onTapDown: (_) => setState(() => isPressed = true),
                   onTapUp: (_) => setState(() => isPressed = false),
@@ -282,7 +281,9 @@ class _HomePageState extends State<HomePage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                PingWidget(),
+                SizedBox(height: 10),
+                if (isConnected) NetworkStatusWidget() else (PingWidget()),
+                Spacer(flex: 1),
               ],
             ),
           ),
