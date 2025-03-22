@@ -8,7 +8,17 @@ import 'dart:async';
 
 class Connect {
   bool isConnected = false;
-  late final FlutterV2ray flutterV2ray;
+
+  final FlutterV2ray flutterV2ray = FlutterV2ray(
+    onStatusChanged: (status) async {
+      if (status.toString() == "V2RayStatusState.connected") {
+        LogOverlay.showLog(
+          "Connected To VIBE",
+          backgroundColor: Colors.greenAccent,
+        );
+      }
+    },
+  );
   final wireguard = WireGuardFlutter.instance;
 
   Future<void> connected() async {
@@ -44,17 +54,6 @@ class Connect {
 
   // Connects to a single V2Ray config
   Future<void> ConnectVibe(String config, dynamic args) async {
-    flutterV2ray = FlutterV2ray(
-      onStatusChanged: (status) async {
-        if (status.toString() == "V2RayStatusState.connected") {
-          LogOverlay.showLog(
-            "Connected To VIBE",
-            backgroundColor: Colors.greenAccent,
-          );
-          await connected();
-        }
-      },
-    );
     await flutterV2ray.initializeV2Ray();
     V2RayURL parser = FlutterV2ray.parseFromURL(config);
     LogOverlay.showLog(

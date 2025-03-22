@@ -3,10 +3,10 @@ import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/servers.dart';
+import 'package:Freedom_Guard/pages/servers.dart';
+import 'package:Freedom_Guard/pages/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'pages/settings.dart';
-import 'pages/servers.dart';
 import 'pages/LOGPAGE.dart';
 import 'components/LOGLOG.dart';
 import 'widgets/PingWidget.dart';
@@ -93,7 +93,7 @@ class _HomePageState extends State<HomePage> {
           LogOverlay.showLog("connecting to auto mode");
           connStat = await connect.ConnectAuto(
             "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
-            90000,
+            110000,
           ).timeout(
             Duration(milliseconds: 110000),
             onTimeout: () {
@@ -289,7 +289,7 @@ class _HomePageState extends State<HomePage> {
           ),
           bottomNavigationBar: Container(
             decoration: BoxDecoration(
-              color: Colors.black87,
+              color: const Color.fromARGB(0, 255, 255, 255),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black54,
@@ -299,34 +299,64 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(0),
+              ),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: BottomNavigationBar(
-                  backgroundColor: Colors.transparent,
-                  selectedItemColor: Colors.transparent,
-                  unselectedItemColor: Colors.transparent,
-                  showSelectedLabels: false,
-                  showUnselectedLabels: false,
-                  elevation: 0,
-                  type: BottomNavigationBarType.fixed,
-                  currentIndex: 1,
-                  items: [
-                    _buildNavItem(Icons.settings, "تنظیمات", () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SettingsPage()),
-                      );
-                    }),
-                    _buildNavItem(Icons.home_filled, "خانه", () {
-                      LogOverlay.showLog("message");
-                    }),
-                    _buildNavItem(Icons.cloud_sync, "سرور ها", () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ServersPage()),
-                      );
-                    }),
-                  ],
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // بلور قوی‌تر
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(0, 255, 255, 255),
+                    border: const Border(
+                      top: BorderSide(
+                        color: Color.fromARGB(25, 255, 255, 255),
+                        width: 1.5,
+                      ),
+                    ),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(0),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: BottomNavigationBar(
+                    backgroundColor: Colors.transparent,
+                    selectedItemColor: Colors.white,
+                    unselectedItemColor: Colors.grey.shade400,
+                    showSelectedLabels: false,
+                    showUnselectedLabels: false,
+                    elevation: 0,
+                    type: BottomNavigationBarType.fixed,
+                    currentIndex: 1,
+                    items: [
+                      _buildNavItem(
+                        Icons.settings,
+                        "تنظیمات",
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SettingsPage(),
+                          ),
+                        ),
+                      ),
+                      _buildNavItem(Icons.home_filled, "خانه", () {}),
+                      _buildNavItem(
+                        Icons.cloud_sync,
+                        "سرور ها",
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ServersPage(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -354,7 +384,7 @@ class _HomePageState extends State<HomePage> {
             color: const Color.fromARGB(255, 51, 26, 61),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: const Color.fromARGB(103, 0, 0, 0),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
