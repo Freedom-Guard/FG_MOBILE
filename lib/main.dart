@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/servers.dart';
+import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/servers.dart';
 import 'package:Freedom_Guard/pages/settings.dart';
 import 'package:flutter/material.dart';
@@ -63,6 +64,7 @@ class _HomePageState extends State<HomePage> {
   bool isConnecting = false;
   Connect connect = new Connect();
   ServersM serverM = new ServersM();
+  Settings settings = new Settings();
 
   @override
   void initState() {
@@ -95,7 +97,15 @@ class _HomePageState extends State<HomePage> {
             "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
             110000,
           ).timeout(
-            Duration(milliseconds: 110000),
+            Duration(
+              milliseconds:
+                  int.tryParse(
+                    settings.getValue("timeout_auto").toString() == ""
+                        ? "110000"
+                        : settings.getValue("timeout_auto").toString(),
+                  ) ??
+                  110000,
+            ),
             onTimeout: () {
               LogOverlay.showLog("timeout connect Auto");
               return false;

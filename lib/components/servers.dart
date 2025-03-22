@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,12 +9,16 @@ class ServersM extends ChangeNotifier {
 
   ServersM() {
     _loadSelectedServer();
+    _loadServers();
   }
 
-  void initState() {
-    addServerFromUrl(
+  Future<void> _loadServers() async {
+    bool success = await addServerFromUrl(
       "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
     );
+    if (success) {
+      notifyListeners();
+    }
   }
 
   Future<void> _loadSelectedServer() async {
@@ -52,10 +55,22 @@ class ServersM extends ChangeNotifier {
       Map<String, dynamic> oldData = await oldServers();
       List<String> currentServers = List<String>.from(oldData['servers'] ?? []);
 
-      Set<String> updatedServers = {...currentServers, ...newServers};
+      bool isUpdated = false;
 
-      await saveServers(updatedServers.toList());
-      return true;
+      for (String server in newServers) {
+        server = server.split(",;,")[0] == "warp" ? '' : server.split(",;,")[1];
+        if (!currentServers.contains(server)) {
+          currentServers.add(server);
+          isUpdated = true;
+          notifyListeners();
+        }
+      }
+
+      if (isUpdated) {
+        await saveServers(currentServers);
+      }
+
+      return isUpdated;
     } catch (e) {
       return false;
     }
@@ -63,15 +78,9 @@ class ServersM extends ChangeNotifier {
 
   Future<Map<String, dynamic>> oldServers() async {
     try {
-      Directory appDocDir = await getApplicationDocumentsDirectory();
-      String appDocPath = appDocDir.path;
-      String settingsPath = '$appDocPath/settings.json';
-      File settingsFile = File(settingsPath);
-      if (settingsFile.existsSync()) {
-        String content = await settingsFile.readAsString();
-        return json.decode(content) as Map<String, dynamic>;
-      }
-      return {};
+      final prefs = await SharedPreferences.getInstance();
+      final serverList = prefs.getStringList('servers') ?? [];
+      return {"servers": serverList};
     } catch (e) {
       return {};
     }
@@ -79,6 +88,11 @@ class ServersM extends ChangeNotifier {
 
   Future<bool> saveServers(List<String> servers) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      if (servers.isEmpty) {
+        await prefs.remove('servers');
+      }
+      await prefs.setStringList('servers', servers);
       Directory appDocDir = await getApplicationDocumentsDirectory();
       String appDocPath = appDocDir.path;
       String settingsPath = '$appDocPath/settings.json';
