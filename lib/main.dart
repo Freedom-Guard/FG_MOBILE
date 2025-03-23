@@ -165,6 +165,11 @@ class _HomePageState extends State<HomePage> {
             parameters: {
               "time": DateTime.now().toString(),
               "core": settings.getValue("core_vpn"),
+              "isp": settings.getValue("user_isp"),
+              "server":
+                  settings.getValue("f_link").toString() == "true"
+                      ? selectedServer.split("#")[0]
+                      : '',
             },
           );
         } else {
@@ -173,6 +178,7 @@ class _HomePageState extends State<HomePage> {
             parameters: {
               "time": DateTime.now().toString(),
               "core": settings.getValue("core_vpn"),
+              "isp": settings.getValue("user_isp"),
             },
           );
         }

@@ -30,12 +30,12 @@ class Settings {
       return map;
     });
 
-    final file = await _getSettingsFile();
+    final file = await getSettingsFile();
     await file.writeAsString(json.encode(settings));
   }
 
   Future<Map<String, String>> loadSettings() async {
-    final file = await _getSettingsFile();
+    final file = await getSettingsFile();
     if (await file.exists()) {
       try {
         final content = await file.readAsString();
@@ -48,7 +48,7 @@ class Settings {
     return {};
   }
 
-  Future<File> _getSettingsFile() async {
+  Future<File> getSettingsFile() async {
     final dir = await getApplicationDocumentsDirectory();
     return File('${dir.path}/settings.json');
   }

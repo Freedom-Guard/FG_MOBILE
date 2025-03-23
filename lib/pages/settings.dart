@@ -1,3 +1,16 @@
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:2037767261.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:2747140428.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:2660053640.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:289404504.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:3782545339.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:3975634792.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:854757502.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:1548449028.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:3010143163.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:1618272542.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:3367225911.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:933345598.
+import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,6 +24,13 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _isSettingEnabled = false;
+  Settings settings = new Settings();
+  Map settingsJson = {};
+
+  _initSettingJson() async {
+    settingsJson["f_link"] = await settings.getValue("f_link");
+    setState(() {});
+  }
 
   @override
   void initState() {
@@ -19,6 +39,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadSettings() async {
+    await _initSettingJson();
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _isSettingEnabled = prefs.getBool('setting_key') ?? false;
@@ -52,39 +73,57 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            SettingSwitch(
-              title: "حالت دستی",
-              value: _isSettingEnabled,
-              onChanged: (bool value) {
-                setState(() => _isSettingEnabled = value);
-                _saveSetting("setting_key", value);
-              },
-            ),
-            if (_isSettingEnabled)
-              Column(
-                children: [
-                  SettingInput(
-                    title: "تایم اوت حالت خودکار",
-                    prefKey: "timeout_auto",
-                    hintText: "110000",
-                  ),
-                  SettingInput(
-                    title: "تعداد درخواست\u200cهای هم\u200cزمان",
-                    prefKey: "batch_size",
-                    hintText: "15",
-                  ),
-                  SettingSelector(
-                    title: "CORE VPN",
-                    prefKey: "core_vpn",
-                    options: ["auto", "vibe", "warp"],
-                  ),
-                ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              SettingSwitch(
+                title: "Freedom LINK",
+                value:
+                    bool.tryParse(settingsJson["f_link"].toString()) ?? false,
+                onChanged: (bool value) {
+                  setState(() {
+                    settingsJson["f_link"] = value.toString();
+                  });
+                  settings.setValue("f_link", value.toString());
+                },
               ),
-          ],
+              SettingSelector(
+                title: "YOUR ISP",
+                prefKey: "user_isp",
+                options: ["MCI", "IRANCELL", "PISHGAMAN", "OTHER"],
+              ),
+              SettingSwitch(
+                title: "حالت دستی",
+                value: _isSettingEnabled,
+                onChanged: (bool value) {
+                  setState(() => _isSettingEnabled = value);
+                  _saveSetting("setting_key", value);
+                },
+              ),
+              if (_isSettingEnabled)
+                Column(
+                  children: [
+                    SettingInput(
+                      title: "تایم اوت حالت خودکار",
+                      prefKey: "timeout_auto",
+                      hintText: "110000",
+                    ),
+                    SettingInput(
+                      title: "تعداد درخواست\u200cهای هم\u200cزمان",
+                      prefKey: "batch_size",
+                      hintText: "15",
+                    ),
+                    SettingSelector(
+                      title: "CORE VPN",
+                      prefKey: "core_vpn",
+                      options: ["auto", "vibe", "warp"],
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -175,6 +214,7 @@ class _SettingSelectorState extends State<SettingSelector> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: DropdownButton<String>(
+                isExpanded: true,
                 value: _selectedValue,
                 items:
                     widget.options.map((String value) {
@@ -285,10 +325,10 @@ class AboutDialogWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(Icons.info_outline, size: 50, color: Colors.blueAccent),
+            Image.asset("assets/icon/ico.png", width: 100, height: 100),
             const SizedBox(height: 10),
             const Text(
-              "درباره برنامه",
+              "گارد آزادی",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
@@ -297,8 +337,32 @@ class AboutDialogWidget extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
+            Text(
+              "نسخه: 3",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 20),
-            const GitHubLink(),
+            Row(
+              spacing: 10,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                LinkWidget(
+                  url: "https://github.com/Freedom-Guard/FG_MOBILE",
+                  text: "GitHub",
+                  icon: Icons.receipt_long_outlined,
+                ),
+                LinkWidget(
+                  url: "https://t.me/Freedom_Guard_Net",
+                  text: "Telegram",
+                  icon: Icons.link,
+                ),
+                LinkWidget(
+                  url: "https://x.com/Freedom_Guard_N",
+                  text: "X",
+                  icon: Icons.link,
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -324,16 +388,25 @@ class AboutDialogWidget extends StatelessWidget {
   }
 }
 
-class GitHubLink extends StatelessWidget {
-  const GitHubLink({super.key});
+class LinkWidget extends StatelessWidget {
+  final String url;
+  final String text;
+  final IconData icon;
+
+  const LinkWidget({
+    super.key,
+    required this.url,
+    required this.text,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        final url = Uri.parse('https://github.com/Freedom-Guard/FG_MOBILE');
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url, mode: LaunchMode.externalApplication);
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -346,10 +419,10 @@ class GitHubLink extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.link, color: Colors.blueAccent),
+          Icon(icon, color: Colors.blueAccent),
           const SizedBox(width: 5),
-          const Text(
-            "GitHub",
+          Text(
+            text,
             style: TextStyle(
               fontSize: 16,
               color: Colors.blueAccent,
