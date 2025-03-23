@@ -29,6 +29,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   _initSettingJson() async {
     settingsJson["f_link"] = await settings.getValue("f_link");
+    settingsJson["fast_connect"] = await settings.getValue("fast_connect");
     setState(() {});
   }
 
@@ -87,6 +88,17 @@ class _SettingsPageState extends State<SettingsPage> {
                     settingsJson["f_link"] = value.toString();
                   });
                   settings.setValue("f_link", value.toString());
+                },
+              ),
+              SettingSwitch(
+                title: "Quick Connect",
+                value:
+                    bool.tryParse(settingsJson["fast_connect"].toString()) ?? false,
+                onChanged: (bool value) {
+                  setState(() {
+                    settingsJson["fast_connect"] = value.toString();
+                  });
+                  settings.setValue("fast_connect", value.toString());
                 },
               ),
               SettingSelector(

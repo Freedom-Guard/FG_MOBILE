@@ -176,7 +176,11 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        List<String> publicServers = List<String>.from(data["MOBILE"] ?? []);
+        List<String> publicServers = List<String>.from(
+          settings.getValue("user_isp") != ""
+              ? data[settings.getValue("user_isp")]
+              : [] + data["MOBILE"],
+        );
         var connStat = false;
         for (var config in publicServers) {
           if (config.split(",;,")[0] == "vibe") {
@@ -230,7 +234,24 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
     Duration requestTimeout = const Duration(seconds: 10),
     Duration pingTimeout = const Duration(seconds: 5),
   }) async {
+    // Quick Connect
     try {
+      bool isQUICK =
+          settings.getValue("fast_connect") == ""
+              ? false
+              : bool.tryParse(settings.getValue("fast_connect").toString()) ??
+                  false;
+      if (isQUICK) {
+        String bestConfig = settings.getValue("best_config_backup").toString();
+        if (sub == settings.getValue("backup_sub") && bestConfig != "") {
+          bestConfig = settings.getValue("best_config_backup") as String;
+          return bestConfig;
+        }
+      }
+      ;
+    } catch (_) {}
+    try {
+      settings.setValue("backup_sub", sub);
       if (settings.getValue("batch_size") as String == "") {
         batchSize = 7;
       } else {
@@ -342,6 +363,10 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
       );
       debugPrint(
         'Best config: ${results.first['config']} with ping: ${results.first['ping']}',
+      );
+      settings.setValue(
+        "best_config_backup",
+        results.first['config'] as String,
       );
       return results.first['config'] as String;
     } catch (e, stackTrace) {
