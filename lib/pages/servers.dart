@@ -1,10 +1,12 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:3911754807.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:1482143165.
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../components/servers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as path;
 
 class ServersPage extends StatefulWidget {
   const ServersPage({super.key});
@@ -139,6 +141,64 @@ class _ServersPageState extends State<ServersPage> {
     );
   }
 
+  void _showAddServerDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('افزودن سرور'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.text_fields),
+                title: const Text('افزودن از متن'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showAddServerFromTextDialog(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.folder_open),
+                title: const Text('افزودن از فایل'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _importConfigFromFile();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showAddServerFromTextDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("افزودن سرور از متن"),
+          content: TextField(
+            controller: serverController,
+            decoration: const InputDecoration(hintText: "متن لینک"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("افزودن"),
+              onPressed: () {
+                for (var server in serverController.text.split("\n")) {
+                  _addServer(server);
+                }
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final serversManage = Provider.of<ServersM>(context);
@@ -148,44 +208,15 @@ class _ServersPageState extends State<ServersPage> {
         title: const Text("مدیریت سرورها"),
         backgroundColor: Colors.black,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => _showAddServerDialog(context),
+          ),
+        ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: serverController,
-                    decoration: InputDecoration(
-                      labelText: "لینک سرور",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: Colors.blue,
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 14,
-                        horizontal: 16,
-                      ),
-                      prefixIcon: const Icon(Icons.link, color: Colors.blue),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                IconButton(
-                  icon: const Icon(Icons.add, color: Colors.blue),
-                  onPressed: () => _addServer(serverController.text),
-                ),
-              ],
-            ),
-          ),
           Expanded(
             child:
                 servers.isEmpty
@@ -210,56 +241,72 @@ class _ServersPageState extends State<ServersPage> {
                           ),
                           color:
                               isSelected
-                                  ? const Color(0xFFB2DFDB)
-                                  : const Color.fromARGB(106, 29, 13, 39),
-                          child: ListTile(
-                            onTap: () async {
-                              await serversManage.selectServer(server);
-                              setState(() {});
-                            },
-                            title: Text(
-                              (server.split("#").length > 1
-                                      ? server.split("#")[1]
-                                      : server.split("#")[0]) +
-                                  (isSelected ? ' (انتخاب شده)' : ''),
-                              style: TextStyle(
-                                fontWeight:
-                                    isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                color: isSelected ? Colors.blue : Colors.white,
-                              ),
+                                  ? const Color(0xFF80CBC4)
+                                  : const Color.fromARGB(180, 18, 18, 18),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
                             ),
-                            trailing: PopupMenuButton<String>(
-                              onSelected: (String result) {
-                                switch (result) {
-                                  case 'edit':
-                                    _editServer(index);
-                                    break;
-                                  case 'share':
-                                    _shareServer(server);
-                                    break;
-                                  case 'delete':
-                                    _removeServer(index);
-                                    break;
-                                }
-                              },
-                              itemBuilder:
-                                  (BuildContext context) =>
-                                      <PopupMenuEntry<String>>[
-                                        const PopupMenuItem<String>(
-                                          value: 'edit',
-                                          child: Text('ویرایش'),
-                                        ),
-                                        const PopupMenuItem<String>(
-                                          value: 'share',
-                                          child: Text('اشتراک'),
-                                        ),
-                                        const PopupMenuItem<String>(
-                                          value: 'delete',
-                                          child: Text('حذف'),
-                                        ),
-                                      ],
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: ListTile(
+                                    onTap: () async {
+                                      await serversManage.selectServer(server);
+                                      setState(() {});
+                                    },
+                                    title: Text(
+                                      (server.split("#").length > 1
+                                              ? server.split("#")[1]
+                                              : server.split("#")[0]) +
+                                          (isSelected ? ' (انتخاب شده)' : ''),
+                                      style: TextStyle(
+                                        fontWeight:
+                                            isSelected
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                        color:
+                                            isSelected
+                                                ? Colors.blue
+                                                : Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                PopupMenuButton<String>(
+                                  onSelected: (String result) {
+                                    switch (result) {
+                                      case 'edit':
+                                        _editServer(index);
+                                        break;
+                                      case 'share':
+                                        _shareServer(server);
+                                        break;
+                                      case 'delete':
+                                        _removeServer(index);
+                                        break;
+                                    }
+                                  },
+                                  itemBuilder:
+                                      (BuildContext context) =>
+                                          <PopupMenuEntry<String>>[
+                                            const PopupMenuItem<String>(
+                                              value: 'edit',
+                                              child: Text('ویرایش'),
+                                            ),
+                                            const PopupMenuItem<String>(
+                                              value: 'share',
+                                              child: Text('اشتراک'),
+                                            ),
+                                            const PopupMenuItem<String>(
+                                              value: 'delete',
+                                              child: Text('حذف'),
+                                            ),
+                                          ],
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -269,5 +316,32 @@ class _ServersPageState extends State<ServersPage> {
         ],
       ),
     );
+  }
+
+  void _importConfigFromFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['txt'],
+    );
+
+    if (result != null) {
+      File file = File(result.files.single.path!);
+      if (path.extension(file.path) == '.txt') {
+        String fileContent = await file.readAsString();
+        List<String> serversFromFile = fileContent.split('\n');
+        serversFromFile.forEach((server) {
+          if (server.trim().isNotEmpty) {
+            _addServer(server.trim());
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('فایل با موفقیت وارد شد.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('فایل انتخاب شده معتبر نمی باشد.')),
+        );
+      }
+    }
   }
 }

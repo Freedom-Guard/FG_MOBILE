@@ -27,7 +27,7 @@ class Connect {
   }
 
   Future<bool> connectedQ() async {
-    return isConnected;
+    return flutterV2ray.getConnectedServerDelay() != -1 ? true : false;
   }
 
   Future<bool> test() async {
@@ -54,93 +54,107 @@ class Connect {
   }
 
   // Connects to a single V2Ray config
-  Future<void> ConnectVibe(String config, dynamic args) async {
-    await flutterV2ray.initializeV2Ray();
-    V2RayURL parser = FlutterV2ray.parseFromURL(config);
-    LogOverlay.showLog(
-      '${await flutterV2ray.getServerDelay(config: parser.getFullConfiguration())}ms',
-    );
-
-    if (await flutterV2ray.requestPermission()) {
-      flutterV2ray.startV2Ray(
-        remark: parser.remark,
-        config: parser.getFullConfiguration(),
-        blockedApps: null,
-        bypassSubnets: null,
-        proxyOnly: false,
-      );
-    } else {
-      LogOverlay.showLog("Please Allow");
+  Future<bool> ConnectVibe(String config, dynamic args) async {
+    try {
+      await flutterV2ray.initializeV2Ray();
+    } catch (_) {
+      LogOverlay.showLog("Failed initialize VIBE");
     }
+    try {
+      V2RayURL parser = FlutterV2ray.parseFromURL(config);
+      LogOverlay.showLog(
+        '${await flutterV2ray.getServerDelay(config: parser.getFullConfiguration())}ms',
+      );
+
+      if (await flutterV2ray.requestPermission()) {
+        flutterV2ray.startV2Ray(
+          remark: parser.remark,
+          config: parser.getFullConfiguration(),
+          blockedApps: null,
+          bypassSubnets: null,
+          proxyOnly: false,
+        );
+        return true;
+      } else {
+        LogOverlay.showLog(
+          "Permission Denied: Please grant necessary permissions to establish a connection.",
+          backgroundColor: Colors.redAccent,
+        );
+      }
+    } catch (e) {
+      LogOverlay.showLog(
+        "Failed to connect to VIBE \n " + e.toString(),
+        backgroundColor: Colors.redAccent,
+      );
+    }
+    return false;
   }
 
-  Future<String?> parseWireGuardLink(String link) async {
+  Future<Map<String, String>?> parseWireGuardLink(String link) async {
     try {
       final uri = Uri.parse(link);
-      if (uri.scheme != 'wireguard') {
-        return null;
-      }
-      final auth = uri.userInfo.split(':');
-      if (auth.length != 2) {
-        return null;
-      }
-      final privateKey = auth[0];
-      final publicKey = uri.queryParameters['publickey'];
-      final address = uri.queryParameters['address'];
-      final dns = uri.queryParameters['dns'];
-      final mtu = uri.queryParameters['mtu'];
-      final allowedIps = uri.queryParameters['allowedips'];
+      if (uri.scheme != 'wireguard') return null;
+
+      final params = uri.queryParameters.map(
+        (key, value) => MapEntry(key, Uri.decodeComponent(value)),
+      );
+
+      final privateKey = Uri.decodeComponent(uri.userInfo);
+      if (privateKey.isEmpty) return null;
+
+      final publicKey = params['publickey'];
+      final address = params['address'];
+      final mtu = params['mtu'];
       final endpoint = '${uri.host}:${uri.port}';
-      final psk = uri.queryParameters['presharedkey'];
+      if (publicKey == null || address == null || mtu == null) return null;
 
-      if (publicKey == null ||
-          address == null ||
-          mtu == null) {
-        return null;
-      }
-
-      final config = '''[Interface]
+      final config = '''
+[Interface]
 PrivateKey = $privateKey
-Address = $address${dns != null ? '\nDNS = $dns' : ''}
+Address = $address
+${_optionalField("DNS", params['dns'])}
 MTU = $mtu
 
 [Peer]
 PublicKey = $publicKey
-AllowedIPs = ${allowedIps ?? '0.0.0.0/0, ::/0'}
-Endpoint = $endpoint${psk != null ? '\nPresharedKey = $psk' : ''}''';
+AllowedIPs = ${params['allowedips'] ?? '0.0.0.0/0, ::/0'}
+Endpoint = $endpoint
+${_optionalField("PresharedKey", params['presharedkey'])}
+${_optionalField("PersistentKeepalive", params['keepalive'])}
+''';
 
-      return config;
-    } catch (_) {
+      return {'config': config, 'serverAddress': endpoint};
+    } catch (e) {
       return null;
     }
   }
 
-  Future<bool> ConnectWarp(config, args) async {
-    try {
-      String conf = await parseWireGuardLink(config) as String;
-      await wireguard.initialize(interfaceName: 'wg0');
-      // const String conf = '''[Interface]
-      // PrivateKey =
-      // Address = 172.16.0.2/32
-      // DNS = 1.1.1.1, 1.0.0.1
-      // MTU = 1280
+  String _optionalField(String key, String? value) {
+    return value != null && value.isNotEmpty ? "$key = $value\n" : "";
+  }
 
-      // [Peer]
-      // PublicKey = bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=
-      // AllowedIPs = 0.0.0.0/0, ::/0
-      // Endpoint = engage.cloudflareclient.com:2408''';
+  Future<bool> ConnectWarp(String config, List<String> args) async {
+    try {
+      final conf = await parseWireGuardLink(config);
+      if (conf == null) return false;
+
+      await wireguard.initialize(interfaceName: 'wg0');
       await wireguard.startVpn(
-        serverAddress: "engage.cloudflareclient.com:2408",
-        wgQuickConfig: conf,
+        serverAddress: conf["serverAddress"]!,
+        wgQuickConfig: conf["config"]!,
         providerBundleIdentifier: 'com.freedom.guard',
       );
+
       LogOverlay.showLog(
-        "Connected To warp",
+        "Connected To WARP",
         backgroundColor: Colors.greenAccent,
       );
       return true;
-    } catch (_) {
-      LogOverlay.showLog("Failed to connect to WARP");
+    } catch (e) {
+      LogOverlay.showLog(
+        "Failed to connect to WARP \nError: $e",
+        backgroundColor: Colors.redAccent,
+      );
       return false;
     }
   }
@@ -218,7 +232,7 @@ Endpoint = $endpoint${psk != null ? '\nPresharedKey = $psk' : ''}''';
   }) async {
     try {
       if (settings.getValue("batch_size") as String == "") {
-        batchSize = 15;
+        batchSize = 7;
       } else {
         batchSize = int.parse(settings.getValue("batch_size").toString());
       }
@@ -257,7 +271,7 @@ Endpoint = $endpoint${psk != null ? '\nPresharedKey = $psk' : ''}''';
         await flutterV2ray.initializeV2Ray();
         debugPrint('Initialized VIBE successfully');
       } catch (e, stackTrace) {
-        debugPrint('Failed to initialize V2Ray: $e\nStackTrace: $stackTrace');
+        debugPrint('Failed to initialize VIBE: $e\nStackTrace: $stackTrace');
         return null;
       }
       final List<Map<String, dynamic>> results = [];
@@ -322,7 +336,10 @@ Endpoint = $endpoint${psk != null ? '\nPresharedKey = $psk' : ''}''';
         return null;
       }
       results.sort((a, b) => a['ping'].compareTo(b['ping']));
-      LogOverlay.showLog(results.first['config']);
+      LogOverlay.showLog(
+        "Selected config: ${results.first['config']}",
+        backgroundColor: Colors.blueAccent,
+      );
       debugPrint(
         'Best config: ${results.first['config']} with ping: ${results.first['ping']}',
       );

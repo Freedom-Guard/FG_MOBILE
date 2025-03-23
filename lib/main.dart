@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:Freedom_Guard/pages/loading.dart';
 import 'package:Freedom_Guard/pages/servers.dart';
 import 'package:Freedom_Guard/pages/settings.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,14 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (context) => ServersM())],
-      child: FreedomGuardApp(),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        initialRoute: '/',
+        routes: {
+          '/': (context) => LoadingScreen(),
+          '/home': (context) => FreedomGuardApp(),
+        },
+      ),
     ),
   );
 }
@@ -132,24 +140,42 @@ class _HomePageState extends State<HomePage> {
           );
         } else {
           LogOverlay.showLog(
-            "connecting to config:\n" + selectedServer,
+            "connecting to config:\n" + selectedServer.split("#")[0],
             backgroundColor: Colors.blueAccent,
           );
           if (selectedServer.startsWith("http")) {
-            var bestConfig = await connect.getBestConfigFromSub(selectedServer);
+            var bestConfig = await connect.getBestConfigFromSub(
+              selectedServer.split("#")[0],
+            );
             if (bestConfig != null) {
-              await connect.ConnectVibe(bestConfig, "args");
+              connStat = await connect.ConnectVibe(bestConfig, "args");
             }
           } else if (selectedServer.startsWith("wireguard")) {
-            await connect.ConnectWarp(selectedServer, "args");
+            connStat = await connect.ConnectWarp(selectedServer, []);
           } else {
-            await connect.ConnectVibe(selectedServer, "args");
+            connStat = await connect.ConnectVibe(selectedServer, "args");
           }
-          connStat = true;
         }
         setState(() {
           isConnected = connStat;
         });
+        if (connStat) {
+          FirebaseAnalytics.instance.logEvent(
+            name: "connected",
+            parameters: {
+              "time": DateTime.now().toString(),
+              "core": settings.getValue("core_vpn"),
+            },
+          );
+        } else {
+          FirebaseAnalytics.instance.logEvent(
+            name: "not_connected",
+            parameters: {
+              "time": DateTime.now().toString(),
+              "core": settings.getValue("core_vpn"),
+            },
+          );
+        }
       } catch (e) {
         setState(() {
           isConnected = false;
