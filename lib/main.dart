@@ -107,8 +107,11 @@ class _HomePageState extends State<HomePage> {
       try {
         var connStat = false;
         var selectedServer = await serverM.getSelectedServer() as String;
-        if (selectedServer == "") {
-          LogOverlay.showLog("connecting to auto mode");
+        if (selectedServer.split("#")[0] == "") {
+          LogOverlay.showLog(
+            "connecting to auto mode",
+            backgroundColor: Colors.blueAccent,
+          );
           connStat = await connect.ConnectAuto(
             "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
             110000,
@@ -128,12 +131,17 @@ class _HomePageState extends State<HomePage> {
             },
           );
         } else {
-          LogOverlay.showLog("connecting to config:" + selectedServer);
+          LogOverlay.showLog(
+            "connecting to config:\n" + selectedServer,
+            backgroundColor: Colors.blueAccent,
+          );
           if (selectedServer.startsWith("http")) {
             var bestConfig = await connect.getBestConfigFromSub(selectedServer);
             if (bestConfig != null) {
               await connect.ConnectVibe(bestConfig, "args");
             }
+          } else if (selectedServer.startsWith("wireguard")) {
+            await connect.ConnectWarp(selectedServer, "args");
           } else {
             await connect.ConnectVibe(selectedServer, "args");
           }

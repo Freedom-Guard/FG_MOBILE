@@ -20,6 +20,7 @@ class _PingWidgetState extends State<PingWidget> {
 
   Future<void> _fetchPing() async {
     final stopwatch = Stopwatch()..start();
+    setState(() => ping = 0);
     try {
       final response = await http
           .get(Uri.parse('https://www.google.com'))
@@ -45,7 +46,10 @@ class _PingWidgetState extends State<PingWidget> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blueGrey.shade900, Colors.black87],
+            colors: [
+              Colors.blueGrey.shade900,
+              const Color.fromARGB(109, 7, 41, 6),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

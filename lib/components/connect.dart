@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_v2ray/flutter_v2ray.dart';
 import 'package:wireguard_flutter/wireguard_flutter.dart';
@@ -8,7 +9,7 @@ import 'dart:async';
 
 class Connect {
   bool isConnected = false;
-
+  Settings settings = new Settings();
   final FlutterV2ray flutterV2ray = FlutterV2ray(
     onStatusChanged: (status) async {
       if (status.toString() == "V2RayStatusState.connected") {
@@ -73,19 +74,61 @@ class Connect {
     }
   }
 
-  Future<bool> ConnectWarp() async {
+  Future<String?> parseWireGuardLink(String link) async {
     try {
-      await wireguard.initialize(interfaceName: 'wg0');
-      const String conf = '''[Interface]
-PrivateKey =
-Address = 172.16.0.2/32
-DNS = 1.1.1.1, 1.0.0.1
-MTU = 1280
+      final uri = Uri.parse(link);
+      if (uri.scheme != 'wireguard') {
+        return null;
+      }
+      final auth = uri.userInfo.split(':');
+      if (auth.length != 2) {
+        return null;
+      }
+      final privateKey = auth[0];
+      final publicKey = uri.queryParameters['publickey'];
+      final address = uri.queryParameters['address'];
+      final dns = uri.queryParameters['dns'];
+      final mtu = uri.queryParameters['mtu'];
+      final allowedIps = uri.queryParameters['allowedips'];
+      final endpoint = '${uri.host}:${uri.port}';
+      final psk = uri.queryParameters['presharedkey'];
+
+      if (publicKey == null ||
+          address == null ||
+          mtu == null) {
+        return null;
+      }
+
+      final config = '''[Interface]
+PrivateKey = $privateKey
+Address = $address${dns != null ? '\nDNS = $dns' : ''}
+MTU = $mtu
 
 [Peer]
-PublicKey = bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=
-AllowedIPs = 0.0.0.0/0, ::/0
-Endpoint = engage.cloudflareclient.com:2408''';
+PublicKey = $publicKey
+AllowedIPs = ${allowedIps ?? '0.0.0.0/0, ::/0'}
+Endpoint = $endpoint${psk != null ? '\nPresharedKey = $psk' : ''}''';
+
+      return config;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> ConnectWarp(config, args) async {
+    try {
+      String conf = await parseWireGuardLink(config) as String;
+      await wireguard.initialize(interfaceName: 'wg0');
+      // const String conf = '''[Interface]
+      // PrivateKey =
+      // Address = 172.16.0.2/32
+      // DNS = 1.1.1.1, 1.0.0.1
+      // MTU = 1280
+
+      // [Peer]
+      // PublicKey = bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=
+      // AllowedIPs = 0.0.0.0/0, ::/0
+      // Endpoint = engage.cloudflareclient.com:2408''';
       await wireguard.startVpn(
         serverAddress: "engage.cloudflareclient.com:2408",
         wgQuickConfig: conf,
@@ -97,6 +140,7 @@ Endpoint = engage.cloudflareclient.com:2408''';
       );
       return true;
     } catch (_) {
+      LogOverlay.showLog("Failed to connect to WARP");
       return false;
     }
   }
@@ -167,11 +211,18 @@ Endpoint = engage.cloudflareclient.com:2408''';
 
   Future<String?> getBestConfigFromSub(
     String sub, {
-    int batchSize = 5,
+    int batchSize = 15,
     Duration batchTimeout = const Duration(seconds: 15),
     Duration requestTimeout = const Duration(seconds: 10),
     Duration pingTimeout = const Duration(seconds: 5),
   }) async {
+    try {
+      if (settings.getValue("batch_size") as String == "") {
+        batchSize = 15;
+      } else {
+        batchSize = int.parse(settings.getValue("batch_size").toString());
+      }
+    } catch (_) {}
     final stopwatch = Stopwatch()..start();
     try {
       final uri = Uri.parse(sub);
@@ -204,7 +255,7 @@ Endpoint = engage.cloudflareclient.com:2408''';
       }
       try {
         await flutterV2ray.initializeV2Ray();
-        debugPrint('Initialized V2Ray successfully');
+        debugPrint('Initialized VIBE successfully');
       } catch (e, stackTrace) {
         debugPrint('Failed to initialize V2Ray: $e\nStackTrace: $stackTrace');
         return null;
@@ -230,9 +281,9 @@ Endpoint = engage.cloudflareclient.com:2408''';
                 debugPrint('Invalid ping ($ping) for config: $config');
                 return null;
               }
-            } catch (e, stackTrace) {
+            } catch (e) {
               debugPrint(
-                'Error for config: $config\nError: $e\nStackTrace: $stackTrace',
+                'Error for config: $config\nError: $e\nStackTrace: in parse config',
               );
               return null;
             }

@@ -65,10 +65,24 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             if (_isSettingEnabled)
-              SettingInput(
-                title: "تایم اوت حالت خودکار",
-                prefKey: "110000",
-                hintText: "110000",
+              Column(
+                children: [
+                  SettingInput(
+                    title: "تایم اوت حالت خودکار",
+                    prefKey: "timeout_auto",
+                    hintText: "110000",
+                  ),
+                  SettingInput(
+                    title: "تعداد درخواست\u200cهای هم\u200cزمان",
+                    prefKey: "batch_size",
+                    hintText: "15",
+                  ),
+                  SettingSelector(
+                    title: "CORE VPN",
+                    prefKey: "core_vpn",
+                    options: ["auto", "vibe", "warp"],
+                  ),
+                ],
               ),
           ],
         ),
@@ -103,6 +117,80 @@ class SettingSwitch extends StatelessWidget {
         onChanged: onChanged,
         activeColor: Colors.green,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    );
+  }
+}
+
+class SettingSelector extends StatefulWidget {
+  final String title;
+  final String prefKey;
+  final List<String> options;
+
+  const SettingSelector({
+    super.key,
+    required this.title,
+    required this.prefKey,
+    required this.options,
+  });
+
+  @override
+  State<SettingSelector> createState() => _SettingSelectorState();
+}
+
+class _SettingSelectorState extends State<SettingSelector> {
+  late String _selectedValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadValue();
+  }
+
+  Future<void> _loadValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _selectedValue = prefs.getString(widget.prefKey) ?? widget.options[0];
+    });
+  }
+
+  Future<void> _saveValue(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(widget.prefKey, value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 10.0),
+              child: Text(widget.title),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: DropdownButton<String>(
+                value: _selectedValue,
+                items:
+                    widget.options.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() => _selectedValue = newValue!);
+                  _saveValue(newValue!);
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -148,7 +236,7 @@ class _SettingInputState extends State<SettingInput> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -205,7 +293,7 @@ class AboutDialogWidget extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             SelectableText(
-              "گارد آزادی یک ابزار متن‌باز برای دور زدن سانسور اینترنت است.",
+              "گارد آزادی یک ابزار متن‌باز برای دور زدن سانسور اینترنت است",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),

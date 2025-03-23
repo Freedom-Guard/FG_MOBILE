@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ServersM extends ChangeNotifier {
   String? selectedServer;
-
+  Settings settings = new Settings();
   ServersM() {
     _loadSelectedServer();
     _loadServers();
@@ -32,6 +33,13 @@ class ServersM extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('selectedServer', server);
       selectedServer = server;
+      if (selectedServer!.split("#")[0] == "") {
+        settings.setValue("core_vpn", "auto");
+      } else if (selectedServer!.startsWith("wireguard")) {
+        settings.setValue("core_vpn", "warp");
+      } else {
+        settings.setValue("core_vpn", "vibe");
+      }
       notifyListeners();
       return true;
     } catch (e) {
