@@ -1,5 +1,11 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/src/assets/icon/ico.jpg" alt="Freedom Guard Logo" width="120" style="border-radius:50%;border: 0.3rem solid white"/>
+  <div style="display: flex; justify-content: center; align-items: center;">
+  <img src="https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/src/assets/icon/ico.png" alt="Freedom Guard Logo" width="120" />
+  <img src="https://raw.githubusercontent.com/Freedom-Guard/FG_MOBILE/refs/heads/main/assets/icon/ico.png" alt="Freedom Guard Mobile Logo" width="120" />
+  </div>
+  
+  
+
   <h1>Freedom Guard - Mobile</h1>
   <p>ابزار متن‌باز برای آزادی اینترنت با امنیت و سرعت بالا</p>
   <a href="https://github.com/Freedom-Guard/FG_MOBILE/releases"><img src="https://img.shields.io/github/v/release/Freedom-Guard/FG_MOBILE?style=flat-square&color=green" alt="Latest Release"></a>
