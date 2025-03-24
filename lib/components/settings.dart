@@ -4,12 +4,12 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 class Settings {
-  Future<String?> getValue(String key) async {
+  Future<String> getValue(String key) async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getString(key) == null) {
       return "";
     } else {
-      return prefs.getString(key);
+      return prefs.getString(key).toString();
     }
   }
 

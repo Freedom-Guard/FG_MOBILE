@@ -27,7 +27,7 @@ class Connect {
   }
 
   Future<bool> connectedQ() async {
-    return flutterV2ray.getConnectedServerDelay() != -1 ? true : false;
+    return isConnected;
   }
 
   Future<bool> test() async {
@@ -74,6 +74,7 @@ class Connect {
           bypassSubnets: null,
           proxyOnly: false,
         );
+        isConnected = true;
         return true;
       } else {
         LogOverlay.showLog(
@@ -149,6 +150,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
         "Connected To WARP",
         backgroundColor: Colors.greenAccent,
       );
+      isConnected = true;
       return true;
     } catch (e) {
       LogOverlay.showLog(
@@ -176,10 +178,11 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        String userIsp = settings.getValue("user_isp").toString();
         List<String> publicServers = List<String>.from(
-          settings.getValue("user_isp") != ""
-              ? data[settings.getValue("user_isp")]
-              : [] + data["MOBILE"],
+          userIsp != "" && data.containsKey(userIsp)
+              ? data[userIsp]
+              : (data.containsKey("MOBILE") ? data["MOBILE"] : []),
         );
         var connStat = false;
         for (var config in publicServers) {
@@ -227,6 +230,38 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
     LogOverlay.addLog(message);
   }
 
+  Future<int> testConfig(String config) async {
+    try {
+      await flutterV2ray.initializeV2Ray();
+      final parser = FlutterV2ray.parseFromURL(config);
+
+      final ping = await flutterV2ray
+          .getServerDelay(config: parser.getFullConfiguration())
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              debugPrint('Ping timeout for config: $config');
+              return -1;
+            },
+          );
+      if (ping > 0) {
+        return ping;
+      } else {
+        debugPrint('Invalid ping ($ping) for config: $config');
+        return -1;
+      }
+    } catch (e) {
+      debugPrint(
+        'Error for config: $config\nError: $e\nStackTrace: in parse config',
+      );
+      return -1;
+    }
+  }
+
+  Future<bool> isConfigValid(String config) async {
+    return await testConfig(config) > 0;
+  }
+
   Future<String?> getBestConfigFromSub(
     String sub, {
     int batchSize = 15,
@@ -235,21 +270,47 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
     Duration pingTimeout = const Duration(seconds: 5),
   }) async {
     // Quick Connect
+    bool isQUICK = false;
     try {
-      bool isQUICK =
-          settings.getValue("fast_connect") == ""
-              ? false
-              : bool.tryParse(settings.getValue("fast_connect").toString()) ??
-                  false;
+      String fastConnectValue = await settings.getValue("fast_connect");
+      if (fastConnectValue.isNotEmpty) {
+        isQUICK = bool.tryParse(fastConnectValue) == true;
+      } else {
+        isQUICK = false;
+      }
+
       if (isQUICK) {
         String bestConfig = settings.getValue("best_config_backup").toString();
-        if (sub == settings.getValue("backup_sub") && bestConfig != "") {
-          bestConfig = settings.getValue("best_config_backup") as String;
-          return bestConfig;
+        String backupSub = settings.getValue("backup_sub").toString();
+        if (sub == backupSub && bestConfig.isNotEmpty) {
+          LogOverlay.showLog(
+            "Quick connect mode...",
+            backgroundColor: Colors.deepPurpleAccent,
+          );
+          if (await isConfigValid(
+            settings.getValue("best_config_backup") as String,
+          )) {
+            return settings.getValue("best_config_backup") as String;
+          } else {
+            LogOverlay.showLog(
+              "Quick connect failed, switching to normal connect",
+              backgroundColor: Colors.orangeAccent,
+            );
+          }
         }
+      } else {
+        LogOverlay.showLog(
+          "Normal connection mode...",
+          backgroundColor: Colors.deepPurpleAccent,
+        );
       }
-      ;
-    } catch (_) {}
+    } catch (_) {
+      LogOverlay.showLog(
+        "Quick connect failed, switching to normal connect",
+        backgroundColor: Colors.orangeAccent,
+      );
+      isQUICK = false;
+    }
     try {
       settings.setValue("backup_sub", sub);
       if (settings.getValue("batch_size") as String == "") {

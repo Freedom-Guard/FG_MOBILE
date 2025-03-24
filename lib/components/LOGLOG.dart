@@ -5,7 +5,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:clipboard/clipboard.dart';
 
 class LogOverlay {
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
   static final List<_LogData> _logQueue = [];
   static bool _isShowingLog = false;
 
@@ -85,6 +86,7 @@ class LogOverlay {
     Duration duration = const Duration(seconds: 3),
     Color backgroundColor = Colors.black87,
   }) {
+    addLog(message);
     _logQueue.add(_LogData(message, duration, backgroundColor));
     _processQueue();
   }

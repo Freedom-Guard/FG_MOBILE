@@ -1,6 +1,10 @@
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:1286542558.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:3306922924.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:3540922243.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../components/servers.dart';
@@ -146,12 +150,15 @@ class _ServersPageState extends State<ServersPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('افزودن سرور'),
+          title: const Text(
+            'افزودن سرور',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               ListTile(
-                leading: const Icon(Icons.text_fields),
+                leading: const Icon(Icons.text_fields, color: Colors.blue),
                 title: const Text('افزودن از متن'),
                 onTap: () {
                   Navigator.pop(context);
@@ -159,7 +166,15 @@ class _ServersPageState extends State<ServersPage> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.folder_open),
+                leading: const Icon(Icons.paste_outlined, color: Colors.green),
+                title: const Text('افزودن از کلیپ بورد'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _addFromClipboard();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.folder_open, color: Colors.orange),
                 title: const Text('افزودن از فایل'),
                 onTap: () {
                   Navigator.pop(context);
@@ -179,9 +194,13 @@ class _ServersPageState extends State<ServersPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("افزودن سرور از متن"),
-          content: TextField(
-            controller: serverController,
-            decoration: const InputDecoration(hintText: "متن لینک"),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: TextField(
+              controller: serverController,
+              maxLines: 10,
+              decoration: const InputDecoration(hintText: "کانفیگ"),
+            ),
           ),
           actions: <Widget>[
             TextButton(
@@ -292,17 +311,35 @@ class _ServersPageState extends State<ServersPage> {
                                   itemBuilder:
                                       (BuildContext context) =>
                                           <PopupMenuEntry<String>>[
-                                            const PopupMenuItem<String>(
+                                            PopupMenuItem<String>(
                                               value: 'edit',
-                                              child: Text('ویرایش'),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(Icons.edit),
+                                                  const SizedBox(width: 8),
+                                                  Text('ویرایش'),
+                                                ],
+                                              ),
                                             ),
-                                            const PopupMenuItem<String>(
+                                            PopupMenuItem<String>(
                                               value: 'share',
-                                              child: Text('اشتراک'),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(Icons.share_outlined),
+                                                  const SizedBox(width: 8),
+                                                  Text('اشتراک'),
+                                                ],
+                                              ),
                                             ),
-                                            const PopupMenuItem<String>(
+                                            PopupMenuItem<String>(
                                               value: 'delete',
-                                              child: Text('حذف'),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(Icons.delete,color: Colors.red,),
+                                                  const SizedBox(width: 8),
+                                                  Text('حذف'),
+                                                ],
+                                              ),
                                             ),
                                           ],
                                 ),
@@ -342,6 +379,25 @@ class _ServersPageState extends State<ServersPage> {
           const SnackBar(content: Text('فایل انتخاب شده معتبر نمی باشد.')),
         );
       }
+    }
+  }
+
+  void _addFromClipboard() async {
+    final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+    if (clipboardData == null || clipboardData.text == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'حافظه موقت خالی است.',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.lightBlueAccent,
+        ),
+      );
+      return;
+    }
+    for (var server in clipboardData.text!.split("\n")) {
+      _addServer(server);
     }
   }
 }

@@ -93,7 +93,8 @@ class _SettingsPageState extends State<SettingsPage> {
               SettingSwitch(
                 title: "Quick Connect",
                 value:
-                    bool.tryParse(settingsJson["fast_connect"].toString()) ?? false,
+                    bool.tryParse(settingsJson["fast_connect"].toString()) ??
+                    false,
                 onChanged: (bool value) {
                   setState(() {
                     settingsJson["fast_connect"] = value.toString();
@@ -219,9 +220,12 @@ class _SettingSelectorState extends State<SettingSelector> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 10.0),
-              child: Text(widget.title),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(widget.title),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
