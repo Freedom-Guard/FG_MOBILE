@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connect.dart';
+import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/loading.dart';
@@ -91,15 +92,21 @@ class _HomePageState extends State<HomePage> {
   Settings settings = new Settings();
 
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
-    Timer.periodic(Duration(seconds: 5), (timer) {
-      if (connect.connectedQ == true) {
+    Timer.periodic(Duration(seconds: 5), (timer) async {
+      if (await checkForVPN() == true) {
         setState(() {
           isConnected = true;
         });
       }
     });
+    if (await checkForVPN() == true) {
+      setState(() {
+        isConnected = true;
+      });
+    }
+    checkForUpdate(context);
   }
 
   Future<void> toggleConnection() async {
@@ -127,14 +134,14 @@ class _HomePageState extends State<HomePage> {
             Duration(
               milliseconds:
                   int.tryParse(
-                    settings.getValue("timeout_auto").toString() == ""
+                    await settings.getValue("timeout_auto").toString() == ""
                         ? "110000"
-                        : settings.getValue("timeout_auto").toString(),
+                        : await settings.getValue("timeout_auto").toString(),
                   ) ??
                   110000,
             ),
             onTimeout: () {
-              LogOverlay.showLog("timeout connect Auto");
+              LogOverlay.showLog("Connection to Auto mode timed out.");
               return false;
             },
           );
@@ -164,22 +171,30 @@ class _HomePageState extends State<HomePage> {
             name: "connected",
             parameters: {
               "time": DateTime.now().toString(),
-              "core": settings.getValue("core_vpn"),
-              "isp": settings.getValue("user_isp"),
+              "core": await settings.getValue("core_vpn"),
+              "isp": await settings.getValue("user_isp"),
               "server":
-                  settings.getValue("f_link").toString() == "true"
+                  await settings.getValue("f_link").toString() == "true"
                       ? selectedServer.split("#")[0]
                       : '',
             },
+          );
+          LogOverlay.showLog(
+            "connected to " + await settings.getValue("core_vpn") + " mode",
+            backgroundColor: Colors.greenAccent,
           );
         } else {
           FirebaseAnalytics.instance.logEvent(
             name: "not_connected",
             parameters: {
               "time": DateTime.now().toString(),
-              "core": settings.getValue("core_vpn"),
-              "isp": settings.getValue("user_isp"),
+              "core": await settings.getValue("core_vpn"),
+              "isp": await settings.getValue("user_isp"),
             },
+          );
+          LogOverlay.showLog(
+            "not connected to " + await settings.getValue("core_vpn") + " mode",
+            backgroundColor: Colors.redAccent,
           );
         }
       } catch (e) {

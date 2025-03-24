@@ -53,6 +53,28 @@ class Connect {
     wireguard.stopVpn();
   }
 
+  Timer? _configUpdateTimer;
+  void startConfigUpdateTimer(String fgconfig, int timeout) {
+    if (_configUpdateTimer != null && _configUpdateTimer!.isActive) {
+      _configUpdateTimer!.cancel();
+    }
+    _configUpdateTimer = Timer.periodic(const Duration(minutes: 15), (
+      timer,
+    ) async {
+      if (isConnected) {
+        await disConnect();
+        await ConnectAuto(fgconfig, timeout);
+      }
+    });
+  }
+
+  void stopConfigUpdateTimer() {
+    if (_configUpdateTimer != null && _configUpdateTimer!.isActive) {
+      _configUpdateTimer!.cancel();
+      _configUpdateTimer = null;
+    }
+  }
+
   // Connects to a single V2Ray config
   Future<bool> ConnectVibe(String config, dynamic args) async {
     try {
@@ -62,8 +84,18 @@ class Connect {
     }
     try {
       V2RayURL parser = FlutterV2ray.parseFromURL(config);
+      int ping = await flutterV2ray.getServerDelay(
+        config: parser.getFullConfiguration(),
+      );
+
       LogOverlay.showLog(
-        '${await flutterV2ray.getServerDelay(config: parser.getFullConfiguration())}ms',
+        'Ping connecting $ping ms',
+        backgroundColor: Colors.blueAccent,
+      );
+
+      LogOverlay.showLog(
+        "Connecting To VIBE...",
+        backgroundColor: Colors.blueAccent,
       );
 
       if (await flutterV2ray.requestPermission()) {
@@ -178,7 +210,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        String userIsp = settings.getValue("user_isp").toString();
+        String userIsp = await settings.getValue("user_isp").toString();
         List<String> publicServers = List<String>.from(
           userIsp != "" && data.containsKey(userIsp)
               ? data[userIsp]
@@ -191,7 +223,6 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
             if (config.startsWith("http")) {
               var bestConfig = await getBestConfigFromSub(config);
               if (bestConfig != null) {
-                LogOverlay.showLog(bestConfig);
                 await ConnectVibe(bestConfig, "args");
                 connStat = true;
                 break;
@@ -280,17 +311,18 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
       }
 
       if (isQUICK) {
-        String bestConfig = settings.getValue("best_config_backup").toString();
-        String backupSub = settings.getValue("backup_sub").toString();
+        String bestConfig =
+            await settings.getValue("best_config_backup").toString();
+        String backupSub = await settings.getValue("backup_sub").toString();
         if (sub == backupSub && bestConfig.isNotEmpty) {
           LogOverlay.showLog(
             "Quick connect mode...",
             backgroundColor: Colors.deepPurpleAccent,
           );
           if (await isConfigValid(
-            settings.getValue("best_config_backup") as String,
+            await settings.getValue("best_config_backup"),
           )) {
-            return settings.getValue("best_config_backup") as String;
+            return await settings.getValue("best_config_backup");
           } else {
             LogOverlay.showLog(
               "Quick connect failed, switching to normal connect",
@@ -313,10 +345,10 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
     }
     try {
       settings.setValue("backup_sub", sub);
-      if (settings.getValue("batch_size") as String == "") {
+      if (await settings.getValue("batch_size") == "") {
         batchSize = 7;
       } else {
-        batchSize = int.parse(settings.getValue("batch_size").toString());
+        batchSize = int.parse(await settings.getValue("batch_size").toString());
       }
     } catch (_) {}
     final stopwatch = Stopwatch()..start();
