@@ -159,6 +159,8 @@ class _HomePageState extends State<HomePage> {
             }
           } else if (selectedServer.startsWith("wireguard")) {
             connStat = await connect.ConnectWarp(selectedServer, []);
+          } else if (selectedServer.startsWith("wire:::")) {
+            connStat = await connect.ConnectWarp(selectedServer, []);
           } else {
             connStat = await connect.ConnectVibe(selectedServer, "args");
           }

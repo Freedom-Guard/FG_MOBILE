@@ -168,8 +168,14 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
 
   Future<bool> ConnectWarp(String config, List<String> args) async {
     try {
-      final conf = await parseWireGuardLink(config);
-      if (conf == null) return false;
+      var conf = {};
+      if (config.startsWith("wire:::")) {
+        conf["config"] = config.split("wire:::\n")[1];
+        conf["serverAddress"] = conf["config"].split("\n")[1];
+      } else {
+        conf = await parseWireGuardLink(config) as Map<String, String>;
+      }
+      if (conf == "") return false;
 
       await wireguard.initialize(interfaceName: 'wg0');
       await wireguard.startVpn(

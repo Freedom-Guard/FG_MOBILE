@@ -1,3 +1,5 @@
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:2831023502.
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:3851931344.
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -120,9 +122,11 @@ class _UpdateDialogContent extends StatelessWidget {
 }
 
 Future<bool> checkForVPN() async {
-  var connectivityResult = await (Connectivity().checkConnectivity());
-  if (connectivityResult == ConnectivityResult.vpn) {
+  final List<ConnectivityResult> connectivityResult =
+      await (Connectivity().checkConnectivity());
+  if (connectivityResult.contains(ConnectivityResult.vpn)) {
     return true;
+  } else {
+    return false;
   }
-  return false;
 }

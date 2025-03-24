@@ -3,6 +3,7 @@
 // Suggested code may be subject to a license. Learn more: ~LicenseLog:3540922243.
 import 'dart:io';
 
+import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -181,6 +182,14 @@ class _ServersPageState extends State<ServersPage> {
                   _importConfigFromFile();
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.folder_open, color: Colors.orange),
+                title: const Text('افزودن وایر گارد از فایل'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _importWireguardConfigFromFile();
+                },
+              ),
             ],
           ),
         );
@@ -309,39 +318,43 @@ class _ServersPageState extends State<ServersPage> {
                                     }
                                   },
                                   itemBuilder:
-                                      (BuildContext context) =>
-                                          <PopupMenuEntry<String>>[
-                                            PopupMenuItem<String>(
-                                              value: 'edit',
-                                              child: Row(
-                                                children: [
-                                                  const Icon(Icons.edit),
-                                                  const SizedBox(width: 8),
-                                                  Text('ویرایش'),
-                                                ],
+                                      (
+                                        BuildContext context,
+                                      ) => <PopupMenuEntry<String>>[
+                                        PopupMenuItem<String>(
+                                          value: 'edit',
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.edit),
+                                              const SizedBox(width: 8),
+                                              Text('ویرایش'),
+                                            ],
+                                          ),
+                                        ),
+                                        PopupMenuItem<String>(
+                                          value: 'share',
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.share_outlined),
+                                              const SizedBox(width: 8),
+                                              Text('اشتراک'),
+                                            ],
+                                          ),
+                                        ),
+                                        PopupMenuItem<String>(
+                                          value: 'delete',
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.delete,
+                                                color: Colors.red,
                                               ),
-                                            ),
-                                            PopupMenuItem<String>(
-                                              value: 'share',
-                                              child: Row(
-                                                children: [
-                                                  const Icon(Icons.share_outlined),
-                                                  const SizedBox(width: 8),
-                                                  Text('اشتراک'),
-                                                ],
-                                              ),
-                                            ),
-                                            PopupMenuItem<String>(
-                                              value: 'delete',
-                                              child: Row(
-                                                children: [
-                                                  const Icon(Icons.delete,color: Colors.red,),
-                                                  const SizedBox(width: 8),
-                                                  Text('حذف'),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
+                                              const SizedBox(width: 8),
+                                              Text('حذف'),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                 ),
                               ],
                             ),
@@ -398,6 +411,24 @@ class _ServersPageState extends State<ServersPage> {
     }
     for (var server in clipboardData.text!.split("\n")) {
       _addServer(server);
+    }
+  }
+
+  void _importWireguardConfigFromFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['conf'],
+    );
+
+    if (result != null) {
+      File file = File(result.files.single.path!);
+      if (path.extension(file.path) == '.conf') {
+        String fileContent = await file.readAsString();
+        _addServer("wire:::\n" + fileContent);
+        LogOverlay.showLog('فایل با موفقیت وارد شد.');
+      } else {
+        LogOverlay.showLog('فایل انتخاب شده معتبر نمی باشد.');
+      }
     }
   }
 }
