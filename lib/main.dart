@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connect.dart';
+import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
@@ -183,12 +184,12 @@ class _HomePageState extends State<HomePage> {
               "time": DateTime.now().toString(),
               "core": await settings.getValue("core_vpn"),
               "isp": await settings.getValue("user_isp"),
-              "server":
-                  await settings.getValue("f_link").toString() == "true"
-                      ? selectedServer.split("#")[0]
-                      : '',
             },
           );
+
+          if ((await settings.getValue("f_link").toString()) == "true")
+               donateCONFIG(selectedServer.split("#")[0]);
+          
           LogOverlay.showLog(
             "connected to " + await settings.getValue("core_vpn") + " mode",
             backgroundColor: Colors.greenAccent,
