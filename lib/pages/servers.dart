@@ -106,7 +106,7 @@ class _ServersPageState extends State<ServersPage> {
   }
 
   void _shareServer(String server) {
-    Share.share('سرور من: $server');
+    Share.share(server);
   }
 
   void _editServer(int index) {
@@ -180,14 +180,6 @@ class _ServersPageState extends State<ServersPage> {
                 onTap: () {
                   Navigator.pop(context);
                   _importConfigFromFile();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.folder_open, color: Colors.orange),
-                title: const Text('افزودن وایر گارد از فایل'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _importWireguardConfigFromFile();
                 },
               ),
             ],
@@ -371,7 +363,7 @@ class _ServersPageState extends State<ServersPage> {
   void _importConfigFromFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['txt'],
+      allowedExtensions: ['txt', 'conf'],
     );
 
     if (result != null) {
@@ -384,9 +376,11 @@ class _ServersPageState extends State<ServersPage> {
             _addServer(server.trim());
           }
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('فایل با موفقیت وارد شد.')),
-        );
+        LogOverlay.showLog('فایل با موفقیت وارد شد.');
+      } else if (path.extension(file.path) == '.conf') {
+        String fileContent = await file.readAsString();
+        _addServer("wire:::\n" + fileContent);
+        LogOverlay.showLog('فایل با موفقیت وارد شد.');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('فایل انتخاب شده معتبر نمی باشد.')),
@@ -411,24 +405,6 @@ class _ServersPageState extends State<ServersPage> {
     }
     for (var server in clipboardData.text!.split("\n")) {
       _addServer(server);
-    }
-  }
-
-  void _importWireguardConfigFromFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['conf'],
-    );
-
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      if (path.extension(file.path) == '.conf') {
-        String fileContent = await file.readAsString();
-        _addServer("wire:::\n" + fileContent);
-        LogOverlay.showLog('فایل با موفقیت وارد شد.');
-      } else {
-        LogOverlay.showLog('فایل انتخاب شده معتبر نمی باشد.');
-      }
     }
   }
 }

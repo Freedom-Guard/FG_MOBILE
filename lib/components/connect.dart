@@ -1,3 +1,4 @@
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:3167225783.
 import 'dart:convert';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/settings.dart';
@@ -77,33 +78,33 @@ class Connect {
 
   // Connects to a single V2Ray config
   Future<bool> ConnectVibe(String config, dynamic args) async {
+    final stopwatch = Stopwatch()..start();
+    LogOverlay.showLog(
+      "Connecting To VIBE...",
+      backgroundColor: Colors.blueAccent,
+    );
     try {
       await flutterV2ray.initializeV2Ray();
     } catch (_) {
       LogOverlay.showLog("Failed initialize VIBE");
     }
     try {
-      V2RayURL parser = FlutterV2ray.parseFromURL(config);
-      int ping = await flutterV2ray.getServerDelay(
-        config: parser.getFullConfiguration(),
-      );
-
-      LogOverlay.showLog(
-        'Ping connecting $ping ms',
-        backgroundColor: Colors.blueAccent,
-      );
-
-      LogOverlay.showLog(
-        "Connecting To VIBE...",
-        backgroundColor: Colors.blueAccent,
-      );
-
       if (await flutterV2ray.requestPermission()) {
+        V2RayURL parser = FlutterV2ray.parseFromURL(config);
+
+        int ping = await flutterV2ray
+            .getServerDelay(config: parser.getFullConfiguration())
+            .timeout(Duration(seconds: 4), onTimeout: () => -1);
+
+        if (ping != -1) {
+          LogOverlay.showLog(
+            'Ping connecting $ping ms',
+            backgroundColor: Colors.blueAccent,
+          );
+        }
         flutterV2ray.startV2Ray(
           remark: parser.remark,
           config: parser.getFullConfiguration(),
-          blockedApps: null,
-          bypassSubnets: null,
           proxyOnly: false,
         );
         isConnected = true;
@@ -114,6 +115,8 @@ class Connect {
           backgroundColor: Colors.redAccent,
         );
       }
+      stopwatch.stop();
+      debugPrint('Connection took ${stopwatch.elapsed.inMilliseconds} ms');
     } catch (e) {
       LogOverlay.showLog(
         "Failed to connect to VIBE \n " + e.toString(),
@@ -228,15 +231,17 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
             config = config.split(",;,")[1].split("#")[0];
             if (config.startsWith("http")) {
               var bestConfig = await getBestConfigFromSub(config);
-              if (bestConfig != null) {
-                await ConnectVibe(bestConfig, "args");
+              if (bestConfig != null && await testConfig(bestConfig) != -1) {
+                await ConnectVibe(bestConfig, []);
                 connStat = true;
                 break;
               }
             } else {
-              await ConnectVibe(config, "args");
-              connStat = true;
-              break;
+              if (await testConfig(config) != -1) {
+                await ConnectVibe(config, []);
+                connStat = true;
+                break;
+              }
             }
           } else if (config.split(",;,")[0] == "warp") {
             // config = config.split(",;,")[1].split("#")[0];
@@ -302,8 +307,8 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
   Future<String?> getBestConfigFromSub(
     String sub, {
     int batchSize = 15,
-    Duration batchTimeout = const Duration(seconds: 15),
-    Duration requestTimeout = const Duration(seconds: 10),
+    Duration batchTimeout = const Duration(seconds: 30),
+    Duration requestTimeout = const Duration(seconds: 30),
     Duration pingTimeout = const Duration(seconds: 5),
   }) async {
     // Quick Connect
@@ -352,7 +357,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
     try {
       settings.setValue("backup_sub", sub);
       if (await settings.getValue("batch_size") == "") {
-        batchSize = 7;
+        batchSize = 50;
       } else {
         batchSize = int.parse(await settings.getValue("batch_size").toString());
       }
@@ -465,7 +470,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
       );
       settings.setValue(
         "best_config_backup",
-        results.first['config'] as String,
+        results.first['config'].toString(),
       );
       return results.first['config'] as String;
     } catch (e, stackTrace) {

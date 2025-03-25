@@ -92,21 +92,28 @@ class _HomePageState extends State<HomePage> {
   Settings settings = new Settings();
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
-    Timer.periodic(Duration(seconds: 5), (timer) async {
-      if (await checkForVPN() == true) {
-        setState(() {
-          isConnected = true;
-        });
-      }
+    Future.microtask(() async {
+      Timer.periodic(Duration(seconds: 5), (timer) {
+        checkVPN();
+      });
+      await checkForUpdate(context);
     });
+  }
+
+  checkVPN() async {
     if (await checkForVPN() == true) {
       setState(() {
         isConnected = true;
       });
     }
-    checkForUpdate(context);
+    initSettings();
+  }
+
+  initSettings() async {
+    if (await settings.getValue("core_vpn") == "")
+      settings.setValue("core_vpn", "auto");
   }
 
   Future<void> toggleConnection() async {
