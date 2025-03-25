@@ -34,10 +34,10 @@ jobs:
           echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
 
       - name: Build Android APK
-        run: flutter build apk --release --output=build/app/outputs/flutter-apk/apk-release.apk
+        run: flutter build apk --release
 
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4  # تغییر از v2 به v4
+        uses: actions/upload-artifact@v4 
         with:
           name: apk-release
           path: build/app/outputs/flutter-apk/apk-release.apk
