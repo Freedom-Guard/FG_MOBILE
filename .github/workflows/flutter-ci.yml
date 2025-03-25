@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*.*.*'
 
+permissions:
+  contents: write  
+
 jobs:
   build:
     name: Build Flutter APK
@@ -37,17 +40,17 @@ jobs:
         run: flutter build apk --release
 
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4 
+        uses: actions/upload-artifact@v4
         with:
           name: apk-release
-          path: build/app/outputs/flutter-apk/apk-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk 
 
       - name: Create GitHub Release (Pre-release)
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: build/app/outputs/flutter-apk/apk-release.apk
+          files: build/app/outputs/flutter-apk/app-release.apk 
           tag_name: ${{ github.ref }}
           release_name: "Release ${{ github.ref_name }}"
           draft: false
