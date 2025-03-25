@@ -37,7 +37,7 @@ jobs:
         run: flutter build apk --release --output=build/app/outputs/flutter-apk/apk-release.apk
 
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: apk-release
           path: build/app/outputs/flutter-apk/apk-release.apk
