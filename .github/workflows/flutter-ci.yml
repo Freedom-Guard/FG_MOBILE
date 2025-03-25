@@ -1,0 +1,43 @@
+name: Flutter CI
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    name: Build Flutter APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.31.0-0.1.pre
+          channel: beta
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Create `firebase_options.dart`
+        run: |
+          mkdir -p lib
+          echo '${{ secrets.FIREBASE_OPTIONS }}' > lib/firebase_options.dart
+
+      - name: Create `google-services.json`
+        run: |
+          mkdir -p android/app
+          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+
+      - name: Build Android APK
+        run: flutter build apk --release --output=build/app/outputs/flutter-apk/apk-release.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: apk-release
+          path: build/app/outputs/flutter-apk/apk-release.apk
