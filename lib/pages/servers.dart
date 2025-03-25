@@ -1,6 +1,3 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:1286542558.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:3306922924.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:3540922243.
 import 'dart:io';
 
 import 'package:Freedom_Guard/components/LOGLOG.dart';
@@ -65,9 +62,7 @@ class _ServersPageState extends State<ServersPage> {
   Future<void> _restoreSelectedServer() async {
     final prefs = await SharedPreferences.getInstance();
     String? selectedServer = prefs.getString('selectedServer');
-    if (selectedServer != null) {
-      await serversManage.selectServer(selectedServer);
-    }
+    await serversManage.selectServer(selectedServer!);
   }
 
   Future<void> _loadServers() async {

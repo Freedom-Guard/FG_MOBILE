@@ -117,6 +117,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> toggleConnection() async {
+    LogOverlay.clearLogs();
     setState(() {
       isConnecting = true;
     });

@@ -11,8 +11,81 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+**/build/
+
+# Generated files (Freezed, JsonSerializable, etc.)
+*.g.dart
+*.freezed.dart
+
+# Android related
+**/android/.gradle/
+**/android/app/debug
+**/android/app/profile
+**/android/app/release
+**/android/app/google-services.json
+**/android/key.jks
+**/android/app/key.properties
+
+# iOS related
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/engine/
+**/ios/Flutter/ephemeral/
+**/ios/Generated.xcconfig
+**/ios/Runner.xcodeproj/project.xcworkspace/
+**/ios/Podfile.lock
+**/ios/Pods/
+**/ios/Runner/GoogleService-Info.plist
+
+# Web related
+**/web/.dart_tool/
+**/web/build/
+**/web/main.dart.js
+**/web/main.dart.js.map
+
+# Linux related
+**/linux/flutter/ephemeral/
+**/linux/flutter/generated_plugin_registrant.cc
+
+# macOS related
+**/macos/Flutter/ephemeral/
+**/macos/Pods/
+**/macos/.symlinks/
+**/macos/Podfile.lock
+**/macos/Runner.xcworkspace/
+
+# Windows related
+**/windows/flutter/ephemeral/
+**/windows/flutter/generated_plugin_registrant.cc
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Fastlane related (if using CI/CD)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# Firebase related
+firebase.json
+**/firebase_app_id_file.json
+crashlytics/
 
 # IntelliJ related
 *.iml
@@ -21,30 +94,5 @@ ios/Runner/GoogleService-Info.plist
 .idea/
 .idx/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-firebase.json
+# Visual Studio Code related
+.vscode/

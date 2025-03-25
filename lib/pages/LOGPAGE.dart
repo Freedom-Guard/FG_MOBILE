@@ -41,7 +41,12 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
     String loadedLogs = await LogOverlay.loadLogs();
     setState(() {
       logs =
-          loadedLogs.split("\n").where((log) => log.trim().isNotEmpty).toList();
+          loadedLogs
+              .split("\n")
+              .where((log) => log.trim().isNotEmpty)
+              .toList()
+              .reversed
+              .toList();
     });
   }
 
@@ -194,12 +199,7 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
         decoration: BoxDecoration(
           color: color.withOpacity(0.2),
           borderRadius: BorderRadius.circular(16.0),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(1),
-              blurRadius: 1,
-            ),
-          ],
+          boxShadow: [BoxShadow(color: color.withOpacity(1), blurRadius: 1)],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
