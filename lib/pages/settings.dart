@@ -366,7 +366,7 @@ class AboutDialogWidget extends StatelessWidget {
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
             Text(
-              "نسخه: 3",
+              "نسخه: 3.2",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
