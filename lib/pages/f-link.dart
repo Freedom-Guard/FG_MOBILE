@@ -55,6 +55,10 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height,
+          minWidth: MediaQuery.of(context).size.width,
+        ),
         decoration: BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.topLeft,
