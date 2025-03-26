@@ -11,6 +11,7 @@
 // Suggested code may be subject to a license. Learn more: ~LicenseLog:3367225911.
 // Suggested code may be subject to a license. Learn more: ~LicenseLog:933345598.
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:Freedom_Guard/pages/f-link.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -61,6 +62,17 @@ class _SettingsPageState extends State<SettingsPage> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.volunteer_activism, color: Colors.red),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PremiumDonateConfigPage(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.info_outline),
             onPressed: () {

@@ -3,7 +3,7 @@ import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:http/http.dart' as http;
 
-Future<void> donateCONFIG(String config) async {
+Future<void> donateCONFIG(String config, {String core = ""}) async {
   Settings settings = new Settings();
   final url = Uri.parse(
     "https://freedom-link.freedomguard.workers.dev/api/submit-config",
@@ -13,10 +13,11 @@ Future<void> donateCONFIG(String config) async {
     "key": "donated-config",
     "config": {
       "config": config,
-      "isp": settings.getValue("core_vpn").toString(),
+      "isp": (await settings.getValue("user_isp").toString()),
       "device": "mobile",
       "ping": (await getIP_Ping())["ping"].toString(),
-      "core": settings.getValue("core_vpn").toString(),
+      "core":
+          core == "" ? await settings.getValue("core_vpn").toString() : core,
       "timestamp": DateTime.now().millisecondsSinceEpoch,
     },
   };
@@ -31,8 +32,7 @@ Future<void> donateCONFIG(String config) async {
       body: jsonEncode(body),
     );
 
-    final data = jsonDecode(response.body);
-    LogOverlay.showLog("✅ کانفیگ با موفقیت اهدا شد: $data");
+    LogOverlay.showLog("✅ کانفیگ با موفقیت اهدا شد");
   } catch (error) {
     LogOverlay.showLog("❌ کانفیگ اهدا نشد: $error");
   }

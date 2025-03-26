@@ -17,11 +17,13 @@ import 'widgets/PingWidget.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await Firebase.initializeApp();
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
     print("🔥 Firebase Initialized Successfully");
   } catch (e) {
     print("❌ Firebase Initialization Failed: $e");
