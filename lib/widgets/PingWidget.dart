@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -86,6 +87,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
   int? downloadSpeed;
   int? uploadSpeed;
   bool isLoading = false;
+  String countryFlag = "🌍";
 
   @override
   void initState() {
@@ -97,7 +99,29 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
     setState(() => isLoading = true);
     await _fetchDownloadSpeed();
     await _fetchUploadSpeed();
+    await _fetchCountryFlag();
     setState(() => isLoading = false);
+  }
+
+  Future<void> _fetchCountryFlag() async {
+    try {
+      final response = await http.get(Uri.parse('http://ip-api.com/json'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final countryCode = data['countryCode'];
+        setState(() => countryFlag = _getFlagEmoji(countryCode));
+      }
+    } catch (e) {
+      setState(() => countryFlag = "🌍");
+    }
+  }
+
+  String _getFlagEmoji(String countryCode) {
+    return countryCode
+        .toUpperCase()
+        .runes
+        .map((e) => String.fromCharCode(e + 127397))
+        .join();
   }
 
   Future<void> _fetchDownloadSpeed() async {
@@ -145,6 +169,11 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
   String _formatSpeed(int? speed) {
     if (speed == null) return "—";
     return "${(speed / 1000000).toStringAsFixed(1)} M";
+  }
+
+  String _formatSTR(String? speed) {
+    if (speed == null) return "—";
+    return (speed);
   }
 
   @override
@@ -201,7 +230,13 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
             "",
             _formatSpeed(uploadSpeed),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
+          _buildSpeedRow(
+            Icons.abc,
+            Colors.redAccent.shade200,
+            "",
+            _formatSTR(countryFlag),
+          ),
           Align(
             alignment: Alignment.centerRight,
             child: GestureDetector(
@@ -224,7 +259,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
                 child: Icon(
                   isLoading ? Icons.sync : Icons.refresh,
                   color: Colors.white.withOpacity(isLoading ? 0.7 : 1.0),
-                  size: 16,
+                  size: 18,
                 ),
               ),
             ),

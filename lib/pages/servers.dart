@@ -356,10 +356,7 @@ class _ServersPageState extends State<ServersPage> {
   }
 
   void _importConfigFromFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['txt', 'conf'],
-    );
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
 
     if (result != null) {
       File file = File(result.files.single.path!);
@@ -397,6 +394,9 @@ class _ServersPageState extends State<ServersPage> {
         ),
       );
       return;
+    }
+    if (clipboardData.text!.startsWith("[Interface]")) {
+      _addServer("wire:::\n" + clipboardData.text!);
     }
     for (var server in clipboardData.text!.split("\n")) {
       _addServer(server);

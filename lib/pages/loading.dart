@@ -21,7 +21,7 @@ class _LoadingScreenState extends State<LoadingScreen>
     );
 
     _fadeAnimation = Tween<double>(
-      begin: 0.0,
+      begin: 0.5,
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
@@ -93,7 +93,7 @@ class _LoadingScreenState extends State<LoadingScreen>
                       ),
                     ),
                   ),
-                  Spacer(flex: 1,),
+                  Spacer(flex: 1),
                   Expanded(
                     flex: 2,
                     child: Column(

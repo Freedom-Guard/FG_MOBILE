@@ -75,6 +75,32 @@ class Connect {
     }
   }
 
+  dynamic addOptionsToVibe(dynamic parsedJson) async {
+    String mux = await settings.getValue("mux");
+    String fragment = await settings.getValue("fragment");
+    LogOverlay.addLog("fragment: " + fragment.toString());
+    LogOverlay.addLog("mux: " + mux.toString());
+
+    if (parsedJson is Map<String, dynamic>) {
+      if (mux != "") {
+        parsedJson["mux"] = json.decode(mux);
+      }
+      if (fragment != "") {
+        parsedJson["fragment"] = json.decode(fragment);
+      }
+    } else if (parsedJson is List<dynamic>) {
+      parsedJson.forEach((element) {
+        if (mux != "") {
+          element["mux"] = json.decode(mux);
+        }
+        if (fragment != "") {
+          element["fragment"] = json.decode(fragment);
+        }
+      });
+    }
+    return parsedJson;
+  }
+
   // Connects to a single V2Ray config
   Future<bool> ConnectVibe(String config, dynamic args) async {
     final stopwatch = Stopwatch()..start();
@@ -82,18 +108,35 @@ class Connect {
       "Connecting To VIBE...",
       backgroundColor: Colors.blueAccent,
     );
+
     try {
       await flutterV2ray.initializeV2Ray();
     } catch (_) {
-      LogOverlay.showLog("Failed initialize VIBE");
+      LogOverlay.showLog("Failed to initialize VIBE");
+      return false;
     }
-    try {
-      if (await flutterV2ray.requestPermission()) {
-        V2RayURL parser = FlutterV2ray.parseFromURL(config);
 
-        int ping = await flutterV2ray
-            .getServerDelay(config: parser.getFullConfiguration())
-            .timeout(Duration(seconds: 4), onTimeout: () => -1);
+    try {
+      String parser = "";
+      if (await flutterV2ray.requestPermission()) {
+        try {
+          var parsedConfig = FlutterV2ray.parseFromURL(config);
+          parser =
+              parsedConfig != null
+                  ? parsedConfig.getFullConfiguration()
+                  : config;
+        } catch (_) {
+          parser = config;
+        }
+
+        int ping = -1;
+        try {
+          ping = await flutterV2ray
+              .getServerDelay(config: parser)
+              .timeout(Duration(seconds: 4), onTimeout: () => -1);
+        } catch (_) {
+          ping = -1;
+        }
 
         if (ping != -1) {
           LogOverlay.showLog(
@@ -101,11 +144,24 @@ class Connect {
             backgroundColor: Colors.blueAccent,
           );
         }
+
+        var parsedJson = jsonDecode(parser);
+        parsedJson = await addOptionsToVibe(parsedJson);
+
+        String remark =
+            parsedJson.containsKey("remarks") &&
+                    parsedJson["remarks"] != null &&
+                    parsedJson["remarks"].toString().isNotEmpty
+                ? parsedJson["remarks"].toString()
+                : "FREEDOM GUARD";
+
         flutterV2ray.startV2Ray(
-          remark: parser.remark,
-          config: parser.getFullConfiguration(),
+          remark: remark,
+          config: parser,
           proxyOnly: false,
+          notificationDisconnectButtonName: "قطع اتصال",
         );
+
         isConnected = true;
         return true;
       } else {
@@ -114,14 +170,17 @@ class Connect {
           backgroundColor: Colors.redAccent,
         );
       }
-      stopwatch.stop();
-      debugPrint('Connection took ${stopwatch.elapsed.inMilliseconds} ms');
     } catch (e) {
       LogOverlay.showLog(
-        "Failed to connect to VIBE \n " + e.toString(),
+        "Failed to connect to VIBE \n ${e.toString()}",
         backgroundColor: Colors.redAccent,
       );
+    } finally {
+      stopwatch.stop();
+      debugPrint('Connection took ${stopwatch.elapsed.inMilliseconds} ms');
     }
+
+    isConnected = false;
     return false;
   }
 

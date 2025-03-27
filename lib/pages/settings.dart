@@ -179,7 +179,7 @@ class SettingSwitch extends StatelessWidget {
         ),
         value: value,
         onChanged: onChanged,
-        activeColor: Colors.green,
+        activeColor: Theme.of(context).colorScheme.primary,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
