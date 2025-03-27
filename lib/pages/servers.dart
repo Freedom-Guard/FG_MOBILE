@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:Freedom_Guard/components/LOGLOG.dart';
@@ -214,6 +215,14 @@ class _ServersPageState extends State<ServersPage> {
     );
   }
 
+  String safeDecode(String text) {
+    try {
+      return Uri.decodeFull(text);
+    } catch (e) {
+      return text;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final serversManage = Provider.of<ServersM>(context);
@@ -274,7 +283,9 @@ class _ServersPageState extends State<ServersPage> {
                                     },
                                     title: Text(
                                       (server.split("#").length > 1
-                                              ? server.split("#")[1]
+                                              ? safeDecode(server.split("#")[1])
+                                              : server.split("#")[0].length > 10
+                                              ? "${server.split("#")[0].substring(0, 10)}..."
                                               : server.split("#")[0]) +
                                           (isSelected ? ' (انتخاب شده)' : ''),
                                       style: TextStyle(

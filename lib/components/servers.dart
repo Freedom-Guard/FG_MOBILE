@@ -67,7 +67,7 @@ class ServersM extends ChangeNotifier {
 
       for (String server in newServers) {
         server = server.split(",;,")[0] == "warp" ? '' : server.split(",;,")[1];
-        if (!currentServers.contains(server)) {
+        if (!currentServers.contains(server) && server.split("#").length > 1) {
           currentServers.add(server);
           isUpdated = true;
           notifyListeners();
