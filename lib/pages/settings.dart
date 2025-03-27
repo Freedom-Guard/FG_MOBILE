@@ -1,15 +1,3 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:2037767261.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:2747140428.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:2660053640.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:289404504.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:3782545339.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:3975634792.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:854757502.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:1548449028.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:3010143163.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:1618272542.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:3367225911.
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:933345598.
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/f-link.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +19,7 @@ class _SettingsPageState extends State<SettingsPage> {
   _initSettingJson() async {
     settingsJson["f_link"] = await settings.getValue("f_link");
     settingsJson["fast_connect"] = await settings.getValue("fast_connect");
+    settingsJson["bypass_lan"] = await settings.getValue("bypass_lan");
     setState(() {});
   }
 
@@ -112,6 +101,18 @@ class _SettingsPageState extends State<SettingsPage> {
                     settingsJson["fast_connect"] = value.toString();
                   });
                   settings.setValue("fast_connect", value.toString());
+                },
+              ),
+              SettingSwitch(
+                title: "Bypass LAN",
+                value:
+                    bool.tryParse(settingsJson["bypass_lan"].toString()) ??
+                    false,
+                onChanged: (bool value) {
+                  setState(() {
+                    settingsJson["bypass_lan"] = value.toString();
+                  });
+                  settings.setValue("bypass_lan", value.toString());
                 },
               ),
               SettingSelector(
