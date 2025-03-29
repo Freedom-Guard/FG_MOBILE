@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
@@ -78,14 +79,24 @@ class Connect {
   dynamic addOptionsToVibe(dynamic parsedJson) async {
     String mux = await settings.getValue("mux");
     String fragment = await settings.getValue("fragment");
-    LogOverlay.addLog("fragment: " + fragment.toString());
+    String BypassIran = await settings.getValue("bypass_iran");
+    LogOverlay.addLog("fragment: " + jsonEncode(fragment).toString());
     LogOverlay.addLog("mux: " + mux.toString());
 
     if (parsedJson is Map<String, dynamic>) {
-      if (mux != "") {
+      if (BypassIran == "true") {
+        parsedJson["routing"] ??= {};
+        parsedJson["routing"]["rules"] ??= [];
+        (parsedJson["routing"]["rules"] as List).add({
+          "type": "field",
+          "ip": ["geoip:ir"],
+          "outboundTag": "direct",
+        });
+      }
+      if (mux != "" && json.decode(mux)["enabled"] == true) {
         parsedJson["mux"] = json.decode(mux);
       }
-      if (fragment != "") {
+      if (fragment != "" && json.decode(fragment)["enabled"] == true) {
         parsedJson["fragment"] = json.decode(fragment);
       }
     } else if (parsedJson is List<dynamic>) {
@@ -98,6 +109,8 @@ class Connect {
         }
       });
     }
+    ;
+    LogOverlay.addLog(parsedJson.toString());
     return parsedJson;
   }
 

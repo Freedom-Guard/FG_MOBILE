@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 
 class XraySettingsDialog {
-  static void show(
+  static Future<void> show(
     BuildContext context, {
     required Map<String, dynamic> initialConfig,
     required Function(Map<String, dynamic>) onConfigChanged,
-  }) {
+  }) async {
     Settings settings = Settings();
     bool fragmentEnabled = initialConfig['fragment']?['enabled'] ?? true;
     TextEditingController packetsController = TextEditingController(
@@ -21,6 +21,7 @@ class XraySettingsDialog {
       text: initialConfig['fragment']?['interval']?.toString() ?? '10-20',
     );
     bool muxEnabled = initialConfig['mux']?['enabled'] ?? false;
+    bool BypassIranEnabled = await settings.getValue("bypass_iran") == "true";
     TextEditingController concurrencyController = TextEditingController(
       text: initialConfig['mux']?['concurrency']?.toString() ?? '8',
     );
@@ -89,6 +90,32 @@ class XraySettingsDialog {
                         ),
                       ],
                       const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                        children: [
+                          const Text(
+                            'Bypass IRAN',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFE0E0E0),
+                            ),
+                          ),
+                          Switch(
+                            value: BypassIranEnabled,
+                            activeColor: Theme.of(context).colorScheme.primary,
+                            activeTrackColor: const Color(0xFF2A2A2A),
+                            inactiveThumbColor: Colors.grey[700],
+                            inactiveTrackColor: const Color(0xFF424242),
+                            onChanged: (value) {
+                              setState(() {
+                                BypassIranEnabled = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -177,6 +204,10 @@ class XraySettingsDialog {
                                 'mux',
                                 jsonEncode(newConfig['mux']),
                               );
+                              settings.setValue(
+                                'bypass_iran',
+                                (BypassIranEnabled.toString()),
+                              );
                               onConfigChanged(newConfig);
                               Navigator.pop(context);
                             },
@@ -237,7 +268,8 @@ class XraySettingsDialog {
   }
 }
 
-void openXraySettings(BuildContext context) {
+Future<void> openXraySettings(BuildContext context) async {
+  Settings settings = Settings();
   Map<String, dynamic> initialConfig = {
     'fragment': {
       'enabled': true,
@@ -247,7 +279,12 @@ void openXraySettings(BuildContext context) {
     },
     'mux': {'enabled': false, 'concurrency': 8},
   };
-
+  if (await settings.getValue("fragment") != "") {
+    initialConfig["fragment"] = jsonDecode(await settings.getValue("fragment"));
+  }
+  if (await settings.getValue("mux") != "") {
+    initialConfig["mux"] = jsonDecode(await settings.getValue("mux"));
+  }
   XraySettingsDialog.show(
     context,
     initialConfig: initialConfig,
