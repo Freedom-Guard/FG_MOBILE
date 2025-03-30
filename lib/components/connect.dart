@@ -106,7 +106,7 @@ class Connect {
                 .toList();
         (parsedJson["routing"]["rules"] as List).add({
           "type": "field",
-          "domain": appsSplit.map((app) => "domain:${app}").toList(),
+          "process": appsSplit.map((app) => "${app}").toList(),
           "outboundTag": "direct",
         });
       }
@@ -123,7 +123,7 @@ class Connect {
         (parsedJson["routing"]["rules"] as List).addAll([
           {
             "type": "field",
-            "domain": adDomains.map((domain) => "domain:${domain}").toList(),
+            "domain": adDomains.map((domain) => "domain:$domain").toList(),
             "outboundTag": "blocked",
           },
           {
@@ -249,7 +249,7 @@ class Connect {
           );
         }
         String parsedJson = await addOptionsToVibe(jsonDecode(parser));
-
+        LogOverlay.addLog(parsedJson);
         flutterV2ray.startV2Ray(
           remark: "Freedom Guard",
           config: parsedJson,
