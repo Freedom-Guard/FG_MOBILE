@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
@@ -80,6 +79,7 @@ class Connect {
     String mux = await settings.getValue("mux");
     String fragment = await settings.getValue("fragment");
     String BypassIran = await settings.getValue("bypass_iran");
+    String AppsSplit = await settings.getValue("split_app");
     LogOverlay.addLog("fragment: " + jsonEncode(fragment).toString());
     LogOverlay.addLog("mux: " + mux.toString());
 
@@ -90,6 +90,22 @@ class Connect {
         (parsedJson["routing"]["rules"] as List).add({
           "type": "field",
           "ip": ["geoip:ir"],
+          "outboundTag": "direct",
+        });
+      }
+      if (AppsSplit != "") {
+        parsedJson["routing"] ??= {};
+        parsedJson["routing"]["rules"] ??= [];
+        List<String> appsSplit =
+            AppsSplit.replaceAll("[", "")
+                .replaceAll("]", "")
+                .split(",")
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+        (parsedJson["routing"]["rules"] as List).add({
+          "type": "field",
+          "domain": appsSplit.map((app) => "domain:${app}").toList(),
           "outboundTag": "direct",
         });
       }

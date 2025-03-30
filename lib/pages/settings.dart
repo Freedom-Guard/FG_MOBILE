@@ -1,5 +1,6 @@
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/f-link.dart';
+import 'package:Freedom_Guard/widgets/split.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -59,6 +60,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 MaterialPageRoute(
                   builder: (context) => PremiumDonateConfigPage(),
                 ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.merge_type, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SplitPage()),
               );
             },
           ),
@@ -367,7 +377,7 @@ class AboutDialogWidget extends StatelessWidget {
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
             Text(
-              "نسخه: 3.2",
+              "نسخه: 4",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
