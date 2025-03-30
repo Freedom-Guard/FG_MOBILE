@@ -315,14 +315,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.10"
-  flutter_vpn:
-    dependency: "direct main"
-    description:
-      name: flutter_vpn
-      sha256: "9f83b6ddc1cc22e85abe3c9b8a435ca31935ae81fb72b9b5543e3320f84ca021"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.13.0"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
