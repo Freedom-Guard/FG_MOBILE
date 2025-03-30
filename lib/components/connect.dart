@@ -75,7 +75,7 @@ class Connect {
     }
   }
 
-  dynamic addOptionsToVibe(dynamic parsedJson) async {
+  Future<String> addOptionsToVibe(dynamic parsedJson) async {
     String mux = await settings.getValue("mux");
     String fragment = await settings.getValue("fragment");
     String BypassIran = await settings.getValue("bypass_iran");
@@ -85,18 +85,18 @@ class Connect {
     LogOverlay.addLog("mux: " + mux.toString());
 
     if (parsedJson is Map<String, dynamic>) {
-      parsedJson.putIfAbsent("routing", () => {"rules": []});
-      List<dynamic> rules = parsedJson["routing"]["rules"];
-
       if (BypassIran == "true") {
-        rules.add({
+        parsedJson["routing"] ??= {};
+        parsedJson["routing"]["rules"] ??= [];
+        (parsedJson["routing"]["rules"] as List).add({
           "type": "field",
           "ip": ["geoip:ir"],
           "outboundTag": "direct",
         });
       }
-
       if (AppsSplit != "") {
+        parsedJson["routing"] ??= {};
+        parsedJson["routing"]["rules"] ??= [];
         List<String> appsSplit =
             AppsSplit.replaceAll("[", "")
                 .replaceAll("]", "")
@@ -104,27 +104,26 @@ class Connect {
                 .map((e) => e.trim())
                 .where((e) => e.isNotEmpty)
                 .toList();
-
-        if (appsSplit.isNotEmpty) {
-          rules.add({
-            "type": "field",
-            "domain": appsSplit.map((app) => "domain:$app").toList(),
-            "outboundTag": "direct",
-          });
-        }
+        (parsedJson["routing"]["rules"] as List).add({
+          "type": "field",
+          "domain": appsSplit.map((app) => "domain:${app}").toList(),
+          "outboundTag": "direct",
+        });
       }
-
       if (blockTADS == "true") {
+        parsedJson["routing"] ??= {};
+        parsedJson["routing"]["rules"] ??= [];
+
         List<String> adDomains = [
           "adservice.google.com",
           "doubleclick.net",
           "ads.youtube.com",
         ];
 
-        rules.addAll([
+        (parsedJson["routing"]["rules"] as List).addAll([
           {
             "type": "field",
-            "domain": adDomains.map((domain) => "domain:$domain").toList(),
+            "domain": adDomains.map((domain) => "domain:${domain}").toList(),
             "outboundTag": "blocked",
           },
           {
@@ -139,16 +138,14 @@ class Connect {
           },
         ]);
 
-        parsedJson.putIfAbsent("outbounds", () => []);
-        List<dynamic> outbounds = parsedJson["outbounds"];
-        if (!outbounds.any((outbound) => outbound["tag"] == "blocked")) {
-          outbounds.add({
-            "tag": "blocked",
-            "protocol": "blackhole",
-            "settings": {},
-          });
-        }
+        parsedJson["outbounds"] ??= [];
+        (parsedJson["outbounds"] as List).add({
+          "tag": "blocked",
+          "protocol": "blackhole",
+          "settings": {},
+        });
       }
+
       if (mux != "" && json.decode(mux)["enabled"] == true) {
         parsedJson["mux"] = json.decode(mux);
       }
@@ -165,11 +162,10 @@ class Connect {
         }
       });
     }
-    ;
-    return parsedJson;
+    return jsonEncode(parsedJson).toString();
   }
 
-  Future<List<String>> getSubNetforBypassVibe() async {
+  Future<dynamic> getSubNetforBypassVibe() async {
     if (await settings.getValue("bypass_lan") == "true") {
       LogOverlay.showLog("Bypass LAN Enabled");
       return [
@@ -206,7 +202,7 @@ class Connect {
         "240.0.0.0/4",
       ];
     } else
-      return [];
+      return null;
   }
 
   // Connects to a single V2Ray config
@@ -252,19 +248,10 @@ class Connect {
             backgroundColor: Colors.blueAccent,
           );
         }
-
-        var parsedJson = jsonDecode(parser);
-        parsedJson = await addOptionsToVibe(parsedJson);
-        LogOverlay.showLog(parsedJson.toString());
-        String remark =
-            parsedJson.containsKey("remarks") &&
-                    parsedJson["remarks"] != null &&
-                    parsedJson["remarks"].toString().isNotEmpty
-                ? parsedJson["remarks"].toString()
-                : "FREEDOM GUARD";
+        String parsedJson = await addOptionsToVibe(jsonDecode(parser));
 
         flutterV2ray.startV2Ray(
-          remark: remark,
+          remark: "Freedom Guard",
           config: parsedJson,
           bypassSubnets: await getSubNetforBypassVibe(),
           proxyOnly: false,
@@ -279,11 +266,12 @@ class Connect {
           backgroundColor: Colors.redAccent,
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       LogOverlay.showLog(
-        "Failed to connect to VIBE \n ${e.toString()}",
+        "Failed to connect to VIBE \n ${e.toString()}\nStackTrace: ${stackTrace.toString()}",
         backgroundColor: Colors.redAccent,
       );
+      return false;
     } finally {
       stopwatch.stop();
       debugPrint('Connection took ${stopwatch.elapsed.inMilliseconds} ms');
@@ -399,15 +387,14 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
             if (config.startsWith("http")) {
               var bestConfig = await getBestConfigFromSub(config);
               if (bestConfig != null && await testConfig(bestConfig) != -1) {
-                await ConnectVibe(bestConfig, []);
-                connStat = true;
-                break;
+                connStat = await ConnectVibe(bestConfig, []);
+                if (connStat == true) break;
               }
             } else {
               if (await testConfig(config) != -1) {
-                await ConnectVibe(config, []);
                 connStat = true;
-                break;
+                await ConnectVibe(config, []);
+                if (connStat == true) break;
               }
             }
           } else if (config.split(",;,")[0] == "warp") {
@@ -446,7 +433,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
       final ping = await flutterV2ray
           .getServerDelay(config: parser.getFullConfiguration())
           .timeout(
-            const Duration(seconds: 5),
+            const Duration(seconds: 6),
             onTimeout: () {
               debugPrint('Ping timeout for config: $config');
               return -1;
