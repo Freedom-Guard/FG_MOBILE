@@ -16,12 +16,12 @@ class _LoadingScreenState extends State<LoadingScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: Duration(milliseconds: 7500),
+      duration: Duration(milliseconds: 4500),
       vsync: this,
     );
 
     _fadeAnimation = Tween<double>(
-      begin: 0.5,
+      begin: 0.7,
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 

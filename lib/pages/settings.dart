@@ -1,6 +1,6 @@
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/f-link.dart';
-import 'package:Freedom_Guard/widgets/split.dart';
+import 'package:Freedom_Guard/pages/split.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,6 +20,9 @@ class _SettingsPageState extends State<SettingsPage> {
   _initSettingJson() async {
     settingsJson["f_link"] = await settings.getValue("f_link");
     settingsJson["fast_connect"] = await settings.getValue("fast_connect");
+    settingsJson["block_ads_trackers"] = await settings.getValue(
+      "block_ads_trackers",
+    );
     settingsJson["bypass_lan"] = await settings.getValue("bypass_lan");
     setState(() {});
   }
@@ -111,6 +114,20 @@ class _SettingsPageState extends State<SettingsPage> {
                     settingsJson["fast_connect"] = value.toString();
                   });
                   settings.setValue("fast_connect", value.toString());
+                },
+              ),
+              SettingSwitch(
+                title: "Block ads and trackers",
+                value:
+                    bool.tryParse(
+                      settingsJson["block_ads_trackers"].toString(),
+                    ) ??
+                    false,
+                onChanged: (bool value) {
+                  setState(() {
+                    settingsJson["block_ads_trackers"] = value.toString();
+                  });
+                  settings.setValue("block_ads_trackers", value.toString());
                 },
               ),
               SettingSwitch(

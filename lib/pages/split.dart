@@ -18,6 +18,7 @@ class _SplitPageState extends State<SplitPage> {
   @override
   void initState() {
     super.initState();
+    _loadSelectedApps();
     _getInstalledApps();
   }
 
@@ -26,6 +27,18 @@ class _SplitPageState extends State<SplitPage> {
     setState(() {
       installedApps = [packageInfo.packageName];
     });
+  }
+
+  Future<void> _loadSelectedApps() async {
+    String? selectedAppsString = await settings.getValue("split_app");
+    if (selectedAppsString.isNotEmpty) {
+      String cleanedString = selectedAppsString.substring(1, selectedAppsString.length - 1);
+      List<String> loadedApps = cleanedString.split(', ');
+      setState(() {
+          selectedApps = loadedApps;
+      });
+      
+    };
   }
 
   void _toggleAppSelection(String packageName) {

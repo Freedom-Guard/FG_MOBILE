@@ -80,6 +80,7 @@ class Connect {
     String fragment = await settings.getValue("fragment");
     String BypassIran = await settings.getValue("bypass_iran");
     String AppsSplit = await settings.getValue("split_app");
+    String blockTADS = await settings.getValue("freedom_block");
     LogOverlay.addLog("fragment: " + jsonEncode(fragment).toString());
     LogOverlay.addLog("mux: " + mux.toString());
 
@@ -107,6 +108,41 @@ class Connect {
           "type": "field",
           "domain": appsSplit.map((app) => "domain:${app}").toList(),
           "outboundTag": "direct",
+        });
+      }
+      if (blockTADS == "true") {
+        parsedJson["routing"] ??= {};
+        parsedJson["routing"]["rules"] ??= [];
+
+        List<String> adDomains = [
+          "adservice.google.com",
+          "doubleclick.net",
+          "ads.youtube.com",
+        ];
+
+        (parsedJson["routing"]["rules"] as List).addAll([
+          {
+            "type": "field",
+            "domain": adDomains.map((domain) => "domain:${domain}").toList(),
+            "outboundTag": "blocked",
+          },
+          {
+            "type": "field",
+            "domain": ["geosite:category-ads-all"],
+            "outboundTag": "blocked",
+          },
+          {
+            "type": "field",
+            "ip": ["geoip:category-ads"],
+            "outboundTag": "blocked",
+          },
+        ]);
+
+        parsedJson["outbounds"] ??= [];
+        (parsedJson["outbounds"] as List).add({
+          "tag": "blocked",
+          "protocol": "blackhole",
+          "settings": {},
         });
       }
       if (mux != "" && json.decode(mux)["enabled"] == true) {
