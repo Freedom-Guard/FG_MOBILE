@@ -9,7 +9,7 @@
   <h1>Freedom Guard - Mobile</h1>
   <p>ابزار متن‌باز برای آزادی اینترنت با امنیت و سرعت بالا</p>
   <a href="https://github.com/Freedom-Guard/FG_MOBILE/releases"><img src="https://img.shields.io/github/v/release/Freedom-Guard/FG_MOBILE?style=flat-square&color=green" alt="Latest Release"></a>
-  <a href="https://github.com/Freedom-Guard/Freedom-Guard/stargazers"><img src="https://img.shields.io/github/stars/Freedom-Guard/FG_MOBILE?style=flat-square&color=yellow" alt="Stars"></a>
+  <a href="https://github.com/Freedom-Guard/FG_MOBILE/stargazers"><img src="https://img.shields.io/github/stars/Freedom-Guard/FG_MOBILE?style=flat-square&color=yellow" alt="Stars"></a>
   <a href="https://github.com/Freedom-Guard/FG_MOBILE/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Freedom-Guard/FG_MOBILE?style=flat-square&color=blue" alt="License"></a>
 </div>
 
