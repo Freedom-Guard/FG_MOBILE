@@ -80,23 +80,23 @@ class Connect {
     String fragment = await settings.getValue("fragment");
     String BypassIran = await settings.getValue("bypass_iran");
     String AppsSplit = await settings.getValue("split_app");
-    String blockTADS = await settings.getValue("freedom_block");
+    String blockTADS = await settings.getValue("block_ads_trackers");
     LogOverlay.addLog("fragment: " + jsonEncode(fragment).toString());
     LogOverlay.addLog("mux: " + mux.toString());
 
     if (parsedJson is Map<String, dynamic>) {
+      parsedJson.putIfAbsent("routing", () => {"rules": []});
+      List<dynamic> rules = parsedJson["routing"]["rules"];
+
       if (BypassIran == "true") {
-        parsedJson["routing"] ??= {};
-        parsedJson["routing"]["rules"] ??= [];
-        (parsedJson["routing"]["rules"] as List).add({
+        rules.add({
           "type": "field",
           "ip": ["geoip:ir"],
           "outboundTag": "direct",
         });
       }
+
       if (AppsSplit != "") {
-        parsedJson["routing"] ??= {};
-        parsedJson["routing"]["rules"] ??= [];
         List<String> appsSplit =
             AppsSplit.replaceAll("[", "")
                 .replaceAll("]", "")
@@ -104,26 +104,27 @@ class Connect {
                 .map((e) => e.trim())
                 .where((e) => e.isNotEmpty)
                 .toList();
-        (parsedJson["routing"]["rules"] as List).add({
-          "type": "field",
-          "domain": appsSplit.map((app) => "domain:${app}").toList(),
-          "outboundTag": "direct",
-        });
-      }
-      if (blockTADS == "true") {
-        parsedJson["routing"] ??= {};
-        parsedJson["routing"]["rules"] ??= [];
 
+        if (appsSplit.isNotEmpty) {
+          rules.add({
+            "type": "field",
+            "domain": appsSplit.map((app) => "domain:$app").toList(),
+            "outboundTag": "direct",
+          });
+        }
+      }
+
+      if (blockTADS == "true") {
         List<String> adDomains = [
           "adservice.google.com",
           "doubleclick.net",
           "ads.youtube.com",
         ];
 
-        (parsedJson["routing"]["rules"] as List).addAll([
+        rules.addAll([
           {
             "type": "field",
-            "domain": adDomains.map((domain) => "domain:${domain}").toList(),
+            "domain": adDomains.map((domain) => "domain:$domain").toList(),
             "outboundTag": "blocked",
           },
           {
@@ -138,12 +139,15 @@ class Connect {
           },
         ]);
 
-        parsedJson["outbounds"] ??= [];
-        (parsedJson["outbounds"] as List).add({
-          "tag": "blocked",
-          "protocol": "blackhole",
-          "settings": {},
-        });
+        parsedJson.putIfAbsent("outbounds", () => []);
+        List<dynamic> outbounds = parsedJson["outbounds"];
+        if (!outbounds.any((outbound) => outbound["tag"] == "blocked")) {
+          outbounds.add({
+            "tag": "blocked",
+            "protocol": "blackhole",
+            "settings": {},
+          });
+        }
       }
       if (mux != "" && json.decode(mux)["enabled"] == true) {
         parsedJson["mux"] = json.decode(mux);
@@ -162,7 +166,6 @@ class Connect {
       });
     }
     ;
-    LogOverlay.addLog(parsedJson.toString());
     return parsedJson;
   }
 
@@ -252,7 +255,7 @@ class Connect {
 
         var parsedJson = jsonDecode(parser);
         parsedJson = await addOptionsToVibe(parsedJson);
-
+        LogOverlay.showLog(parsedJson.toString());
         String remark =
             parsedJson.containsKey("remarks") &&
                     parsedJson["remarks"] != null &&
@@ -262,7 +265,7 @@ class Connect {
 
         flutterV2ray.startV2Ray(
           remark: remark,
-          config: parser,
+          config: parsedJson,
           bypassSubnets: await getSubNetforBypassVibe(),
           proxyOnly: false,
           notificationDisconnectButtonName: "قطع اتصال",

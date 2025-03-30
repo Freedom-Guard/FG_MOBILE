@@ -1,7 +1,8 @@
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:installed_apps/installed_apps.dart';
+import 'package:installed_apps/app_info.dart';
 
 class SplitPage extends StatefulWidget {
   const SplitPage({super.key});
@@ -11,10 +12,12 @@ class SplitPage extends StatefulWidget {
 }
 
 class _SplitPageState extends State<SplitPage> {
-  List<String> installedApps = [];
+  List<AppInfo> installedApps = [];
   List<String> selectedApps = [];
   bool showSystemApps = false;
-  Settings settings = new Settings();
+  Settings settings = Settings();
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -23,22 +26,46 @@ class _SplitPageState extends State<SplitPage> {
   }
 
   Future<void> _getInstalledApps() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
     setState(() {
-      installedApps = [packageInfo.packageName];
+      isLoading = true;
     });
+    try {
+      List<AppInfo> apps = await InstalledApps.getInstalledApps(
+        !showSystemApps,
+        true,
+      );
+      setState(() {
+        installedApps = apps;
+        isLoading = false;
+      });
+      LogOverlay.showLog("تعداد برنامه‌های بارگذاری‌شده: ${apps.length}");
+    } catch (e) {
+      setState(() {
+        installedApps = [];
+        isLoading = false;
+      });
+      LogOverlay.showLog("خطا در بارگذاری برنامه‌ها: $e");
+    }
   }
 
   Future<void> _loadSelectedApps() async {
-    String? selectedAppsString = await settings.getValue("split_app");
-    if (selectedAppsString.isNotEmpty) {
-      String cleanedString = selectedAppsString.substring(1, selectedAppsString.length - 1);
-      List<String> loadedApps = cleanedString.split(', ');
-      setState(() {
+    try {
+      String? selectedAppsString = await settings.getValue("split_app");
+      if (selectedAppsString.isNotEmpty) {
+        String cleanedString = selectedAppsString.substring(
+          1,
+          selectedAppsString.length - 1,
+        );
+        List<String> loadedApps =
+            cleanedString.split(', ').where((e) => e.isNotEmpty).toList();
+        setState(() {
           selectedApps = loadedApps;
-      });
-      
-    };
+        });
+        LogOverlay.showLog("برنامه‌های انتخاب‌شده بارگذاری شدند: $loadedApps");
+      }
+    } catch (e) {
+      LogOverlay.showLog("خطا در بارگذاری برنامه‌های انتخاب‌شده: $e");
+    }
   }
 
   void _toggleAppSelection(String packageName) {
@@ -54,7 +81,7 @@ class _SplitPageState extends State<SplitPage> {
   void _applySettings() {
     settings.setValue(
       "split_app",
-      (selectedApps == [] ? "" : selectedApps.toString()),
+      selectedApps.isEmpty ? "" : selectedApps.toString(),
     );
     LogOverlay.showLog("لیست برنامه‌های انتخاب‌شده: $selectedApps");
   }
@@ -62,39 +89,108 @@ class _SplitPageState extends State<SplitPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("Split Tunneling"),
+        elevation: 0,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: const Text(
+          "Split Tunneling",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.check), onPressed: _applySettings),
+          IconButton(
+            icon: const Icon(Icons.check, color: Colors.white),
+            onPressed: _applySettings,
+          ),
         ],
       ),
       body: Column(
         children: [
-          SwitchListTile(
-            title: const Text("نمایش برنامه‌های سیستمی"),
-            value: showSystemApps,
-            onChanged: (value) {
-              setState(() {
-                showSystemApps = value;
-              });
-            },
-          ),
-          Text("برنامه های زیر از فیلترشکن عبور نمیکنند"),
-          Expanded(
-            child: ListView.builder(
-              itemCount: installedApps.length,
-              itemBuilder: (context, index) {
-                String packageName = installedApps[index];
-                return ListTile(
-                  leading: const Icon(Icons.apps),
-                  title: Text(packageName),
-                  trailing: Switch(
-                    value: selectedApps.contains(packageName),
-                    onChanged: (value) => _toggleAppSelection(packageName),
-                  ),
-                );
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: SwitchListTile(
+              activeColor: Colors.blueAccent,
+              title: const Text(
+                "نمایش برنامه‌های سیستمی",
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              value: showSystemApps,
+              onChanged: (value) {
+                setState(() {
+                  showSystemApps = value;
+                  _getInstalledApps();
+                });
               },
             ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              "برنامه‌های زیر از فیلترشکن عبور نمی‌کنند",
+              style: TextStyle(color: Colors.white, fontSize: 14),
+            ),
+          ),
+          Expanded(
+            child:
+                isLoading
+                    ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.blueAccent,
+                      ),
+                    )
+                    : installedApps.isEmpty
+                    ? const Center(
+                      child: Text(
+                        "هیچ برنامه‌ای یافت نشد!",
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    )
+                    : ListView.builder(
+                      itemCount: installedApps.length,
+                      itemBuilder: (context, index) {
+                        AppInfo app = installedApps[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage:
+                                  app.icon != null
+                                      ? MemoryImage(app.icon!)
+                                      : null,
+                              child:
+                                  app.icon == null
+                                      ? const Icon(Icons.apps)
+                                      : null,
+                            ),
+                            title: Text(
+                              app.name ?? "بدون نام",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            subtitle: Text(
+                              app.packageName ?? "بدون بسته",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            trailing: Switch(
+                              activeColor: Colors.blueAccent,
+                              value: selectedApps.contains(app.packageName),
+                              onChanged:
+                                  (value) => _toggleAppSelection(
+                                    app.packageName ?? "",
+                                  ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
           ),
         ],
       ),
