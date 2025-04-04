@@ -99,7 +99,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     Future.microtask(() async {
-      Timer.periodic(Duration(seconds: 5), (timer) {
+      Timer.periodic(Duration(seconds: 10), (timer) {
         checkVPN();
       });
       await checkForUpdate(context);

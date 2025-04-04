@@ -105,19 +105,19 @@ class Connect {
 
         (parsedJson["routing"]["rules"] as List).addAll([
           {
+            "outboundTag": "block",
+            "domain": [
+              "geosite:category-ads-all",
+              "geosite:malware",
+              "geosite:phishing",
+              "geosite:cryptominers",
+            ],
             "type": "field",
-            "domain": adDomains.map((domain) => "domain:$domain").toList(),
-            "outboundTag": "blocked",
           },
           {
+            "outboundTag": "block",
+            "ip": ["geoip:malware", "geoip:phishing"],
             "type": "field",
-            "domain": ["geosite:category-ads-all"],
-            "outboundTag": "blocked",
-          },
-          {
-            "type": "field",
-            "ip": ["geoip:category-ads"],
-            "outboundTag": "blocked",
           },
         ]);
 
