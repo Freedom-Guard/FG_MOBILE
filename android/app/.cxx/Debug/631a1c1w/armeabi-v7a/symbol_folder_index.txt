@@ -1,1 +1,0 @@
-/home/user/myapp/build/app/intermediates/cxx/Debug/631a1c1w/obj/armeabi-v7a

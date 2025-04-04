@@ -1,2 +1,0 @@
-/home/user/FG_MOBILE/android/app/.cxx/Debug/3c652w6e/x86/CMakeFiles/edit_cache.dir
-/home/user/FG_MOBILE/android/app/.cxx/Debug/3c652w6e/x86/CMakeFiles/rebuild_cache.dir
