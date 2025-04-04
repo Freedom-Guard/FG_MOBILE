@@ -121,10 +121,24 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> toggleConnection() async {
+    if (isConnecting) {
+      await connect.disConnect();
+      setState(() {
+        isConnected = false;
+        isConnecting = false;
+      });
+      LogOverlay.showLog(
+        "Connection process stopped.",
+        backgroundColor: Colors.orangeAccent,
+      );
+      return;
+    }
+
     LogOverlay.clearLogs();
     setState(() {
       isConnecting = true;
     });
+
     if (isConnected) {
       setState(() {
         isConnected = false;
@@ -134,24 +148,21 @@ class _HomePageState extends State<HomePage> {
       try {
         var connStat = false;
         var selectedServer = await serverM.getSelectedServer() as String;
-        if (selectedServer.split("#")[0] == "") {
+        if (selectedServer.split("#")[0].isEmpty) {
           LogOverlay.showLog(
             "connecting to auto mode",
             backgroundColor: Colors.blueAccent,
           );
+          var timeout =
+              int.tryParse(
+                await settings.getValue("timeout_auto").toString(),
+              ) ??
+              110000;
           connStat = await connect.ConnectAuto(
             "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
             110000,
           ).timeout(
-            Duration(
-              milliseconds:
-                  int.tryParse(
-                    await settings.getValue("timeout_auto").toString() == ""
-                        ? "110000"
-                        : await settings.getValue("timeout_auto").toString(),
-                  ) ??
-                  110000,
-            ),
+            Duration(milliseconds: timeout),
             onTimeout: () {
               LogOverlay.showLog("Connection to Auto mode timed out.");
               return false;
@@ -159,7 +170,7 @@ class _HomePageState extends State<HomePage> {
           );
         } else {
           LogOverlay.showLog(
-            "connecting to config:\n" + selectedServer.split("#")[0],
+            "connecting to config:\n${selectedServer.split("#")[0]}",
             backgroundColor: Colors.blueAccent,
           );
           if (selectedServer.startsWith("http")) {
@@ -169,17 +180,18 @@ class _HomePageState extends State<HomePage> {
             if (bestConfig != null) {
               connStat = await connect.ConnectVibe(bestConfig, "args");
             }
-          } else if (selectedServer.startsWith("wireguard")) {
-            connStat = await connect.ConnectWarp(selectedServer, []);
-          } else if (selectedServer.startsWith("wire:::")) {
+          } else if (selectedServer.startsWith("wireguard") ||
+              selectedServer.startsWith("wire:::")) {
             connStat = await connect.ConnectWarp(selectedServer, []);
           } else {
             connStat = await connect.ConnectVibe(selectedServer, "args");
           }
         }
+
         setState(() {
           isConnected = connStat;
         });
+
         if (connStat) {
           FirebaseAnalytics.instance.logEvent(
             name: "connected",
@@ -190,24 +202,27 @@ class _HomePageState extends State<HomePage> {
             },
           );
 
-          if ((await settings.getValue("f_link").toString()) == "true")
+          if ((await settings.getValue("f_link").toString()) == "true") {
             donateCONFIG(selectedServer.split("#")[0]);
+          }
 
           LogOverlay.showLog(
-            "connected to " + await settings.getValue("core_vpn") + " mode",
+            "connected to ${await settings.getValue("core_vpn")} mode",
             backgroundColor: Colors.greenAccent,
           );
         } else {
-          FirebaseAnalytics.instance.logEvent(
-            name: "not_connected",
-            parameters: {
-              "time": DateTime.now().toString(),
-              "core": await settings.getValue("core_vpn"),
-              "isp": await settings.getValue("user_isp"),
-            },
-          );
+          if (await settings.getValue("core_vpn") == "auto") {
+            FirebaseAnalytics.instance.logEvent(
+              name: "not_connected",
+              parameters: {
+                "time": DateTime.now().toString(),
+                "core": await settings.getValue("core_vpn"),
+                "isp": await settings.getValue("user_isp"),
+              },
+            );
+          }
           LogOverlay.showLog(
-            "not connected to " + await settings.getValue("core_vpn") + " mode",
+            "not connected to ${await settings.getValue("core_vpn")} mode",
             backgroundColor: Colors.redAccent,
           );
         }
@@ -218,6 +233,7 @@ class _HomePageState extends State<HomePage> {
         LogOverlay.showLog("خطا در اتصال: $e");
       }
     }
+
     setState(() {
       isConnecting = false;
     });
@@ -371,7 +387,7 @@ class _HomePageState extends State<HomePage> {
                               },
                               child: Icon(
                                 isConnected
-                                    ? Icons.lock_rounded  
+                                    ? Icons.lock_rounded
                                     : Icons.power_settings_new_rounded,
                                 key: ValueKey(isConnected),
                                 size: 80,
@@ -562,17 +578,30 @@ class _PulsePainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.5
           ..shader = RadialGradient(
-            colors: [Colors.blue.shade400.withOpacity(0.8), Colors.transparent],
+            colors: [
+              Colors.blue.shade400.withOpacity(0.9),
+              Colors.blue.shade200.withOpacity(0.2),
+              Colors.transparent,
+            ],
+            stops: [0.0, 0.7, 1.0],
           ).createShader(
             Rect.fromCircle(center: center, radius: size.width / 2),
           );
 
+    final time = DateTime.now().millisecondsSinceEpoch / 1000;
     for (int i = 0; i < 3; i++) {
+      final animationProgress = (time + i * 0.5) % 1.0;
       final radius =
           (size.width / 2) *
-          (0.4 + (i * 0.2)) *
-          (DateTime.now().millisecondsSinceEpoch % 2000 / 2000);
-      canvas.drawCircle(center, radius, paint..strokeWidth = 2.5 - (i * 0.5));
+          (0.3 + (i * 0.25)) *
+          (0.5 + 0.5 * (animationProgress * 2 - 1).abs());
+      final opacity = 1.0 - animationProgress;
+
+      canvas.drawCircle(
+        center,
+        radius,
+        paint..strokeWidth = (2.5 * opacity).clamp(0.5, 2.5),
+      );
     }
   }
 

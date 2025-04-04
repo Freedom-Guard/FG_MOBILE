@@ -9,6 +9,7 @@ import '../components/servers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
+import 'package:qr_flutter/qr_flutter.dart';
 
 class ServersPage extends StatefulWidget {
   const ServersPage({super.key});
@@ -312,6 +313,9 @@ class _ServersPageState extends State<ServersPage> {
                                       case 'delete':
                                         _removeServer(index);
                                         break;
+                                      case 'qr':
+                                        _showQRCodeDialog(server);
+                                        break;
                                     }
                                   },
                                   itemBuilder:
@@ -335,6 +339,18 @@ class _ServersPageState extends State<ServersPage> {
                                               const Icon(Icons.share_outlined),
                                               const SizedBox(width: 8),
                                               Text('اشتراک'),
+                                            ],
+                                          ),
+                                        ),
+                                        PopupMenuItem<String>(
+                                          value: 'qr',
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.qr_code_2_outlined,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text('کد qr'),
                                             ],
                                           ),
                                         ),
@@ -411,5 +427,29 @@ class _ServersPageState extends State<ServersPage> {
     for (var server in clipboardData.text!.split("\n")) {
       _addServer(server);
     }
+  }
+
+  void _showQRCodeDialog(String text) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('کد QR'),
+          content: QrImageView(
+            data: text.toString(),
+            version: QrVersions.auto,
+            size: 200.0,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('بستن'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

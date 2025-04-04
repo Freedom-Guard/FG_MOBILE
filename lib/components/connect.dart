@@ -79,7 +79,6 @@ class Connect {
     String mux = await settings.getValue("mux");
     String fragment = await settings.getValue("fragment");
     String BypassIran = await settings.getValue("bypass_iran");
-    String AppsSplit = await settings.getValue("split_app");
     String blockTADS = await settings.getValue("block_ads_trackers");
     LogOverlay.addLog("fragment: " + jsonEncode(fragment).toString());
     LogOverlay.addLog("mux: " + mux.toString());
@@ -91,22 +90,6 @@ class Connect {
         (parsedJson["routing"]["rules"] as List).add({
           "type": "field",
           "ip": ["geoip:ir"],
-          "outboundTag": "direct",
-        });
-      }
-      if (AppsSplit != "") {
-        parsedJson["routing"] ??= {};
-        parsedJson["routing"]["rules"] ??= [];
-        List<String> appsSplit =
-            AppsSplit.replaceAll("[", "")
-                .replaceAll("]", "")
-                .split(",")
-                .map((e) => e.trim())
-                .where((e) => e.isNotEmpty)
-                .toList();
-        (parsedJson["routing"]["rules"] as List).add({
-          "type": "field",
-          "process": appsSplit.map((app) => "${app}").toList(),
           "outboundTag": "direct",
         });
       }
@@ -253,6 +236,15 @@ class Connect {
         flutterV2ray.startV2Ray(
           remark: "Freedom Guard",
           config: parsedJson,
+          blockedApps:
+              (await settings.getValue("split_app"))
+                  .toString()
+                  .replaceAll("[", "")
+                  .replaceAll("]", "")
+                  .split(",")
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList(),
           bypassSubnets: await getSubNetforBypassVibe(),
           proxyOnly: false,
           notificationDisconnectButtonName: "قطع اتصال",

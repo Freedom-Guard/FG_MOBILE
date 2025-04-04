@@ -165,7 +165,8 @@ class XraySettingsDialog {
                           const SizedBox(width: 16),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00E676),
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
                               foregroundColor: const Color(0xFF121212),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
