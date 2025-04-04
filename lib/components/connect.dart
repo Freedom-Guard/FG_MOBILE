@@ -143,7 +143,7 @@ class Connect {
         if (fragment != "") {
           element["fragment"] = json.decode(fragment);
         }
-      });
+      }); 
     }
     return jsonEncode(parsedJson).toString();
   }
