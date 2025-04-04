@@ -13,6 +13,7 @@ class LogOverlay {
   static Future<void> addLog(String message) async {
     try {
       final now = DateTime.now();
+      message = message.toString().replaceAll("\n", "");
       final logMessage = '[${now.toIso8601String()}] $message\n';
       final file = await _getLogFile();
       if (!await file.exists()) {
