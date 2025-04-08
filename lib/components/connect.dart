@@ -143,7 +143,7 @@ class Connect {
         if (fragment != "") {
           element["fragment"] = json.decode(fragment);
         }
-      }); 
+      });
     }
     return jsonEncode(parsedJson).toString();
   }
@@ -456,95 +456,156 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
     Duration requestTimeout = const Duration(seconds: 30),
     Duration pingTimeout = const Duration(seconds: 6),
   }) async {
-    bool isQUICK = false;
     try {
-      String fastConnectValue = await settings.getValue("fast_connect");
-      isQUICK =
+      final fastConnectValue = await settings.getValue("fast_connect");
+      final isQuick =
           fastConnectValue.isNotEmpty &&
           bool.tryParse(fastConnectValue) == true;
-      if (isQUICK) {
-        String bestConfig = await settings.getValue("best_config_backup");
-        String backupSub = await settings.getValue("backup_sub");
+
+      if (isQuick) {
+        final bestConfig = await settings.getValue("best_config_backup");
+        final backupSub = await settings.getValue("backup_sub");
+
         if (sub == backupSub &&
             bestConfig.isNotEmpty &&
             await isConfigValid(bestConfig)) {
           LogOverlay.showLog(
-            "Quick connect mode...",
+            "Quick connect activated",
             backgroundColor: Colors.deepPurpleAccent,
           );
           return bestConfig;
         }
         LogOverlay.showLog(
-          "Quick connect failed, switching to normal connect",
+          "Quick connect failed, switching to normal mode",
           backgroundColor: Colors.orangeAccent,
         );
       }
-    } catch (_) {}
 
-    settings.setValue("backup_sub", sub);
-    batchSize =
-        int.tryParse(await settings.getValue("batch_size")) ?? batchSize;
+      await settings.setValue("backup_sub", sub.toString());
+      final customBatchSize = int.tryParse(
+        await settings.getValue("batch_size"),
+      );
+      final effectiveBatchSize = customBatchSize ?? batchSize;
 
-    final uri = Uri.parse(sub);
-    debugPrint('Fetching subscription from: $sub');
-    final response = await http
-        .get(uri)
-        .timeout(
-          requestTimeout,
-          onTimeout:
-              () => throw TimeoutException('Failed to fetch subscription'),
+      final uri = Uri.tryParse(sub);
+      if (uri == null || !uri.hasScheme) {
+        LogOverlay.showLog(
+          "Invalid subscription URL",
+          backgroundColor: Colors.redAccent,
         );
-    if (response.statusCode != 200) return null;
+        return null;
+      }
 
-    String data = response.body;
-    if (sub.toLowerCase().startsWith('http')) {
+      debugPrint('Fetching subscription from: $sub');
+      final response = await http
+          .get(uri)
+          .timeout(
+            requestTimeout,
+            onTimeout: () => throw TimeoutException('Request timed out'),
+          );
+
+      if (response.statusCode != 200) {
+        LogOverlay.showLog(
+          "Server error: ${response.statusCode}",
+          backgroundColor: Colors.redAccent,
+        );
+        return null;
+      }
+
+      String data = response.body;
+      if (uri.scheme == 'http' || uri.scheme == 'https') {
+        try {
+          data = utf8.decode(base64Decode(data));
+        } catch (e) {
+          debugPrint('Error decoding data: $e');
+        }
+      }
+
+      final configs =
+          data.split('\n').where((e) => e.trim().isNotEmpty).toList();
+      if (configs.isEmpty) {
+        LogOverlay.showLog(
+          "No configs found in subscription",
+          backgroundColor: Colors.redAccent,
+        );
+        return null;
+      }
+
       try {
-        data = utf8.decode(base64Decode(data));
-      } catch (_) {}
-    }
+        await flutterV2ray.initializeV2Ray();
+      } catch (e) {
+        debugPrint('Failed to initialize V2Ray: $e');
+        LogOverlay.showLog(
+          "VIBE initialization failed",
+          backgroundColor: Colors.redAccent,
+        );
+        return null;
+      }
 
-    final configs = data.split('\n').where((e) => e.trim().isNotEmpty).toList();
-    if (configs.isEmpty) return null;
+      final List<Map<String, dynamic>> results = [];
+      for (var i = 0; i < configs.length; i += effectiveBatchSize) {
+        final batchEnd =
+            (i + effectiveBatchSize > configs.length)
+                ? configs.length
+                : i + effectiveBatchSize;
+        final batch = configs.sublist(i, batchEnd);
 
-    try {
-      await flutterV2ray.initializeV2Ray();
-    } catch (e) {
-      debugPrint('Failed to initialize VIBE: $e');
+        final batchResults = await Future.wait(
+              batch.map((config) async {
+                try {
+                  final parser = FlutterV2ray.parseFromURL(config);
+                  final ping = await flutterV2ray
+                      .getServerDelay(config: parser.getFullConfiguration())
+                      .timeout(pingTimeout, onTimeout: () => -1);
+                  return ping > 0 ? {'config': config, 'ping': ping} : null;
+                } catch (e) {
+                  debugPrint('Error testing config ping: $e');
+                  return null;
+                }
+              }),
+            )
+            .timeout(
+              batchTimeout,
+              onTimeout: () {
+                debugPrint('Batch timeout for configs: $batch');
+                return [];
+              },
+            )
+            .then(
+              (list) =>
+                  list
+                      .where((e) => e != null)
+                      .cast<Map<String, dynamic>>()
+                      .toList(),
+            );
+
+        results.addAll(batchResults);
+      }
+
+      if (results.isEmpty) {
+        LogOverlay.showLog(
+          "No valid configs found",
+          backgroundColor: Colors.redAccent,
+        );
+        return null;
+      }
+
+      results.sort((a, b) => a['ping'].compareTo(b['ping']));
+      final bestConfig = results.first['config'];
+
+      LogOverlay.showLog(
+        "Best config selected with ping ${results.first['ping']}ms",
+        backgroundColor: Colors.blueAccent,
+      );
+      await settings.setValue("best_config_backup", bestConfig);
+      return bestConfig.toString();
+    } catch (e, stackTrace) {
+      debugPrint('Error in getBestConfigFromSub: $e');
+      LogOverlay.showLog(
+        "Unexpected error: $e $stackTrace",
+        backgroundColor: Colors.redAccent,
+      );
       return null;
     }
-
-    final List<Map<String, dynamic>> results = [];
-    for (var i = 0; i < configs.length; i += batchSize) {
-      final batch = configs.sublist(
-        i,
-        i + batchSize > configs.length ? configs.length : i + batchSize,
-      );
-      final batchResults = await Future.wait(
-        batch.map((config) async {
-          try {
-            final parser = FlutterV2ray.parseFromURL(config);
-            final ping = await flutterV2ray
-                .getServerDelay(config: parser.getFullConfiguration())
-                .timeout(pingTimeout, onTimeout: () => -1);
-            return ping > 0 ? {'config': config, 'ping': ping} : null;
-          } catch (_) {
-            return null;
-          }
-        }),
-      ).then((list) => list.whereType<Map<String, dynamic>>().toList());
-
-      results.addAll(batchResults);
-    }
-
-    if (results.isEmpty) return null;
-    results.sort((a, b) => a['ping'].compareTo(b['ping']));
-    final bestConfig = results.first['config'];
-
-    LogOverlay.showLog(
-      "Selected config: $bestConfig",
-      backgroundColor: Colors.blueAccent,
-    );
-    settings.setValue("best_config_backup", bestConfig);
-    return bestConfig;
   }
 }

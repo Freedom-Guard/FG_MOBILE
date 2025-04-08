@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 class Settings {
-
   Future<String> getValue(String key) async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getString(key) == null) {
@@ -25,10 +24,17 @@ class Settings {
 
   Future<void> saveToFile() async {
     final prefs = await SharedPreferences.getInstance();
-    final settings = prefs.getKeys().fold<Map<String, String>>({}, (map, key) {
-      final value = prefs.getString(key);
-      if (value != null) map[key] = value;
-      return map;
+    final settings = prefs.getKeys().fold<Map<dynamic, dynamic>>({}, (
+      map,
+      key,
+    ) {
+      try {
+        final value = prefs.getString(key);
+        if (value != null) map[key] = value;
+        return map;
+      } catch (e) {
+        return map;
+      }
     });
 
     final file = await getSettingsFile();
