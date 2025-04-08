@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:Freedom_Guard/components/connect.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,12 +10,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ServersM extends ChangeNotifier {
   String? selectedServer;
   Settings settings = new Settings();
+  Connect connect = new Connect();
   ServersM() {
     _loadSelectedServer();
-    _loadServers();
+    loadServers();
   }
 
-  Future<void> _loadServers() async {
+  Future<void> loadServers() async {
     bool success = await addServerFromUrl(
       "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
     );
@@ -41,6 +44,12 @@ class ServersM extends ChangeNotifier {
         settings.setValue("core_vpn", "vibe");
       }
       notifyListeners();
+      try {
+        LogOverlay.showLog(
+          "ping: " + (await connect.testConfig(server)).toString(),
+          backgroundColor: Colors.blueAccent,
+        );
+      } catch (e) {}
       return true;
     } catch (e) {
       return false;

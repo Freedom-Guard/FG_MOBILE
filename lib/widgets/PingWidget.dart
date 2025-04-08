@@ -34,22 +34,40 @@ class _PingWidgetState extends State<PingWidget> {
                     ? stopwatch.elapsedMilliseconds
                     : null,
       );
-    } catch (e) {
+    } catch (_) {
       setState(() => ping = null);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final pingValue = ping;
+    final isPinging = pingValue == 0;
     return GestureDetector(
       onTap: _fetchPing,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color:
+                  isPinging
+                      ? Colors.yellowAccent.withOpacity(0.2)
+                      : pingValue == null
+                      ? Colors.grey.withOpacity(0.3)
+                      : Colors.tealAccent.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
           gradient: LinearGradient(
             colors: [
               Colors.blueGrey.shade900,
-              const Color.fromARGB(109, 7, 41, 6),
+              isPinging
+                  ? Colors.yellow.shade800
+                  : pingValue == null
+                  ? Colors.grey.shade900
+                  : const Color.fromARGB(109, 7, 41, 6),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -59,13 +77,27 @@ class _PingWidgetState extends State<PingWidget> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.signal_wifi_4_bar, color: Colors.tealAccent, size: 16),
+            Icon(
+              Icons.signal_wifi_4_bar,
+              color:
+                  isPinging
+                      ? Colors.yellow
+                      : pingValue == null
+                      ? Colors.grey
+                      : Colors.tealAccent,
+              size: 16,
+            ),
             const SizedBox(width: 6),
             Text(
-              ping != null ? '$ping ms' : '—',
+              isPinging
+                  ? 'Pinging'
+                  : pingValue != null
+                  ? '$pingValue' + 'ms'
+                  : '—',
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 13,
+                fontSize: 14,
+                letterSpacing: 0.5,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -112,7 +144,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
         setState(() => countryFlag = _getFlagEmoji(countryCode));
       }
     } catch (e) {
-      setState(() => countryFlag = "🌍");
+      setState(() => countryFlag = '🌍');
     }
   }
 
@@ -150,6 +182,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
       final response = await http
           .post(
             Uri.parse('https://speedtest.1and1.org/upload.php'),
+
             body: List.filled(1000000, 0), // 1MB of data
             headers: {'Content-Type': 'application/octet-stream'},
           )
@@ -192,7 +225,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 1),
           ),
         ],
         border: Border.all(color: Colors.grey.shade800.withOpacity(0.2)),
@@ -242,7 +275,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
             child: GestureDetector(
               onTap: isLoading ? null : _fetchNetworkSpeeds,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 300),
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,

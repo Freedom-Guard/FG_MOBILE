@@ -1,11 +1,12 @@
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:418867055.
 import 'dart:io';
 
 import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/components/servers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import '../components/servers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
@@ -225,14 +226,22 @@ class _ServersPageState extends State<ServersPage> {
 
   @override
   Widget build(BuildContext context) {
-    final serversManage = Provider.of<ServersM>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("مدیریت سرورها"),
         backgroundColor: Colors.black,
-        centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
+            onPressed: () => _removeAllServers(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: () async {
+              await serversManage.loadServers();
+              await _loadServers();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => _showAddServerDialog(context),
@@ -260,116 +269,189 @@ class _ServersPageState extends State<ServersPage> {
                         return Card(
                           elevation: 3,
                           margin: const EdgeInsets.symmetric(
-                            vertical: 6,
-                            horizontal: 10,
+                            vertical: 8,
+                            horizontal: 12,
                           ),
                           color:
                               isSelected
-                                  ? const Color(0xFF80CBC4)
-                                  : const Color.fromARGB(180, 18, 18, 18),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
+                                  ? const Color(0xFF64B5F6)
+                                  : const Color(0xFF212121),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                left: BorderSide(
+                                  color:
+                                      isSelected
+                                          ? const Color(0xFF42A5F5)
+                                          : Colors.transparent,
+                                  width: 4,
+                                ),
+                              ),
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: ListTile(
-                                    onTap: () async {
-                                      await serversManage.selectServer(server);
-                                      setState(() {});
-                                    },
-                                    title: Text(
-                                      (server.split("#").length > 1
-                                              ? safeDecode(server.split("#")[1])
-                                              : server.split("#")[0].length > 10
-                                              ? "${server.split("#")[0].substring(0, 10)}..."
-                                              : server.split("#")[0]) +
-                                          (isSelected ? ' (انتخاب شده)' : ''),
-                                      style: TextStyle(
-                                        fontWeight:
-                                            isSelected
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                        color:
-                                            isSelected
-                                                ? Colors.blue
-                                                : Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: ListTile(
+                                      onTap: () async {
+                                        await serversManage.selectServer(
+                                          server,
+                                        );
+                                        setState(() {});
+                                      },
+                                      title: Text(
+                                        (server.split("#").length > 1
+                                                ? safeDecode(
+                                                  server.split("#")[1],
+                                                )
+                                                : server.split("#")[0].length >
+                                                    10
+                                                ? "${server.split("#")[0].substring(0, 10)}..."
+                                                : server.split("#")[0]) +
+                                            (isSelected ? ' (انتخاب شده)' : ''),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight:
+                                              isSelected
+                                                  ? FontWeight.w500
+                                                  : FontWeight.w400,
+                                          color:
+                                              isSelected
+                                                  ? Colors.white
+                                                  : Colors.grey.shade100,
+                                        ),
                                       ),
+                                      contentPadding: EdgeInsets.zero,
                                     ),
                                   ),
-                                ),
-                                PopupMenuButton<String>(
-                                  onSelected: (String result) {
-                                    switch (result) {
-                                      case 'edit':
-                                        _editServer(index);
-                                        break;
-                                      case 'share':
-                                        _shareServer(server);
-                                        break;
-                                      case 'delete':
-                                        _removeServer(index);
-                                        break;
-                                      case 'qr':
-                                        _showQRCodeDialog(server);
-                                        break;
-                                    }
-                                  },
-                                  itemBuilder:
-                                      (
-                                        BuildContext context,
-                                      ) => <PopupMenuEntry<String>>[
-                                        PopupMenuItem<String>(
-                                          value: 'edit',
-                                          child: Row(
-                                            children: [
-                                              const Icon(Icons.edit),
-                                              const SizedBox(width: 8),
-                                              Text('ویرایش'),
-                                            ],
+                                  PopupMenuButton<String>(
+                                    onSelected: (String result) {
+                                      switch (result) {
+                                        case 'edit':
+                                          _editServer(index);
+                                          break;
+                                        case 'share':
+                                          _shareServer(server);
+                                          break;
+                                        case 'delete':
+                                          _removeServer(index);
+                                          break;
+                                        case 'qr':
+                                          _showQRCodeDialog(server);
+                                          break;
+                                      }
+                                    },
+                                    itemBuilder:
+                                        (
+                                          BuildContext context,
+                                        ) => <PopupMenuEntry<String>>[
+                                          PopupMenuItem<String>(
+                                            value: 'edit',
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.edit,
+                                                  size: 20,
+                                                  color: Color(0xFF757575),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'ویرایش',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Color(0xFF212121),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                        PopupMenuItem<String>(
-                                          value: 'share',
-                                          child: Row(
-                                            children: [
-                                              const Icon(Icons.share_outlined),
-                                              const SizedBox(width: 8),
-                                              Text('اشتراک'),
-                                            ],
+                                          PopupMenuItem<String>(
+                                            value: 'share',
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.share_outlined,
+                                                  size: 20,
+                                                  color: Color(0xFF757575),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'اشتراک',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Color(0xFF212121),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                        PopupMenuItem<String>(
-                                          value: 'qr',
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.qr_code_2_outlined,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text('کد qr'),
-                                            ],
+                                          PopupMenuItem<String>(
+                                            value: 'qr',
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.qr_code_2_outlined,
+                                                  size: 20,
+                                                  color: Color(0xFF757575),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'کد qr',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Color(0xFF212121),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                        PopupMenuItem<String>(
-                                          value: 'delete',
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.delete,
-                                                color: Colors.red,
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text('حذف'),
-                                            ],
+                                          PopupMenuItem<String>(
+                                            value: 'delete',
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.delete,
+                                                  size: 20,
+                                                  color: Color(0xFFE57373),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'حذف',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Color(0xFF212121),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                ),
-                              ],
+                                        ],
+                                    icon: Icon(
+                                      Icons.more_vert,
+                                      size: 20,
+                                      color:
+                                          isSelected
+                                              ? Colors.white
+                                              : Colors.grey.shade300,
+                                    ),
+                                    color: const Color(0xFFFFFFFF),
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -429,11 +511,40 @@ class _ServersPageState extends State<ServersPage> {
     }
   }
 
+  void _removeAllServers() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('حذف همه سرورها'),
+          content: const Text('آیا از حذف تمام سرورها مطمئن هستید؟'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('لغو'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text('حذف'),
+              onPressed: () {
+                setState(() {
+                  servers.clear();
+                  _saveServers();
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showQRCodeDialog(String text) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          alignment: Alignment.center,
           title: const Text('کد QR'),
           content: QrImageView(
             data: text.toString(),

@@ -448,7 +448,7 @@ class _HomePageState extends State<HomePage> {
                 top: Radius.circular(0),
               ),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // بلور قوی‌تر
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   decoration: BoxDecoration(
                     color: const Color.fromARGB(0, 255, 255, 255),
@@ -480,7 +480,7 @@ class _HomePageState extends State<HomePage> {
                     currentIndex: 1,
                     items: [
                       _buildNavItem(
-                        Icons.settings,
+                        Icons.settings_sharp,
                         "تنظیمات",
                         () => Navigator.push(
                           context,
@@ -489,9 +489,9 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      _buildNavItem(Icons.home_filled, "خانه", () {}),
+                      _buildNavItem(Icons.home, "خانه", () {}),
                       _buildNavItem(
-                        Icons.cloud_sync,
+                        Icons.cloud_sync_outlined,
                         "سرور ها",
                         () => Navigator.push(
                           context,
@@ -519,43 +519,41 @@ class _HomePageState extends State<HomePage> {
     return BottomNavigationBarItem(
       icon: GestureDetector(
         onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: 70,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        child: Container(
+          width: 60,
+          padding: const EdgeInsets.all(10),
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: const Color.fromARGB(255, 51, 26, 61),
+            color: Colors.grey.shade900,
+            borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: const Color.fromARGB(103, 0, 0, 0),
+                color: Colors.black.withOpacity(0.2),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: Icon(icon, size: 26, color: Colors.grey.shade300),
+          child: Icon(icon, size: 24, color: Colors.grey.shade400),
         ),
       ),
-      activeIcon: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        width: 70,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      activeIcon: Container(
+        width: 60,
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: const Color(0xFF7C3AED),
+          color: Theme.of(context).colorScheme.secondary,
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF7C3AED).withOpacity(0.4),
+              color: const Color(0xFF1E88E5).withOpacity(0.3),
               blurRadius: 8,
               spreadRadius: 1,
               offset: const Offset(0, 3),
             ),
           ],
         ),
-        child: Icon(icon, size: 28, color: Colors.white),
+        child: Icon(icon, size: 26, color: Colors.white),
       ),
       label: '',
       tooltip: label,
