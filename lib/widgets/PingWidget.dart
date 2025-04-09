@@ -181,9 +181,8 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
       // Using a more reliable upload test endpoint
       final response = await http
           .post(
-            Uri.parse('https://speedtest.1and1.org/upload.php'),
-
-            body: List.filled(1000000, 0), // 1MB of data
+            Uri.parse('https://httpbin.org/post'),
+            body: List.filled(1000000, 0),
             headers: {'Content-Type': 'application/octet-stream'},
           )
           .timeout(const Duration(seconds: 5));

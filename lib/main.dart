@@ -9,6 +9,7 @@ import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/loading.dart';
 import 'package:Freedom_Guard/pages/servers.dart';
 import 'package:Freedom_Guard/pages/settings.dart';
+import 'package:Freedom_Guard/pages/speedtest.dart';
 import 'package:Freedom_Guard/widgets/fragment.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -275,6 +276,18 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                   actions: [
+                    IconButton(
+                      icon: const Icon(Icons.network_check),
+                      color: Colors.grey,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SpeedTestPage(),
+                          ),
+                        );
+                      },
+                    ),
                     IconButton(
                       icon: const Icon(Icons.bug_report_sharp),
                       color: Colors.grey,
