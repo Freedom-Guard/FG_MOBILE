@@ -1,3 +1,4 @@
+// Suggested code may be subject to a license. Learn more: ~LicenseLog:248488495.
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
@@ -15,6 +16,22 @@ class _SpeedTestPageState extends State<SpeedTestPage> {
   bool isTesting = false;
   String status = 'Ready';
   double progress = 0.0;
+  int ping = 0;
+
+  Future<void> _fetchPing() async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      await http
+          .get(Uri.parse('https://www.google.com'))
+          .timeout(const Duration(seconds: 5));
+      stopwatch.stop();
+      setState(() {
+        ping = stopwatch.elapsedMilliseconds;
+      });
+    } catch (e) {
+      setState(() => ping = 0);
+    }
+  }
 
   Future<void> _fetchDownloadSpeed() async {
     final stopwatch = Stopwatch()..start();
@@ -77,6 +94,7 @@ class _SpeedTestPageState extends State<SpeedTestPage> {
     });
 
     await _fetchUploadSpeed();
+    await _fetchPing();
     setState(() {
       status = 'Complete';
       progress = 1.0;
@@ -129,54 +147,36 @@ class _SpeedTestPageState extends State<SpeedTestPage> {
                         speed: uploadSpeed,
                         unit: 'Mbps',
                       ),
+                      SpeedCard(
+                        title: 'Ping',
+                        speed: ping.toDouble(),
+                        unit: 'ms',
+                      ),
                     ],
                   ),
                   const SizedBox(height: 40),
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      SizedBox(
-                        width: 200,
-                        height: 200,
-                        child: CircularProgressIndicator(
-                          value: progress,
-                          strokeWidth: 10,
-                          backgroundColor: Colors.white.withOpacity(0.5),
-                          valueColor: const AlwaysStoppedAnimation(
-                            Colors.black45,
+                      ElevatedButton(
+                        onPressed: isTesting ? null : startSpeedTest,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 40,
+                            vertical: 15,
+                          ),
+                          backgroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                      ),
-                      Text(
-                        status,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                        child: Text(
+                          isTesting ? 'Testing...' : 'Start Test',
+                          style: TextStyle(fontSize: 22, color: Colors.blue),
                         ),
                       ),
+                      const SizedBox(height: 40),
                     ],
-                  ),
-                  const SizedBox(height: 40),
-                  ElevatedButton(
-                    onPressed: isTesting ? null : startSpeedTest,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 15,
-                      ),
-                      backgroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: Text(
-                      isTesting ? 'Testing...' : 'Start Test',
-                      style: TextStyle(
-                        fontSize: 22,
-                        color: isTesting ? Colors.grey : Colors.blue,
-                      ),
-                    ),
                   ),
                 ],
               ),
