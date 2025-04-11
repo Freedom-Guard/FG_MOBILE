@@ -16,7 +16,7 @@ class _LoadingScreenState extends State<LoadingScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: Duration(milliseconds: 4500),
+      duration: Duration(milliseconds: 2500),
       vsync: this,
     );
 
@@ -180,9 +180,9 @@ class ModernProgressPainter extends CustomPainter {
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
             colors: [
-              Colors.blueAccent,
+              const Color.fromARGB(255, 199, 26, 72),
               Colors.purple.shade600,
-              Colors.cyan.shade400,
+              const Color.fromARGB(255, 23, 148, 142),
             ],
             stops: [0.0, 0.5, 1.0],
           ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))

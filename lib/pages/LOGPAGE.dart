@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:google_fonts/google_fonts.dart';
 import '/components/LOGLOG.dart';
 
 class LogPage extends StatefulWidget {
@@ -13,7 +14,7 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
   List<String> logs = [];
   Timer? _refreshTimer;
   late AnimationController _animationController;
-  late Animation<double> _buttonAnimation;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -22,10 +23,10 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
     _refreshLogs();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 600),
     );
-    _buttonAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
     _animationController.forward();
   }
@@ -76,18 +77,17 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
       SnackBar(
         content: Text(
           message,
-          style: const TextStyle(
+          style: GoogleFonts.inter(
             color: Colors.white,
             fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
-        backgroundColor: color.withOpacity(0.9),
+        backgroundColor: color.withOpacity(0.95),
         behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16.0),
+        margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -95,115 +95,187 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black.withOpacity(0.6),
-        elevation: 0,
-        title: const Text(
-          'Logs',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.grey[900]!, Colors.black],
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildAppBar(),
+              Expanded(
+                child: logs.isEmpty ? _buildEmptyState() : _buildLogList(),
+              ),
+              _buildActionButtons(),
+            ],
+          ),
         ),
       ),
-      body: Column(
+    );
+  }
+
+  Widget _buildAppBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.4),
+        border: Border(
+          bottom: BorderSide(color: Colors.grey[800]!, width: 0.5),
+        ),
+      ),
+      child: Row(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: FadeTransition(
-              opacity: _buttonAnimation,
-              child: Row(
-                children: [
-                  _buildActionButton(
-                    Icons.copy,
-                    'Copy Logs',
-                    Colors.blueAccent,
-                    _copyLogs,
-                  ),
-                  _buildActionButton(
-                    Icons.delete,
-                    'Clear Logs',
-                    Colors.redAccent,
-                    _clearLogs,
-                  ),
-                ],
-              ),
+          IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.white70,
+              size: 22,
             ),
+            onPressed: () => Navigator.of(context).pop(),
           ),
-          Expanded(
-            child:
-                logs.isEmpty
-                    ? const Center(
-                      child: Text(
-                        'No logs available',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 18,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    )
-                    : ListView.builder(
-                      padding: const EdgeInsets.all(8.0),
-                      itemCount: logs.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Card(
-                          color: Colors.white.withOpacity(0.1),
-                          elevation: 3,
-                          margin: const EdgeInsets.symmetric(
-                            vertical: 0.0,
-                            horizontal: 8.0,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0.0),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Text(
-                              logs[index],
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                                fontFamily: 'monospace',
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+          const SizedBox(width: 8),
+          Text(
+            'Logs',
+            style: GoogleFonts.inter(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 22,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionButton(
-    IconData icon,
-    String label,
-    Color color,
-    VoidCallback onTap,
-  ) {
+  Widget _buildEmptyState() {
+    return Center(
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.info_outline, color: Colors.grey[600], size: 48),
+            const SizedBox(height: 16),
+            Text(
+              'No logs available',
+              style: GoogleFonts.inter(
+                color: Colors.grey[500],
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogList() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: logs.length,
+      itemBuilder: (context, index) {
+        return FadeTransition(
+          opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
+            CurvedAnimation(
+              parent: _animationController,
+              curve: Interval(0.1 * index, 1.0, curve: Curves.easeOut),
+            ),
+          ),
+          child: _buildLogCard(logs[index], index),
+        );
+      },
+    );
+  }
+
+  Widget _buildLogCard(String log, int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[850]!.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        log,
+        style: GoogleFonts.sourceCodePro(
+          color: Colors.white70,
+          fontSize: 13,
+          height: 1.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.4),
+        border: Border(top: BorderSide(color: Colors.grey[800]!, width: 0.5)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildActionButton(
+            icon: Icons.copy,
+            label: 'Copy',
+            color: Colors.blueAccent,
+            onTap: _copyLogs,
+          ),
+          _buildActionButton(
+            icon: Icons.delete,
+            label: 'Clear',
+            color: Colors.redAccent,
+            onTap: _clearLogs,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        alignment: Alignment.topLeft,
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-        margin: const EdgeInsets.symmetric(horizontal: 8.0),
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(16.0),
-          boxShadow: [BoxShadow(color: color.withOpacity(1), blurRadius: 1)],
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          children: [Icon(icon, color: Colors.white, size: 24)],
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                color: color,
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
       ),
     );
