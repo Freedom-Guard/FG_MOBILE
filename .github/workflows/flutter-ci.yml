@@ -3,10 +3,11 @@ name: Flutter CI
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
 
 permissions:
   contents: write  
+  
 
 jobs:
   build:
