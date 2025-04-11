@@ -1,4 +1,3 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:248488495.
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
