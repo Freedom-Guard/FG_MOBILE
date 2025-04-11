@@ -97,12 +97,6 @@ class Connect {
         parsedJson["routing"] ??= {};
         parsedJson["routing"]["rules"] ??= [];
 
-        List<String> adDomains = [
-          "adservice.google.com",
-          "doubleclick.net",
-          "ads.youtube.com",
-        ];
-
         (parsedJson["routing"]["rules"] as List).addAll([
           {
             "outboundTag": "block",
