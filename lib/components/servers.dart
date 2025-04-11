@@ -44,16 +44,21 @@ class ServersM extends ChangeNotifier {
         settings.setValue("core_vpn", "vibe");
       }
       notifyListeners();
-      try {
-        LogOverlay.showLog(
-          "ping: " + (await connect.testConfig(server)).toString(),
-          backgroundColor: Colors.blueAccent,
-        );
-      } catch (e) {}
+      showPing(server);
       return true;
     } catch (e) {
       return false;
     }
+  }
+
+  Future<void> showPing(server) async {
+    try {
+      if (server.split("#")[0] == "") return;
+      LogOverlay.showLog(
+        "ping: " + (await connect.testConfig(server)).toString(),
+        backgroundColor: Colors.blueAccent,
+      );
+    } catch (e) {}
   }
 
   Future<bool> addServerFromUrl(String url) async {

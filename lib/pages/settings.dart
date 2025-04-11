@@ -51,7 +51,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "تنظیمات",
+          "Settings",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -148,7 +148,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 options: ["MCI", "IRANCELL", "PISHGAMAN", "OTHER"],
               ),
               SettingSwitch(
-                title: "حالت دستی",
+                title: "Manual mode",
                 value: _isSettingEnabled,
                 onChanged: (bool value) {
                   setState(() => _isSettingEnabled = value);
@@ -158,12 +158,12 @@ class _SettingsPageState extends State<SettingsPage> {
               if (_isSettingEnabled)
                 Column(
                   children: [
-                    SettingInput(
-                      title: "تایم اوت حالت خودکار",
+                    const SettingInput(
+                      title: "Auto Mode Timeout",
                       prefKey: "timeout_auto",
                       hintText: "110000",
                     ),
-                    SettingInput(
+                    const SettingInput(
                       title: "تعداد درخواست\u200cهای هم\u200cزمان",
                       prefKey: "batch_size",
                       hintText: "15",
@@ -384,17 +384,17 @@ class AboutDialogWidget extends StatelessWidget {
             Image.asset("assets/icon/ico.png", width: 100, height: 100),
             const SizedBox(height: 10),
             const Text(
-              "گارد آزادی",
+              "Freedom Guard",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             SelectableText(
-              "گارد آزادی یک ابزار متن‌باز برای دور زدن سانسور اینترنت است",
+              "Freedom Guard is an open-source tool to bypass internet censorship.",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
             Text(
-              "نسخه: 5",
+              "Version: 5",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
@@ -433,7 +433,7 @@ class AboutDialogWidget extends StatelessWidget {
                 ),
               ),
               child: const Text(
-                "بستن",
+                "Close",
                 style: TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),
@@ -466,7 +466,7 @@ class LinkWidget extends StatelessWidget {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text("امکان باز کردن لینک وجود ندارد."),
+              content: Text("Cannot open the link."),
               backgroundColor: Colors.redAccent,
             ),
           );

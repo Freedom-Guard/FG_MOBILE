@@ -16,6 +16,7 @@ class _SplitPageState extends State<SplitPage> {
   List<String> selectedApps = [];
   bool showSystemApps = false;
   Settings settings = Settings();
+  bool isSettingsLoading = true;
   bool isLoading = true;
 
   @override
@@ -38,13 +39,13 @@ class _SplitPageState extends State<SplitPage> {
         installedApps = apps;
         isLoading = false;
       });
-      LogOverlay.showLog("تعداد برنامه‌های بارگذاری‌شده: ${apps.length}");
+      LogOverlay.showLog("Number of loaded apps: ${apps.length}");
     } catch (e) {
       setState(() {
         installedApps = [];
         isLoading = false;
       });
-      LogOverlay.showLog("خطا در بارگذاری برنامه‌ها: $e");
+      LogOverlay.showLog("Error loading apps: $e");
     }
   }
 
@@ -52,19 +53,33 @@ class _SplitPageState extends State<SplitPage> {
     try {
       String? selectedAppsString = await settings.getValue("split_app");
       if (selectedAppsString.isNotEmpty) {
-        String cleanedString = selectedAppsString.substring(
-          1,
-          selectedAppsString.length - 1,
+        String cleanedString = selectedAppsString.replaceAll(
+          RegExp(r'[\[\]]'),
+          '',
         );
         List<String> loadedApps =
             cleanedString.split(', ').where((e) => e.isNotEmpty).toList();
-        setState(() {
+        setState(() async {
+          if (loadedApps.isEmpty) {
+            String? selectedAppsString =
+                await settings.getValue("split_app").toString();
+            String cleanedString = selectedAppsString!.replaceAll(
+              RegExp(r'[\[\]]'),
+              '',
+            );
+            List<String> loadedApps =
+                cleanedString.split(', ').where((e) => e.isNotEmpty).toList();
+            setState(() {
+              selectedApps = loadedApps;
+            });
+            LogOverlay.showLog("Selected apps loaded: $loadedApps");
+          }
           selectedApps = loadedApps;
         });
-        LogOverlay.showLog("برنامه‌های انتخاب‌شده بارگذاری شدند: $loadedApps");
+        LogOverlay.showLog("Selected apps loaded: $loadedApps");
       }
     } catch (e) {
-      LogOverlay.showLog("خطا در بارگذاری برنامه‌های انتخاب‌شده: $e");
+      LogOverlay.showLog("Error loading selected apps: $e");
     }
   }
 
@@ -79,11 +94,12 @@ class _SplitPageState extends State<SplitPage> {
   }
 
   void _applySettings() {
+    isSettingsLoading = true;
     settings.setValue(
       "split_app",
       selectedApps.isEmpty ? "" : selectedApps.toString(),
     );
-    LogOverlay.showLog("لیست برنامه‌های انتخاب‌شده: $selectedApps");
+    LogOverlay.showLog("List of selected apps: $selectedApps");
   }
 
   @override
@@ -102,6 +118,21 @@ class _SplitPageState extends State<SplitPage> {
             icon: const Icon(Icons.check, color: Colors.white),
             onPressed: _applySettings,
           ),
+          IconButton(
+            icon: const Icon(Icons.clear_sharp, color: Colors.white),
+            onPressed: () async {
+              setState(() {
+                isSettingsLoading = true;
+                selectedApps = [];
+              });
+              settings.setValue("split_app", "");
+              await _loadSelectedApps();
+              await _getInstalledApps();
+              setState(() {
+                isSettingsLoading = false;
+              });
+            },
+          ),
         ],
       ),
       body: Column(
@@ -112,7 +143,7 @@ class _SplitPageState extends State<SplitPage> {
             child: SwitchListTile(
               activeColor: Colors.blueAccent,
               title: const Text(
-                "نمایش برنامه‌های سیستمی",
+                "Show system apps",
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),
               value: showSystemApps,
@@ -127,7 +158,7 @@ class _SplitPageState extends State<SplitPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              "برنامه‌های زیر از فیلترشکن عبور نمی‌کنند",
+              "The following apps will not go through the filter",
               style: TextStyle(color: Colors.white, fontSize: 14),
             ),
           ),
@@ -142,7 +173,7 @@ class _SplitPageState extends State<SplitPage> {
                     : installedApps.isEmpty
                     ? const Center(
                       child: Text(
-                        "هیچ برنامه‌ای یافت نشد!",
+                        "No apps found!",
                         style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                     )
@@ -167,13 +198,13 @@ class _SplitPageState extends State<SplitPage> {
                                       : null,
                             ),
                             title: Text(
-                              app.name ?? "بدون نام",
+                              app.name ?? "No Name",
                               style: const TextStyle(
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             subtitle: Text(
-                              app.packageName ?? "بدون بسته",
+                              app.packageName ?? "No package",
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey[600],

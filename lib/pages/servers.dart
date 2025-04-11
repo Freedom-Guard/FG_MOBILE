@@ -1,6 +1,4 @@
-// Suggested code may be subject to a license. Learn more: ~LicenseLog:418867055.
 import 'dart:io';
-
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:flutter/material.dart';
@@ -114,20 +112,20 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text("ویرایش سرور"),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(hintText: "نام جدید سرور"),
+        return AlertDialog(title: const Text("Edit Server"),
+          content: TextField(controller: controller,
+            decoration: const InputDecoration(hintText: "New server name"),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("لغو"),
+              child: const Text("Cancel"),
             ),
             TextButton(
               onPressed: () {
-                if (controller.text.isNotEmpty) {
+                if (controller.text.isNotEmpty)
+                {
+
                   setState(() {
                     servers[index] = controller.text;
                     _saveServers();
@@ -135,7 +133,7 @@ class _ServersPageState extends State<ServersPage> {
                 }
                 Navigator.pop(context);
               },
-              child: const Text("ذخیره"),
+              child: const Text("Save"),
             ),
           ],
         );
@@ -148,32 +146,32 @@ class _ServersPageState extends State<ServersPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text(
-            'افزودن سرور',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          title: const Text('Add Server',
+            style: TextStyle(fontWeight: FontWeight.bold),),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               ListTile(
                 leading: const Icon(Icons.text_fields, color: Colors.blue),
-                title: const Text('افزودن از متن'),
+                title: const Text('Add from Text'),
                 onTap: () {
                   Navigator.pop(context);
                   _showAddServerFromTextDialog(context);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.paste_outlined, color: Colors.green),
-                title: const Text('افزودن از کلیپ بورد'),
+                leading: const Icon(
+                    Icons.paste_outlined, color: Colors.green),
+                title: const Text('Add from Clipboard'),
                 onTap: () {
                   Navigator.pop(context);
                   _addFromClipboard();
                 },
+
               ),
               ListTile(
                 leading: const Icon(Icons.folder_open, color: Colors.orange),
-                title: const Text('افزودن از فایل'),
+                title: const Text('Add From File'),
                 onTap: () {
                   Navigator.pop(context);
                   _importConfigFromFile();
@@ -191,18 +189,18 @@ class _ServersPageState extends State<ServersPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("افزودن سرور از متن"),
+          title: const Text("Add Server from Text"),
           content: SizedBox(
             width: double.maxFinite,
             child: TextField(
               controller: serverController,
               maxLines: 10,
-              decoration: const InputDecoration(hintText: "کانفیگ"),
+              decoration: const InputDecoration(hintText: "Config"),
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text("افزودن"),
+              child: const Text("Add"),
               onPressed: () {
                 for (var server in serverController.text.split("\n")) {
                   _addServer(server);
@@ -228,7 +226,7 @@ class _ServersPageState extends State<ServersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("مدیریت سرورها"),
+        title: const Text("Manage Servers"),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
@@ -255,7 +253,7 @@ class _ServersPageState extends State<ServersPage> {
                 servers.isEmpty
                     ? const Center(
                       child: Text(
-                        "هیچ سروری اضافه نشده است!",
+                        "No servers added yet!",
                         style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                     )
@@ -311,14 +309,10 @@ class _ServersPageState extends State<ServersPage> {
                                       },
                                       title: Text(
                                         (server.split("#").length > 1
-                                                ? safeDecode(
-                                                  server.split("#")[1],
-                                                )
-                                                : server.split("#")[0].length >
-                                                    10
-                                                ? "${server.split("#")[0].substring(0, 10)}..."
-                                                : server.split("#")[0]) +
-                                            (isSelected ? ' (انتخاب شده)' : ''),
+                                            ? safeDecode(server.split("#")[1])
+                                            : server.split("#")[0].length > 10
+                                            ? "${server.split("#")[0].substring(0, 10)}..."
+                                            : server.split("#")[0]),
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight:
@@ -365,7 +359,7 @@ class _ServersPageState extends State<ServersPage> {
                                                   color: Color(0xFF757575),
                                                 ),
                                                 const SizedBox(width: 8),
-                                                Text(
+                                                const Text(
                                                   'ویرایش',
                                                   style: TextStyle(
                                                     fontSize: 14,
@@ -385,7 +379,7 @@ class _ServersPageState extends State<ServersPage> {
                                                   color: Color(0xFF757575),
                                                 ),
                                                 const SizedBox(width: 8),
-                                                Text(
+                                                const Text(
                                                   'اشتراک',
                                                   style: TextStyle(
                                                     fontSize: 14,
@@ -405,7 +399,7 @@ class _ServersPageState extends State<ServersPage> {
                                                   color: Color(0xFF757575),
                                                 ),
                                                 const SizedBox(width: 8),
-                                                Text(
+                                               const Text(
                                                   'کد qr',
                                                   style: TextStyle(
                                                     fontSize: 14,
@@ -425,7 +419,7 @@ class _ServersPageState extends State<ServersPage> {
                                                   color: Color(0xFFE57373),
                                                 ),
                                                 const SizedBox(width: 8),
-                                                Text(
+                                                const Text(
                                                   'حذف',
                                                   style: TextStyle(
                                                     fontSize: 14,
@@ -445,7 +439,7 @@ class _ServersPageState extends State<ServersPage> {
                                               : Colors.grey.shade300,
                                     ),
                                     color: const Color(0xFFFFFFFF),
-                                    elevation: 0,
+                                    elevation: 1,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),
@@ -476,7 +470,7 @@ class _ServersPageState extends State<ServersPage> {
             _addServer(server.trim());
           }
         });
-        LogOverlay.showLog('فایل با موفقیت وارد شد.');
+        LogOverlay.showLog('file imported successfully.');
       } else if (path.extension(file.path) == '.conf') {
         String fileContent = await file.readAsString();
         _addServer("wire:::\n" + fileContent);
@@ -495,7 +489,7 @@ class _ServersPageState extends State<ServersPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'حافظه موقت خالی است.',
+            'clipboard is empty.',
             style: TextStyle(color: Colors.white),
           ),
           backgroundColor: Colors.lightBlueAccent,
@@ -516,15 +510,15 @@ class _ServersPageState extends State<ServersPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('حذف همه سرورها'),
-          content: const Text('آیا از حذف تمام سرورها مطمئن هستید؟'),
+          title: const Text('Remove all servers'),
+          content: const Text('Are you sure you want to delete all servers?'),
           actions: <Widget>[
             TextButton(
-              child: const Text('لغو'),
+              child: const Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: const Text('حذف'),
+              child: const Text('Delete'),
               onPressed: () {
                 setState(() {
                   servers.clear();
@@ -545,7 +539,7 @@ class _ServersPageState extends State<ServersPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           alignment: Alignment.center,
-          title: const Text('کد QR'),
+          title: const Text('QR Code'),
           content: QrImageView(
             data: text.toString(),
             version: QrVersions.auto,
@@ -553,7 +547,7 @@ class _ServersPageState extends State<ServersPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('بستن'),
+              child: const Text('Close'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
