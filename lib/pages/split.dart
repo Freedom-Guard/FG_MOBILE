@@ -63,7 +63,7 @@ class _SplitPageState extends State<SplitPage> {
           if (loadedApps.isEmpty) {
             String? selectedAppsString =
                 await settings.getValue("split_app").toString();
-            String cleanedString = selectedAppsString!.replaceAll(
+            String cleanedString = selectedAppsString.replaceAll(
               RegExp(r'[\[\]]'),
               '',
             );

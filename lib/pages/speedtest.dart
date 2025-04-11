@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:google_fonts/google_fonts.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class SpeedTestPage extends StatefulWidget {
   const SpeedTestPage({super.key});
@@ -9,13 +11,34 @@ class SpeedTestPage extends StatefulWidget {
   State<SpeedTestPage> createState() => _SpeedTestPageState();
 }
 
-class _SpeedTestPageState extends State<SpeedTestPage> {
+class _SpeedTestPageState extends State<SpeedTestPage>
+    with SingleTickerProviderStateMixin {
   double downloadSpeed = 0.0;
   double uploadSpeed = 0.0;
+  int ping = 0;
   bool isTesting = false;
   String status = 'Ready';
   double progress = 0.0;
-  int ping = 0;
+  late AnimationController _animationController;
+  late Animation<double> _progressAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   Future<void> _fetchPing() async {
     final stopwatch = Stopwatch()..start();
@@ -82,9 +105,12 @@ class _SpeedTestPageState extends State<SpeedTestPage> {
       isTesting = true;
       downloadSpeed = 0.0;
       uploadSpeed = 0.0;
+      ping = 0;
       status = 'Testing Download...';
       progress = 0.0;
     });
+    _animationController.reset();
+    _animationController.forward();
 
     await _fetchDownloadSpeed();
     setState(() {
@@ -93,94 +119,185 @@ class _SpeedTestPageState extends State<SpeedTestPage> {
     });
 
     await _fetchUploadSpeed();
+    setState(() {
+      status = 'Testing Ping...';
+      progress = 0.75;
+    });
+
     await _fetchPing();
     setState(() {
       status = 'Complete';
       progress = 1.0;
       isTesting = false;
     });
+    _animationController.forward(from: 0.0);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Colors.black,
         title: const Text('Speed Test'),
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
-      body: SingleChildScrollView(
+
+      body: SizedBox(
+        width: double.infinity, // Make the container take full width
         child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.black, Color.fromARGB(255, 49, 48, 48)],
-            ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.grey[900]!, Colors.black],
           ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Internet Speed Test',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      SpeedCard(
-                        title: 'Download',
-                        speed: downloadSpeed,
-                        unit: 'Mbps',
-                      ),
-                      SpeedCard(
-                        title: 'Upload',
-                        speed: uploadSpeed,
-                        unit: 'Mbps',
-                      ),
-                      SpeedCard(
-                        title: 'Ping',
-                        speed: ping.toDouble(),
-                        unit: 'ms',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: isTesting ? null : startSpeedTest,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 40,
-                            vertical: 15,
-                          ),
-                          backgroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: Text(
-                          isTesting ? 'Testing...' : 'Start Test',
-                          style: TextStyle(fontSize: 22, color: Colors.blue),
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                ],
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 32),
+                if (status != "Complete") _buildStartButton(),
+                const SizedBox(height: 32),
+                _buildProgressIndicator(),
+                const SizedBox(height: 32),
+                _buildSpeedCards(),
+                const SizedBox(height: 52),
+                if (status == "Complete") _buildStartButton(),
+              ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return  SizedBox( width: double.infinity , child: Text(
+      'Internet Speed Test',
+      style: GoogleFonts.inter(
+        fontSize: 28,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+        letterSpacing: 0.5,
+      ),
+      textAlign: TextAlign.center,
+    ));
+  }
+
+  Widget _buildProgressIndicator() {
+    return FadeTransition(
+      opacity: _progressAnimation,
+      child: Column(
+        children: [
+          CircularPercentIndicator(
+            radius: 80.0,
+            lineWidth: 12.0,
+            percent: progress,
+            center: Text(
+              status,
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                color: Colors.white70,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            progressColor: Colors.blueAccent,
+            backgroundColor: Colors.grey[800]!,
+            circularStrokeCap: CircularStrokeCap.round,
+            animation: true,
+            animationDuration: 1000,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            isTesting ? 'Running Test...' : 'Ready to Test',
+            style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[400]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpeedCards() {
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      alignment: WrapAlignment.center,
+      children: [
+        SpeedCard(
+          title: 'Download',
+          value: downloadSpeed,
+          unit: 'Mbps',
+          icon: Icons.download,
+          color: Colors.blueAccent,
+          animation: _progressAnimation,
+        ),
+        SpeedCard(
+          title: 'Upload',
+          value: uploadSpeed,
+          unit: 'Mbps',
+          icon: Icons.upload,
+          color: Colors.greenAccent,
+          animation: _progressAnimation,
+        ),
+        SpeedCard(
+          title: 'Ping',
+          value: ping.toDouble(),
+          unit: 'ms',
+          icon: Icons.network_ping,
+          color: Colors.orangeAccent,
+          animation: _progressAnimation,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStartButton() {
+    return GestureDetector(
+      onTap: isTesting ? null : startSpeedTest,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors:
+                isTesting
+                    ? [Colors.grey[700]!, Colors.grey[800]!]
+                    : [Colors.blueAccent, Colors.blue],
+          ),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blueAccent.withOpacity(isTesting ? 0.0 : 0.4),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isTesting ? Icons.hourglass_empty : Icons.play_arrow,
+              color: Colors.white,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              isTesting ? 'Testing...' : 'Start Test',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -189,42 +306,65 @@ class _SpeedTestPageState extends State<SpeedTestPage> {
 
 class SpeedCard extends StatelessWidget {
   final String title;
-  final double speed;
+  final double value;
   final String unit;
+  final IconData icon;
+  final Color color;
+  final Animation<double> animation;
 
   const SpeedCard({
     super.key,
     required this.title,
-    required this.speed,
+    required this.value,
     required this.unit,
+    required this.icon,
+    required this.color,
+    required this.animation,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      color: Colors.black.withOpacity(0.9),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
+    return FadeTransition(
+      opacity: animation,
+      child: Container(
+        width: 140,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey[850]!.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(fontSize: 18, color: Colors.white),
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.white70,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
-              speed.toStringAsFixed(1),
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
+              value.toStringAsFixed(1),
+              style: GoogleFonts.inter(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),
             ),
             Text(
               unit,
-              style: const TextStyle(fontSize: 16, color: Colors.white70),
+              style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[400]),
             ),
           ],
         ),
