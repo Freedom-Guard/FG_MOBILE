@@ -24,6 +24,7 @@ class _SettingsPageState extends State<SettingsPage> {
       "block_ads_trackers",
     );
     settingsJson["bypass_lan"] = await settings.getValue("bypass_lan");
+    settingsJson["guard_mode"] = await settings.getValue("guard_mode");
     setState(() {});
   }
 
@@ -140,6 +141,18 @@ class _SettingsPageState extends State<SettingsPage> {
                     settingsJson["bypass_lan"] = value.toString();
                   });
                   settings.setValue("bypass_lan", value.toString());
+                },
+              ),
+              SettingSwitch(
+                title: "Guard Mode (beta)",
+                value:
+                    bool.tryParse(settingsJson["guard_mode"].toString()) ??
+                    false,
+                onChanged: (bool value) {
+                  setState(() {
+                    settingsJson["guard_mode"] = value.toString();
+                  });
+                  settings.setValue("guard_mode", value.toString());
                 },
               ),
               SettingSelector(

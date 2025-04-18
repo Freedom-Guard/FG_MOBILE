@@ -61,9 +61,11 @@ class Connect {
     _configUpdateTimer = Timer.periodic(const Duration(minutes: 15), (
       timer,
     ) async {
-      if (isConnected) {
-        await disConnect();
-        await ConnectAuto(fgconfig, timeout);
+      if (isConnected && (await settings.getValue("guard_mode") == true)) {
+        if (!(await test()) && !(await test()) && !(await test())) {
+          await disConnect();
+          await ConnectAuto(fgconfig, timeout);
+        } 
       }
     });
   }
