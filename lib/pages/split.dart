@@ -102,6 +102,13 @@ class _SplitPageState extends State<SplitPage> {
     LogOverlay.showLog("List of selected apps: $selectedApps");
   }
 
+  void _selectAllApps() {
+    setState(() {
+      selectedApps = installedApps.map((app) => app.packageName ?? "").where((name) => name.isNotEmpty).toList();
+    });
+    LogOverlay.showLog("All apps selected");
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,6 +121,10 @@ class _SplitPageState extends State<SplitPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.select_all, color: Colors.white),
+            onPressed: _selectAllApps,
+          ),
           IconButton(
             icon: const Icon(Icons.check, color: Colors.white),
             onPressed: _applySettings,
