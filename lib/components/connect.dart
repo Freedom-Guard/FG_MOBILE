@@ -51,6 +51,7 @@ class Connect {
     await flutterV2ray.initializeV2Ray();
     flutterV2ray.stopV2Ray();
     wireguard.stopVpn();
+    stopConfigUpdateTimer();
   }
 
   Timer? _configUpdateTimer;

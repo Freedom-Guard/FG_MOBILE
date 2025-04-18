@@ -112,8 +112,10 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(title: const Text("Edit Server"),
-          content: TextField(controller: controller,
+        return AlertDialog(
+          title: const Text("Edit Server"),
+          content: TextField(
+            controller: controller,
             decoration: const InputDecoration(hintText: "New server name"),
           ),
           actions: [
@@ -123,9 +125,7 @@ class _ServersPageState extends State<ServersPage> {
             ),
             TextButton(
               onPressed: () {
-                if (controller.text.isNotEmpty)
-                {
-
+                if (controller.text.isNotEmpty) {
                   setState(() {
                     servers[index] = controller.text;
                     _saveServers();
@@ -146,8 +146,10 @@ class _ServersPageState extends State<ServersPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Add Server',
-            style: TextStyle(fontWeight: FontWeight.bold),),
+          title: const Text(
+            'Add Server',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -160,14 +162,12 @@ class _ServersPageState extends State<ServersPage> {
                 },
               ),
               ListTile(
-                leading: const Icon(
-                    Icons.paste_outlined, color: Colors.green),
+                leading: const Icon(Icons.paste_outlined, color: Colors.green),
                 title: const Text('Add from Clipboard'),
                 onTap: () {
                   Navigator.pop(context);
                   _addFromClipboard();
                 },
-
               ),
               ListTile(
                 leading: const Icon(Icons.folder_open, color: Colors.orange),
@@ -399,7 +399,7 @@ class _ServersPageState extends State<ServersPage> {
                                                   color: Color(0xFF757575),
                                                 ),
                                                 const SizedBox(width: 8),
-                                               const Text(
+                                                const Text(
                                                   'کد qr',
                                                   style: TextStyle(
                                                     fontSize: 14,

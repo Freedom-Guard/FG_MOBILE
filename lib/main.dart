@@ -95,7 +95,10 @@ class _HomePageState extends State<HomePage> {
   Connect connect = new Connect();
   ServersM serverM = new ServersM();
   Settings settings = new Settings();
-
+  Map<String, String> defSet = {
+    "fgconfig":
+        "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
+  };
   @override
   void initState() {
     super.initState();
@@ -160,7 +163,7 @@ class _HomePageState extends State<HomePage> {
               ) ??
               110000;
           connStat = await connect.ConnectAuto(
-            "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
+            defSet["fgconfig"]!,
             110000,
           ).timeout(
             Duration(milliseconds: timeout),
@@ -206,7 +209,10 @@ class _HomePageState extends State<HomePage> {
           if ((await settings.getValue("f_link").toString()) == "true") {
             donateCONFIG(selectedServer.split("#")[0]);
           }
-
+          if (await settings.getValue("core_vpn") == "auto" ||
+              await settings.getValue("core_vpn") == "") {
+            connect.startConfigUpdateTimer(defSet["fgconfig"]!, 150000);
+          }
           LogOverlay.showLog(
             "connected to ${await settings.getValue("core_vpn")} mode",
             backgroundColor: Colors.greenAccent,
