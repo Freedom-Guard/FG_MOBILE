@@ -122,7 +122,7 @@ class _SplitPageState extends State<SplitPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.select_all, color: Colors.white),
+            icon: const Icon(Icons.check_box_outline_blank, color: Colors.white),
             onPressed: _selectAllApps,
           ),
           IconButton(

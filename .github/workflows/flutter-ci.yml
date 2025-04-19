@@ -40,18 +40,30 @@ jobs:
       - name: Build Android APK
         run: flutter build apk --release
 
-      - name: Upload APK Artifact
+      - name: Build Android APKs for Multiple Architectures
+        run: |
+          flutter build apk --release --split-per-abi
+
+      - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: apk-release
-          path: build/app/outputs/flutter-apk/app-release.apk 
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk  
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk  
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk  
+            build/app/outputs/flutter-apk/app-x86_64-release.apk  
 
       - name: Create GitHub Release (Pre-release)
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk 
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+            build/app/outputs/flutter-apk/app-x86_64-release.apk
           tag_name: ${{ github.ref }}
           release_name: "Release ${{ github.ref_name }}"
           draft: false
