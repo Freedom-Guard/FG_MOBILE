@@ -407,7 +407,7 @@ class AboutDialogWidget extends StatelessWidget {
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
             Text(
-              "Version: 5",
+              "Version: 5.5",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
