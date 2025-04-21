@@ -117,20 +117,20 @@ class _SettingsPageState extends State<SettingsPage> {
                   settings.setValue("fast_connect", value.toString());
                 },
               ),
-              // SettingSwitch(
-              //   title: "Block ads and trackers",
-              //   value:
-              //       bool.tryParse(
-              //         settingsJson["block_ads_trackers"].toString(),
-              //       ) ??
-              //       false,
-              //   onChanged: (bool value) {
-              //     setState(() {
-              //       settingsJson["block_ads_trackers"] = value.toString();
-              //     });
-              //     settings.setValue("block_ads_trackers", value.toString());
-              //   },
-              // ),
+              SettingSwitch(
+                title: "Block ads and trackers",
+                value:
+                    bool.tryParse(
+                      settingsJson["block_ads_trackers"].toString(),
+                    ) ??
+                    false,
+                onChanged: (bool value) {
+                  setState(() {
+                    settingsJson["block_ads_trackers"] = value.toString();
+                  });
+                  settings.setValue("block_ads_trackers", value.toString());
+                },
+              ),
               SettingSwitch(
                 title: "Bypass LAN",
                 value:

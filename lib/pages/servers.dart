@@ -83,7 +83,7 @@ class _ServersPageState extends State<ServersPage> {
   void _addServer(String serverName) {
     if (serverName.isNotEmpty && !servers.contains(serverName)) {
       setState(() {
-        servers.add(serverName);
+        servers.insert(0, serverName);
         _saveServers();
       });
       serverController.clear();

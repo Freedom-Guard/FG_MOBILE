@@ -66,7 +66,7 @@ class Connect {
         if (!(await test()) && !(await test()) && !(await test())) {
           await disConnect();
           await ConnectAuto(fgconfig, timeout);
-        } 
+        }
       }
     });
   }
@@ -102,27 +102,22 @@ class Connect {
 
         (parsedJson["routing"]["rules"] as List).addAll([
           {
-            "outboundTag": "block",
+            "outboundTag": "Reject",
             "domain": [
               "geosite:category-ads-all",
-              "geosite:malware",
-              "geosite:phishing",
-              "geosite:cryptominers",
+              "geosite:category-public-tracker",
             ],
             "type": "field",
-          },
-          {
-            "outboundTag": "block",
-            "ip": ["geoip:malware", "geoip:phishing"],
-            "type": "field",
-          },
+          }
         ]);
 
         parsedJson["outbounds"] ??= [];
-        (parsedJson["outbounds"] as List).add({
-          "tag": "blocked",
+        parsedJson["outbounds"].add({
           "protocol": "blackhole",
-          "settings": {},
+          "tag": "Reject",
+          "settings": {
+            "response": {"type": "http"},
+          },
         });
       }
 
