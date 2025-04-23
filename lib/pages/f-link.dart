@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class PremiumDonateConfigPage extends StatefulWidget {
-  const PremiumDonateConfigPage({super.key});
-
   @override
   State<PremiumDonateConfigPage> createState() =>
       _PremiumDonateConfigPageState();
@@ -86,12 +84,12 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                     child: SlideTransition(
                       position: _slideAnimation,
                       child: GestureDetector(
-                        onTapDown:
-                            (_) => setState(() => isBackButtonHovered = true),
-                        onTapUp:
-                            (_) => setState(() => isBackButtonHovered = false),
-                        onTapCancel:
-                            () => setState(() => isBackButtonHovered = false),
+                        onTapDown: (_) =>
+                            setState(() => isBackButtonHovered = true),
+                        onTapUp: (_) =>
+                            setState(() => isBackButtonHovered = false),
+                        onTapCancel: () =>
+                            setState(() => isBackButtonHovered = false),
                         onTap: () => Navigator.pop(context),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
@@ -105,16 +103,15 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: LinearGradient(
-                              colors:
-                                  isBackButtonHovered
-                                      ? [
-                                        Colors.purple.shade400,
-                                        Colors.cyan.shade400,
-                                      ]
-                                      : [
-                                        Colors.purple.shade800.withOpacity(0.6),
-                                        Colors.cyan.shade600.withOpacity(0.6),
-                                      ],
+                              colors: isBackButtonHovered
+                                  ? [
+                                      Colors.purple.shade400,
+                                      Colors.cyan.shade400,
+                                    ]
+                                  : [
+                                      Colors.purple.shade800.withOpacity(0.6),
+                                      Colors.cyan.shade600.withOpacity(0.6),
+                                    ],
                             ),
                             boxShadow: [
                               BoxShadow(
@@ -154,8 +151,8 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                             child: Align(
                               alignment: Alignment.center,
                               child: Text(
+                                "آزادی در دستان توست",
                                 textAlign: TextAlign.center,
-                                'آزادی در دستان توست',
                                 style: GoogleFonts.vazirmatn(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -239,21 +236,20 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                               fontSize: 16,
                             ),
                           ),
-                          items:
-                              cores.map((core) {
-                                return DropdownMenuItem<String>(
-                                  value: core,
-                                  child: Text(
-                                    core,
-                                    style: GoogleFonts.vazirmatn(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                          onChanged:
-                              (value) => setState(() => selectedCore = value),
+                          items: cores.map((core) {
+                            return DropdownMenuItem<String>(
+                              value: core,
+                              child: Text(
+                                core,
+                                style: GoogleFonts.vazirmatn(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) =>
+                              setState(() => selectedCore = value),
                           decoration: InputDecoration(
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 20,
@@ -326,8 +322,8 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                     child: GestureDetector(
                       onTapDown: (_) => setState(() => isButtonHovered = true),
                       onTapUp: (_) => setState(() => isButtonHovered = false),
-                      onTapCancel:
-                          () => setState(() => isButtonHovered = false),
+                      onTapCancel: () =>
+                          setState(() => isButtonHovered = false),
                       onTap: () {
                         if (selectedCore != null &&
                             configController.text.isNotEmpty) {
@@ -380,16 +376,15 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors:
-                                isButtonHovered
-                                    ? [
-                                      Colors.purple.shade400,
-                                      Colors.cyan.shade400,
-                                    ]
-                                    : [
-                                      Colors.purple.shade700,
-                                      Colors.cyan.shade600,
-                                    ],
+                            colors: isButtonHovered
+                                ? [
+                                    Colors.purple.shade400,
+                                    Colors.cyan.shade400,
+                                  ]
+                                : [
+                                    Colors.purple.shade700,
+                                    Colors.cyan.shade600,
+                                  ],
                           ),
                           borderRadius: BorderRadius.circular(50),
                           boxShadow: [

@@ -108,7 +108,7 @@ class Connect {
               "geosite:category-public-tracker",
             ],
             "type": "field",
-          }
+          },
         ]);
 
         parsedJson["outbounds"] ??= [];

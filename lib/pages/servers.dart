@@ -11,7 +11,6 @@ import 'package:path/path.dart' as path;
 import 'package:qr_flutter/qr_flutter.dart';
 
 class ServersPage extends StatefulWidget {
-  const ServersPage({super.key});
 
   @override
   State<ServersPage> createState() => _ServersPageState();

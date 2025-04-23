@@ -23,6 +23,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {} catch (e) {}
   try {
     await Firebase.initializeApp();
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
@@ -52,8 +53,6 @@ Future<void> main() async {
 }
 
 class FreedomGuardApp extends StatelessWidget {
-  const FreedomGuardApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -76,14 +75,12 @@ class FreedomGuardApp extends StatelessWidget {
         highlightColor: Colors.transparent,
         hoverColor: Colors.transparent,
       ),
-      home: const HomePage(),
+      home: HomePage(),
     );
   }
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -106,6 +103,7 @@ class _HomePageState extends State<HomePage> {
       Timer.periodic(Duration(seconds: 10), (timer) {
         checkVPN();
       });
+      checkVPN();
       await checkForUpdate(context);
     });
   }
@@ -157,8 +155,7 @@ class _HomePageState extends State<HomePage> {
             "connecting to auto mode",
             backgroundColor: Colors.blueAccent,
           );
-          var timeout =
-              int.tryParse(
+          var timeout = int.tryParse(
                 await settings.getValue("timeout_auto").toString(),
               ) ??
               110000;
@@ -331,24 +328,22 @@ class _HomePageState extends State<HomePage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors:
-                            isConnected
-                                ? [Colors.green.shade400, Colors.teal.shade900]
-                                : isConnecting
+                        colors: isConnected
+                            ? [Colors.green.shade400, Colors.teal.shade900]
+                            : isConnecting
                                 ? [Colors.blue.shade300, Colors.indigo.shade800]
                                 : [
-                                  const Color(0xFF1F2525),
-                                  const Color(0xFF0D1117),
-                                ],
+                                    const Color(0xFF1F2525),
+                                    const Color(0xFF0D1117),
+                                  ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color:
-                              isConnected
-                                  ? Colors.green.shade700.withOpacity(0.6)
-                                  : isConnecting
+                          color: isConnected
+                              ? Colors.green.shade700.withOpacity(0.6)
+                              : isConnecting
                                   ? Colors.blue.shade700.withOpacity(0.5)
                                   : Colors.black.withOpacity(0.3),
                           blurRadius: isPressed ? 30 : 20,
@@ -413,13 +408,12 @@ class _HomePageState extends State<HomePage> {
                                 color: Colors.white.withOpacity(0.95),
                                 shadows: [
                                   Shadow(
-                                    color:
-                                        isConnected
-                                            ? Colors.green.shade900.withOpacity(
-                                              0.7,
-                                            )
-                                            : Colors.blueGrey.shade900
-                                                .withOpacity(0.5),
+                                    color: isConnected
+                                        ? Colors.green.shade900.withOpacity(
+                                            0.7,
+                                          )
+                                        : Colors.blueGrey.shade900
+                                            .withOpacity(0.5),
                                     blurRadius: 15,
                                     offset: const Offset(0, 2),
                                   ),
@@ -437,8 +431,8 @@ class _HomePageState extends State<HomePage> {
                   isConnecting
                       ? "Connecting..."
                       : isConnected
-                      ? "Connected"
-                      : "Not connected",
+                          ? "Connected"
+                          : "Not connected",
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -590,26 +584,24 @@ class _PulsePainter extends CustomPainter {
     if (!isConnecting) return;
 
     final center = Offset(size.width / 2, size.height / 2);
-    final paint =
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5
-          ..shader = RadialGradient(
-            colors: [
-              Colors.blue.shade400.withOpacity(0.9),
-              Colors.blue.shade200.withOpacity(0.2),
-              Colors.transparent,
-            ],
-            stops: [0.0, 0.7, 1.0],
-          ).createShader(
-            Rect.fromCircle(center: center, radius: size.width / 2),
-          );
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..shader = RadialGradient(
+        colors: [
+          Colors.blue.shade400.withOpacity(0.9),
+          Colors.blue.shade200.withOpacity(0.2),
+          Colors.transparent,
+        ],
+        stops: [0.0, 0.7, 1.0],
+      ).createShader(
+        Rect.fromCircle(center: center, radius: size.width / 2),
+      );
 
     final time = DateTime.now().millisecondsSinceEpoch / 1000;
     for (int i = 0; i < 3; i++) {
       final animationProgress = (time + i * 0.5) % 1.0;
-      final radius =
-          (size.width / 2) *
+      final radius = (size.width / 2) *
           (0.3 + (i * 0.25)) *
           (0.5 + 0.5 * (animationProgress * 2 - 1).abs());
       final opacity = 1.0 - animationProgress;

@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class SpeedTestPage extends StatefulWidget {
-  const SpeedTestPage({super.key});
 
   @override
   State<SpeedTestPage> createState() => _SpeedTestPageState();
@@ -313,7 +312,6 @@ class SpeedCard extends StatelessWidget {
   final Animation<double> animation;
 
   const SpeedCard({
-    super.key,
     required this.title,
     required this.value,
     required this.unit,

@@ -5,8 +5,6 @@ import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
 
 class SplitPage extends StatefulWidget {
-  const SplitPage({super.key});
-
   @override
   State<SplitPage> createState() => _SplitPageState();
 }
@@ -104,11 +102,14 @@ class _SplitPageState extends State<SplitPage> {
 
   void _selectAllApps() {
     setState(() {
-      selectedApps = installedApps.map((app) => app.packageName ?? "").where((name) => name.isNotEmpty).toList();
+      selectedApps = installedApps
+          .map((app) => app.packageName ?? "")
+          .where((name) => name.isNotEmpty)
+          .toList();
     });
     LogOverlay.showLog("All apps selected");
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,7 +123,8 @@ class _SplitPageState extends State<SplitPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.check_box_outline_blank, color: Colors.white),
+            icon:
+                const Icon(Icons.check_box_outline_blank, color: Colors.white),
             onPressed: _selectAllApps,
           ),
           IconButton(
@@ -174,65 +176,61 @@ class _SplitPageState extends State<SplitPage> {
             ),
           ),
           Expanded(
-            child:
-                isLoading
-                    ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.blueAccent,
-                      ),
-                    )
-                    : installedApps.isEmpty
-                    ? const Center(
-                      child: Text(
-                        "No apps found!",
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                    )
-                    : ListView.builder(
-                      itemCount: installedApps.length,
-                      itemBuilder: (context, index) {
-                        AppInfo app = installedApps[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage:
-                                  app.icon != null
-                                      ? MemoryImage(app.icon!)
-                                      : null,
-                              child:
-                                  app.icon == null
-                                      ? const Icon(Icons.apps)
-                                      : null,
-                            ),
-                            title: Text(
-                              app.name ?? "No Name",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            subtitle: Text(
-                              app.packageName ?? "No package",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            trailing: Switch(
-                              activeColor: Colors.blueAccent,
-                              value: selectedApps.contains(app.packageName),
-                              onChanged:
-                                  (value) => _toggleAppSelection(
-                                    app.packageName ?? "",
-                                  ),
-                            ),
-                          ),
-                        );
-                      },
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.blueAccent,
                     ),
+                  )
+                : installedApps.isEmpty
+                    ? const Center(
+                        child: Text(
+                          "No apps found!",
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: installedApps.length,
+                        itemBuilder: (context, index) {
+                          AppInfo app = installedApps[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: app.icon != null
+                                    ? MemoryImage(app.icon!)
+                                    : null,
+                                child: app.icon == null
+                                    ? const Icon(Icons.apps)
+                                    : null,
+                              ),
+                              title: Text(
+                                app.name ?? "No Name",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              subtitle: Text(
+                                app.packageName ?? "No package",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              trailing: Switch(
+                                activeColor: Colors.blueAccent,
+                                value: selectedApps.contains(app.packageName),
+                                onChanged: (value) => _toggleAppSelection(
+                                  app.packageName ?? "",
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),

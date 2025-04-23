@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 5.5.0+1
 
 environment:
-  sdk: ^3.7.0-209.1.beta
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -36,8 +36,6 @@ dependencies:
   installed_apps: ^1.6.0
   qr_flutter: ^4.1.0
   percent_indicator: ^4.2.5
-
-
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1

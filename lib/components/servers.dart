@@ -113,6 +113,7 @@ class ServersM extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       if (servers.isEmpty) {
         await prefs.remove('servers');
+        return true;
       }
       await prefs.setStringList('servers', servers);
       Directory appDocDir = await getApplicationDocumentsDirectory();

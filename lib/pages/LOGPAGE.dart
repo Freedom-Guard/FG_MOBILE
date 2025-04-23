@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '/components/LOGLOG.dart';
 
 class LogPage extends StatefulWidget {
-  const LogPage({super.key});
 
   @override
   State<LogPage> createState() => _LogPageState();

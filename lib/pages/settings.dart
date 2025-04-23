@@ -6,8 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
-
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
@@ -82,7 +80,7 @@ class _SettingsPageState extends State<SettingsPage> {
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
-                  return const AboutDialogWidget();
+                  return AboutDialogWidget();
                 },
               );
             },
@@ -107,8 +105,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               SettingSwitch(
                 title: "Quick Connect",
-                value:
-                    bool.tryParse(settingsJson["fast_connect"].toString()) ??
+                value: bool.tryParse(settingsJson["fast_connect"].toString()) ??
                     false,
                 onChanged: (bool value) {
                   setState(() {
@@ -119,8 +116,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               SettingSwitch(
                 title: "Block ads and trackers",
-                value:
-                    bool.tryParse(
+                value: bool.tryParse(
                       settingsJson["block_ads_trackers"].toString(),
                     ) ??
                     false,
@@ -133,8 +129,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               SettingSwitch(
                 title: "Bypass LAN",
-                value:
-                    bool.tryParse(settingsJson["bypass_lan"].toString()) ??
+                value: bool.tryParse(settingsJson["bypass_lan"].toString()) ??
                     false,
                 onChanged: (bool value) {
                   setState(() {
@@ -145,8 +140,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               SettingSwitch(
                 title: "Guard Mode (beta)",
-                value:
-                    bool.tryParse(settingsJson["guard_mode"].toString()) ??
+                value: bool.tryParse(settingsJson["guard_mode"].toString()) ??
                     false,
                 onChanged: (bool value) {
                   setState(() {
@@ -205,7 +199,6 @@ class SettingSwitch extends StatelessWidget {
     required this.title,
     required this.value,
     required this.onChanged,
-    super.key,
   });
 
   @override
@@ -233,7 +226,6 @@ class SettingSelector extends StatefulWidget {
   final List<String> options;
 
   const SettingSelector({
-    super.key,
     required this.title,
     required this.prefKey,
     required this.options,
@@ -285,13 +277,12 @@ class _SettingSelectorState extends State<SettingSelector> {
               child: DropdownButton<String>(
                 isExpanded: true,
                 value: _selectedValue,
-                items:
-                    widget.options.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
+                items: widget.options.map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
                 onChanged: (String? newValue) {
                   setState(() => _selectedValue = newValue!);
                   _saveValue(newValue!);
@@ -311,7 +302,6 @@ class SettingInput extends StatefulWidget {
   final String hintText;
 
   const SettingInput({
-    super.key,
     required this.title,
     required this.prefKey,
     required this.hintText,
@@ -378,8 +368,6 @@ class _SettingInputState extends State<SettingInput> {
 }
 
 class AboutDialogWidget extends StatelessWidget {
-  const AboutDialogWidget({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -463,7 +451,6 @@ class LinkWidget extends StatelessWidget {
   final IconData icon;
 
   const LinkWidget({
-    super.key,
     required this.url,
     required this.text,
     required this.icon,
