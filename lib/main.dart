@@ -87,6 +87,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool isConnected = false;
+  String backgroundPath = "";
   bool isPressed = false;
   bool isConnecting = false;
   Connect connect = new Connect();
@@ -102,9 +103,18 @@ class _HomePageState extends State<HomePage> {
     Future.microtask(() async {
       Timer.periodic(Duration(seconds: 10), (timer) {
         checkVPN();
+        setState(()=>{
+            randomBackList  = ["background.jpg", "background-1.jpg", "background-2.jpg"];
+              backgroundPath = "";
+      });
       });
       checkVPN();
       await checkForUpdate(context);
+      setState(()=>{
+              backgroundPath = (await settings.getValue("background")) == ""
+          ? "assets/background.jpg"
+          : (await settings.getValue("background"));
+      });
     });
   }
 
@@ -250,7 +260,7 @@ class _HomePageState extends State<HomePage> {
         Container(
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage("assets/background.jpg"),
+              image: AssetImage(backgroundPath),
               fit: BoxFit.cover,
             ),
           ),
