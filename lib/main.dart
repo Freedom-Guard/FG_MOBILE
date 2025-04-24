@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connect.dart';
@@ -103,17 +104,21 @@ class _HomePageState extends State<HomePage> {
     Future.microtask(() async {
       Timer.periodic(Duration(seconds: 10), (timer) {
         checkVPN();
-        setState(()=>{
-            randomBackList  = ["background.jpg", "background-1.jpg", "background-2.jpg"];
-              backgroundPath = "";
-      });
       });
       checkVPN();
       await checkForUpdate(context);
-      setState(()=>{
-              backgroundPath = (await settings.getValue("background")) == ""
-          ? "assets/background.jpg"
-          : (await settings.getValue("background"));
+      setState(() async {
+        List<String> backgroundList = [
+          "10.jpg",
+          "5.jpg",
+          "15.jpg",
+          "background.jpg"
+        ];
+        final random = new Random();
+        final randomBackground =
+            backgroundList[random.nextInt(backgroundList.length)];
+        backgroundPath = "assets/" + randomBackground;
+        ;
       });
     });
   }
@@ -320,7 +325,7 @@ class _HomePageState extends State<HomePage> {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage("assets/background.jpg"),
+                image: AssetImage(backgroundPath),
                 fit: BoxFit.cover,
               ),
             ),
