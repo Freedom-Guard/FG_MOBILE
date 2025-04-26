@@ -118,7 +118,6 @@ class _HomePageState extends State<HomePage> {
         final randomBackground =
             backgroundList[random.nextInt(backgroundList.length)];
         backgroundPath = "assets/" + randomBackground;
-        ;
       });
     });
   }
@@ -279,10 +278,6 @@ class _HomePageState extends State<HomePage> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: AppBar(
-                  title: const Text(
-                    "Freedom Guard",
-                    style: TextStyle(color: Colors.white),
-                  ),
                   backgroundColor: Colors.black.withOpacity(0.3),
                   elevation: 0,
                   centerTitle: true,

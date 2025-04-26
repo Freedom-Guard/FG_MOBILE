@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
 class SpeedTestPage extends StatefulWidget {
-
   @override
   State<SpeedTestPage> createState() => _SpeedTestPageState();
 }
@@ -78,13 +77,11 @@ class _SpeedTestPageState extends State<SpeedTestPage>
   Future<void> _fetchUploadSpeed() async {
     final stopwatch = Stopwatch()..start();
     try {
-      final response = await http
-          .post(
-            Uri.parse('https://httpbin.org/post'),
-            body: List.filled(1000000, 0),
-            headers: {'Content-Type': 'application/octet-stream'},
-          )
-          .timeout(const Duration(seconds: 5));
+      final response = await http.post(
+        Uri.parse('https://httpbin.org/post'),
+        body: List.filled(1000000, 0),
+        headers: {'Content-Type': 'application/octet-stream'},
+      ).timeout(const Duration(seconds: 5));
       stopwatch.stop();
       if (response.statusCode == 200 || response.statusCode == 204) {
         final timeInSeconds = stopwatch.elapsedMilliseconds / 1000;
@@ -141,33 +138,32 @@ class _SpeedTestPageState extends State<SpeedTestPage>
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-
       body: SizedBox(
         width: double.infinity, // Make the container take full width
         child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.grey[900]!, Colors.black],
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.grey[900]!, Colors.black],
+            ),
           ),
-        ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 32),
-                if (status != "Complete") _buildStartButton(),
-                const SizedBox(height: 32),
-                _buildProgressIndicator(),
-                const SizedBox(height: 32),
-                _buildSpeedCards(),
-                const SizedBox(height: 52),
-                if (status == "Complete") _buildStartButton(),
-              ],
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 32),
+                  if (status != "Complete") _buildStartButton(),
+                  const SizedBox(height: 32),
+                  _buildProgressIndicator(),
+                  const SizedBox(height: 32),
+                  _buildSpeedCards(),
+                  const SizedBox(height: 52),
+                  if (status == "Complete") _buildStartButton(),
+                ],
               ),
             ),
           ),
@@ -177,16 +173,18 @@ class _SpeedTestPageState extends State<SpeedTestPage>
   }
 
   Widget _buildHeader() {
-    return  SizedBox( width: double.infinity , child: Text(
-      'Internet Speed Test',
-      style: GoogleFonts.inter(
-        fontSize: 28,
-        fontWeight: FontWeight.w700,
-        color: Colors.white,
-        letterSpacing: 0.5,
-      ),
-      textAlign: TextAlign.center,
-    ));
+    return SizedBox(
+        width: double.infinity,
+        child: Text(
+          'Internet Speed Test',
+          style: GoogleFonts.inter(
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: 0.5,
+          ),
+          textAlign: TextAlign.center,
+        ));
   }
 
   Widget _buildProgressIndicator() {
@@ -265,10 +263,9 @@ class _SpeedTestPageState extends State<SpeedTestPage>
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors:
-                isTesting
-                    ? [Colors.grey[700]!, Colors.grey[800]!]
-                    : [Colors.blueAccent, Colors.blue],
+            colors: isTesting
+                ? [Colors.grey[700]!, Colors.grey[800]!]
+                : [Colors.blueAccent, Colors.blue],
           ),
           borderRadius: BorderRadius.circular(30),
           boxShadow: [

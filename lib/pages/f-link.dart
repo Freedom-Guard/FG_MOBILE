@@ -13,8 +13,7 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
   String? selectedCore;
   final TextEditingController configController = TextEditingController();
   final List<String> cores = [
-    'Warp Core',
-    'Vibe Core',
+    'Mobile Vibe Core',
     'Desktop Vibe Core',
     'Desktop Warp Core',
   ];
@@ -157,7 +156,6 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
-                                  letterSpacing: 2,
                                   shadows: [
                                     Shadow(
                                       blurRadius: 20,

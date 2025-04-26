@@ -200,10 +200,9 @@ class Connect {
       if (await flutterV2ray.requestPermission()) {
         try {
           var parsedConfig = FlutterV2ray.parseFromURL(config);
-          parser =
-              parsedConfig != null
-                  ? parsedConfig.getFullConfiguration()
-                  : config;
+          parser = parsedConfig != null
+              ? parsedConfig.getFullConfiguration()
+              : config;
         } catch (_) {
           parser = config;
         }
@@ -228,15 +227,14 @@ class Connect {
         flutterV2ray.startV2Ray(
           remark: "Freedom Guard",
           config: parsedJson,
-          blockedApps:
-              (await settings.getValue("split_app"))
-                  .toString()
-                  .replaceAll("[", "")
-                  .replaceAll("]", "")
-                  .split(",")
-                  .map((e) => e.trim())
-                  .where((e) => e.isNotEmpty)
-                  .toList(),
+          blockedApps: (await settings.getValue("split_app"))
+              .toString()
+              .replaceAll("[", "")
+              .replaceAll("]", "")
+              .split(",")
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList(),
           bypassSubnets: await getSubNetforBypassVibe(),
           proxyOnly: false,
           notificationDisconnectButtonName: "قطع اتصال",
@@ -345,15 +343,11 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
   Future<bool> ConnectAuto(String fgconfig, int timeout) async {
     try {
       final uri = Uri.parse(fgconfig);
-      final response = await http
-          .get(uri)
-          .timeout(
+      final response = await http.get(uri).timeout(
             Duration(milliseconds: timeout),
-            onTimeout:
-                () =>
-                    throw TimeoutException(
-                      'Request timed out after $timeout ms',
-                    ),
+            onTimeout: () => throw TimeoutException(
+              'Request timed out after $timeout ms',
+            ),
           );
 
       if (response.statusCode == 200) {
@@ -417,12 +411,12 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
       final ping = await flutterV2ray
           .getServerDelay(config: parser.getFullConfiguration())
           .timeout(
-            const Duration(seconds: 6),
-            onTimeout: () {
-              debugPrint('Ping timeout for config: $config');
-              return -1;
-            },
-          );
+        const Duration(seconds: 6),
+        onTimeout: () {
+          debugPrint('Ping timeout for config: $config');
+          return -1;
+        },
+      );
       if (ping > 0) {
         return ping;
       } else {
@@ -450,8 +444,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
   }) async {
     try {
       final fastConnectValue = await settings.getValue("fast_connect");
-      final isQuick =
-          fastConnectValue.isNotEmpty &&
+      final isQuick = fastConnectValue.isNotEmpty &&
           bool.tryParse(fastConnectValue) == true;
 
       if (isQuick) {
@@ -489,9 +482,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
       }
 
       debugPrint('Fetching subscription from: $sub');
-      final response = await http
-          .get(uri)
-          .timeout(
+      final response = await http.get(uri).timeout(
             requestTimeout,
             onTimeout: () => throw TimeoutException('Request timed out'),
           );
@@ -536,40 +527,36 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
 
       final List<Map<String, dynamic>> results = [];
       for (var i = 0; i < configs.length; i += effectiveBatchSize) {
-        final batchEnd =
-            (i + effectiveBatchSize > configs.length)
-                ? configs.length
-                : i + effectiveBatchSize;
+        final batchEnd = (i + effectiveBatchSize > configs.length)
+            ? configs.length
+            : i + effectiveBatchSize;
         final batch = configs.sublist(i, batchEnd);
 
         final batchResults = await Future.wait(
-              batch.map((config) async {
-                try {
-                  final parser = FlutterV2ray.parseFromURL(config);
-                  final ping = await flutterV2ray
-                      .getServerDelay(config: parser.getFullConfiguration())
-                      .timeout(pingTimeout, onTimeout: () => -1);
-                  return ping > 0 ? {'config': config, 'ping': ping} : null;
-                } catch (e) {
-                  debugPrint('Error testing config ping: $e');
-                  return null;
-                }
-              }),
-            )
-            .timeout(
-              batchTimeout,
-              onTimeout: () {
-                debugPrint('Batch timeout for configs: $batch');
-                return [];
-              },
-            )
-            .then(
-              (list) =>
-                  list
-                      .where((e) => e != null)
-                      .cast<Map<String, dynamic>>()
-                      .toList(),
-            );
+          batch.map((config) async {
+            try {
+              final parser = FlutterV2ray.parseFromURL(config);
+              final ping = await flutterV2ray
+                  .getServerDelay(config: parser.getFullConfiguration())
+                  .timeout(pingTimeout, onTimeout: () => -1);
+              return ping > 0 ? {'config': config, 'ping': ping} : null;
+            } catch (e) {
+              debugPrint('Error testing config ping: $e');
+              return null;
+            }
+          }),
+        ).timeout(
+          batchTimeout,
+          onTimeout: () {
+            debugPrint('Batch timeout for configs: $batch');
+            return [];
+          },
+        ).then(
+          (list) => list
+              .where((e) => e != null)
+              .cast<Map<String, dynamic>>()
+              .toList(),
+        );
 
         results.addAll(batchResults);
       }
