@@ -14,20 +14,19 @@ Future<void> checkForUpdate(BuildContext context) async {
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
     final latestVersion = data['version'];
-    const currentVersion = '5.5.0';
+    const currentVersion = '6.0.0';
 
     if (latestVersion.compareTo(currentVersion) > 0) {
       showDialog(
         context: context,
-        builder:
-            (context) => Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0),
-              ),
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              child: _UpdateDialogContent(data: data),
-            ),
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: _UpdateDialogContent(data: data),
+        ),
       );
     }
   }

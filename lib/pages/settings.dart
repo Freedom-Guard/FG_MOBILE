@@ -66,7 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.merge_type, color: Colors.white),
+            icon: const Icon(Icons.merge_type_sharp, color: Colors.white),
             onPressed: () {
               Navigator.push(
                 context,
@@ -102,17 +102,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   });
                   settings.setValue("f_link", value.toString());
                 },
-              ),
-              SettingSwitch(
-                title: "Quick Connect",
-                value: bool.tryParse(settingsJson["fast_connect"].toString()) ??
-                    false,
-                onChanged: (bool value) {
-                  setState(() {
-                    settingsJson["fast_connect"] = value.toString();
-                  });
-                  settings.setValue("fast_connect", value.toString());
-                },
+                icon: Icons.link,
               ),
               SettingSwitch(
                 title: "Block ads and trackers",
@@ -126,6 +116,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   });
                   settings.setValue("block_ads_trackers", value.toString());
                 },
+                icon: Icons.block,
               ),
               SettingSwitch(
                 title: "Bypass LAN",
@@ -137,6 +128,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   });
                   settings.setValue("bypass_lan", value.toString());
                 },
+                icon: Icons.lan,
               ),
               SettingSwitch(
                 title: "Guard Mode (beta)",
@@ -148,11 +140,19 @@ class _SettingsPageState extends State<SettingsPage> {
                   });
                   settings.setValue("guard_mode", value.toString());
                 },
+                icon: Icons.shield,
               ),
-              SettingSelector(
-                title: "YOUR ISP",
-                prefKey: "user_isp",
-                options: ["MCI", "IRANCELL", "PISHGAMAN", "OTHER"],
+              SettingSwitch(
+                title: "Quick Connect (Sub)",
+                value: bool.tryParse(settingsJson["fast_connect"].toString()) ??
+                    false,
+                onChanged: (bool value) {
+                  setState(() {
+                    settingsJson["fast_connect"] = value.toString();
+                  });
+                  settings.setValue("fast_connect", value.toString());
+                },
+                icon: Icons.speed_sharp,
               ),
               SettingSwitch(
                 title: "Manual mode",
@@ -194,27 +194,72 @@ class SettingSwitch extends StatelessWidget {
   final String title;
   final bool value;
   final ValueChanged<bool> onChanged;
+  final IconData? icon;
 
   const SettingSwitch({
     required this.title,
     required this.value,
     required this.onChanged,
+    this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: SwitchListTile(
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+      elevation: 4,
+      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
         ),
-        value: value,
-        onChanged: onChanged,
-        activeColor: Theme.of(context).colorScheme.primary,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: SwitchListTile(
+          title: Row(
+            children: [
+              if (icon != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Roboto',
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          value: value,
+          onChanged: onChanged,
+          activeColor: Theme.of(context).colorScheme.primary,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
       ),
     );
   }
@@ -395,18 +440,18 @@ class AboutDialogWidget extends StatelessWidget {
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
             Text(
-              "Version: 5.5",
+              "Version: 6.0",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            Row(
+            Column(
               spacing: 10,
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 LinkWidget(
                   url: "https://github.com/Freedom-Guard/FG_MOBILE",
                   text: "GitHub",
-                  icon: Icons.receipt_long_outlined,
+                  icon: Icons.report,
                 ),
                 LinkWidget(
                   url: "https://t.me/Freedom_Guard_Net",

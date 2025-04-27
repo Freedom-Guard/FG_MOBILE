@@ -278,7 +278,7 @@ class _HomePageState extends State<HomePage> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: AppBar(
-                  backgroundColor: Colors.black.withOpacity(0.3),
+                  backgroundColor: Colors.black.withOpacity(0.7),
                   elevation: 0,
                   centerTitle: true,
                   leading: IconButton(
@@ -394,7 +394,7 @@ class _HomePageState extends State<HomePage> {
                               width: 150,
                               height: 150,
                               child: CustomPaint(
-                                painter: _PulsePainter(isConnecting),
+                                painter: PulsePainter(isConnecting),
                               ),
                             ),
                           AnimatedScale(
@@ -436,19 +436,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                Text(
-                  isConnecting
-                      ? "Connecting..."
-                      : isConnected
-                          ? "Connected"
-                          : "Not connected",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 10),
+                SizedBox(height: 25),
                 if (isConnected) NetworkStatusWidget() else (PingWidget()),
                 Spacer(flex: 1),
               ],
@@ -464,8 +452,7 @@ class _HomePageState extends State<HomePage> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(0)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.2),
@@ -574,46 +561,67 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _PulsePainter extends CustomPainter {
+class PulsePainter extends CustomPainter {
+  /// Indicates whether the pulse animation should be drawn.
   final bool isConnecting;
 
-  _PulsePainter(this.isConnecting);
+  const PulsePainter(this.isConnecting);
+
+  // Constants for animation and styling
+  static const _pulseCount = 3;
+  static const _baseStrokeWidth = 2.5;
+  static const _animationDurationSeconds = 1.0;
+  static const _pulseSpacing = 0.5;
+  static const _minRadiusFactor = 0.3;
+  static const _radiusMultiplier = 0.25;
 
   @override
   void paint(Canvas canvas, Size size) {
     if (!isConnecting) return;
 
     final center = Offset(size.width / 2, size.height / 2);
+    final maxRadius = size.width / 2;
+
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5
+      ..strokeWidth = _baseStrokeWidth
       ..shader = RadialGradient(
         colors: [
           Colors.blue.shade400.withOpacity(0.9),
           Colors.blue.shade200.withOpacity(0.2),
           Colors.transparent,
         ],
-        stops: [0.0, 0.7, 1.0],
-      ).createShader(
-        Rect.fromCircle(center: center, radius: size.width / 2),
-      );
+        stops: const [0.0, 0.7, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: maxRadius));
 
     final time = DateTime.now().millisecondsSinceEpoch / 1000;
-    for (int i = 0; i < 3; i++) {
-      final animationProgress = (time + i * 0.5) % 1.0;
-      final radius = (size.width / 2) *
-          (0.3 + (i * 0.25)) *
-          (0.5 + 0.5 * (animationProgress * 2 - 1).abs());
-      final opacity = 1.0 - animationProgress;
+
+    for (int i = 0; i < _pulseCount; i++) {
+      final animationProgress =
+          (time + i * _pulseSpacing) % _animationDurationSeconds;
+      final normalizedProgress = animationProgress / _animationDurationSeconds;
+
+      final radiusFactor = _minRadiusFactor + (i * _radiusMultiplier);
+      final radiusAnimation = 0.5 + 0.5 * (normalizedProgress * 2 - 1).abs();
+      final radius = maxRadius * radiusFactor * radiusAnimation;
+      final opacity = 1.0 - normalizedProgress;
 
       canvas.drawCircle(
         center,
-        radius,
-        paint..strokeWidth = (2.5 * opacity).clamp(0.5, 2.5),
+        radius.clamp(0.0, maxRadius),
+        paint
+          ..strokeWidth =
+              (_baseStrokeWidth * opacity).clamp(0.5, _baseStrokeWidth),
       );
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    final old = oldDelegate as PulsePainter;
+    return old.isConnecting != isConnecting;
+  }
+
+  @override
+  bool shouldRebuildSemantics(covariant CustomPainter oldDelegate) => false;
 }
