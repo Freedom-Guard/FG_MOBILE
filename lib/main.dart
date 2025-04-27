@@ -436,7 +436,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
                 Text(
                   isConnecting
                       ? "Connecting..."
@@ -457,74 +456,58 @@ class _HomePageState extends State<HomePage> {
           ),
           bottomNavigationBar: Container(
             decoration: BoxDecoration(
-              color: const Color.fromARGB(0, 255, 255, 255),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF121212),
+                  Colors.black.withOpacity(0.7)
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(0)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black54,
+                  color: Colors.black.withOpacity(0.2),
                   blurRadius: 10,
                   spreadRadius: 2,
+                  offset: const Offset(0, -2),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(0),
-              ),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(0)),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(0, 255, 255, 255),
-                    border: const Border(
-                      top: BorderSide(
-                        color: Color.fromARGB(25, 255, 255, 255),
-                        width: 1.5,
+                filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                child: BottomNavigationBar(
+                  backgroundColor: Colors.transparent,
+                  selectedItemColor: Colors.white,
+                  unselectedItemColor: Colors.grey.shade400,
+                  showSelectedLabels: false,
+                  showUnselectedLabels: false,
+                  elevation: 0,
+                  type: BottomNavigationBarType.fixed,
+                  currentIndex: 1,
+                  items: [
+                    _buildNavItem(
+                      Icons.settings_sharp,
+                      "Settings",
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SettingsPage()),
                       ),
                     ),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(0),
+                    _buildNavItem(Icons.home, "خانه", () {}),
+                    _buildNavItem(
+                      Icons.cloud_sync_outlined,
+                      "Manage Servers",
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ServersPage()),
+                      ),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: BottomNavigationBar(
-                    backgroundColor: Colors.transparent,
-                    selectedItemColor: Colors.white,
-                    unselectedItemColor: Colors.grey.shade400,
-                    showSelectedLabels: false,
-                    showUnselectedLabels: false,
-                    elevation: 0,
-                    type: BottomNavigationBarType.fixed,
-                    currentIndex: 1,
-                    items: [
-                      _buildNavItem(
-                        Icons.settings_sharp,
-                        "تنظیمات",
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SettingsPage(),
-                          ),
-                        ),
-                      ),
-                      _buildNavItem(Icons.home, "خانه", () {}),
-                      _buildNavItem(
-                        Icons.cloud_sync_outlined,
-                        "سرور ها",
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ServersPage(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ),
@@ -535,48 +518,55 @@ class _HomePageState extends State<HomePage> {
   }
 
   BottomNavigationBarItem _buildNavItem(
-    IconData icon,
-    String label,
-    VoidCallback onTap,
-  ) {
+      IconData icon, String label, VoidCallback onTap) {
     return BottomNavigationBarItem(
       icon: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 60,
-          padding: const EdgeInsets.all(10),
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          width: 50,
+          padding: const EdgeInsets.all(8),
+          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.grey.shade900,
-            borderRadius: BorderRadius.circular(14),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1A1B26), Color(0xFF2A2B36)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
               ),
             ],
           ),
-          child: Icon(icon, size: 24, color: Colors.grey.shade400),
+          child: Icon(icon, size: 22, color: Colors.grey.shade300),
         ),
       ),
       activeIcon: Container(
-        width: 60,
-        padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        width: 50,
+        padding: const EdgeInsets.all(8),
+        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.secondary,
-          borderRadius: BorderRadius.circular(14),
+          gradient: LinearGradient(
+            colors: [
+              Theme.of(context).colorScheme.secondary,
+              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1E88E5).withOpacity(0.3),
-              blurRadius: 8,
+              color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+              blurRadius: 6,
               spreadRadius: 1,
-              offset: const Offset(0, 3),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Icon(icon, size: 26, color: Colors.white),
+        child: Icon(icon, size: 24, color: Colors.white),
       ),
       label: '',
       tooltip: label,
