@@ -64,7 +64,7 @@ jobs:
             build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
             build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
             build/app/outputs/flutter-apk/app-x86_64-release.apk
-          tag_name: ${{ github.ref }}
+          tag_name: ${{ github.ref_name }}
           release_name: "Release ${{ github.ref_name }}"
           draft: false
           prerelease: true
