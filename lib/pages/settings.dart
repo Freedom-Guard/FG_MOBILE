@@ -433,7 +433,7 @@ class AboutDialogWidget extends StatelessWidget {
               "Freedom Guard",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 25),
             SelectableText(
               "Freedom Guard is an open-source tool to bypass internet censorship.",
               textAlign: TextAlign.center,
