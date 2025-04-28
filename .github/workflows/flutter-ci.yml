@@ -2,6 +2,8 @@ name: Flutter CI
 
 on:
   push:
+    tags:
+      - 'v*'
 
   workflow_dispatch:
   
