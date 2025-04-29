@@ -180,7 +180,7 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                       child: SlideTransition(
                         position: _slideAnimation,
                         child: Text(
-                          "کانفیگ را وارد کنید، هسته را انتخاب کنید و با اهدای آن، به پایداری گارد آزادی کمک کنید.",
+                          "کانفیگ را وارد کنید، هسته را انتخاب کنید و با اهدای آن، به پایداری گارد آزادی کمک کنید",
                           style: GoogleFonts.vazirmatn(
                             fontSize: 16,
                             color: Colors.white.withOpacity(0.85),
