@@ -36,6 +36,7 @@ dependencies:
   installed_apps: ^1.6.0
   qr_flutter: ^4.1.0
   percent_indicator: ^4.2.5
+  webview_flutter: ^4.11.0
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1

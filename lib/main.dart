@@ -7,6 +7,7 @@ import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:Freedom_Guard/pages/browser.dart';
 import 'package:Freedom_Guard/pages/loading.dart';
 import 'package:Freedom_Guard/pages/servers.dart';
 import 'package:Freedom_Guard/pages/settings.dart';
@@ -289,6 +290,18 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                   actions: [
+                    IconButton(
+                      icon: const Icon(Icons.public),
+                      color: Colors.grey,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FreedomBrowser(),
+                          ),
+                        );
+                      },
+                    ),
                     IconButton(
                       icon: const Icon(Icons.network_check),
                       color: Colors.grey,
