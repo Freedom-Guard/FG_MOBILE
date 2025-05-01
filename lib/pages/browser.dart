@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:Freedom_Guard/main.dart';
 
 class FreedomBrowser extends StatefulWidget {
   @override
@@ -25,10 +24,16 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
         onPageStarted: (url) {
+          _urlController.text = url;
           setState(() {
             isLoading = true;
             isHttps = url.startsWith('https');
           });
+        },
+        onNavigationRequest: (request) {
+          _urlController.text = request.url;
+          setState(() {});
+          return NavigationDecision.navigate;
         },
         onPageFinished: (_) => setState(() => isLoading = false),
       ));
@@ -55,8 +60,9 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
   }
 
   void _goToUrl() {
-    final url = _urlController.text.trim();
+    var url = _urlController.text.trim();
     if (url.isNotEmpty) {
+      url = url.startsWith("http") ? url : "https://duckduckgo.com/?q=$url";
       final fixedUrl = url.startsWith('http') ? url : 'https://$url';
       _controller.loadRequest(Uri.parse(fixedUrl));
       setState(() => isSearchFocused = false);
