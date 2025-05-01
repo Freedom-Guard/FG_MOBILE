@@ -8,7 +8,6 @@ import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/browser.dart';
-import 'package:Freedom_Guard/pages/loading.dart';
 import 'package:Freedom_Guard/pages/servers.dart';
 import 'package:Freedom_Guard/pages/settings.dart';
 import 'package:Freedom_Guard/pages/speedtest.dart';
@@ -17,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'pages/LOGPAGE.dart';
 import 'components/LOGLOG.dart';
-import 'widgets/PingWidget.dart';
+import 'widgets/network.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -46,7 +45,7 @@ Future<void> main() async {
         debugShowCheckedModeBanner: false,
         initialRoute: '/',
         routes: {
-          '/': (context) => LoadingScreen(),
+          '/': (context) => FreedomGuardApp(),
           '/home': (context) => FreedomGuardApp(),
         },
       ),
