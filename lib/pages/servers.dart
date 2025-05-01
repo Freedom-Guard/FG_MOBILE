@@ -201,8 +201,15 @@ class _ServersPageState extends State<ServersPage> {
             TextButton(
               child: const Text("Add"),
               onPressed: () {
-                for (var server in serverController.text.split("\n")) {
-                  _addServer(server);
+                if (serverController.text.startsWith("vless") ||
+                    serverController.text.startsWith("vmess") ||
+                    serverController.text.startsWith("ss") ||
+                    serverController.text.startsWith("trojan")) {
+                  for (var server in serverController.text.split("\n")) {
+                    _addServer(server);
+                  }
+                } else {
+                  _addServer(serverController.text);
                 }
                 Navigator.of(context).pop();
               },
