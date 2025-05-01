@@ -28,11 +28,8 @@ class _PingWidgetState extends State<PingWidget> {
           .timeout(const Duration(seconds: 5));
       stopwatch.stop();
       setState(
-        () =>
-            ping =
-                response.statusCode == 200
-                    ? stopwatch.elapsedMilliseconds
-                    : null,
+        () => ping =
+            response.statusCode == 200 ? stopwatch.elapsedMilliseconds : null,
       );
     } catch (_) {
       setState(() => ping = null);
@@ -50,10 +47,9 @@ class _PingWidgetState extends State<PingWidget> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color:
-                  isPinging
-                      ? Colors.yellowAccent.withOpacity(0.2)
-                      : pingValue == null
+              color: isPinging
+                  ? Colors.yellowAccent.withOpacity(0.2)
+                  : pingValue == null
                       ? Colors.grey.withOpacity(0.3)
                       : Colors.tealAccent.withOpacity(0.3),
               blurRadius: 8,
@@ -66,8 +62,8 @@ class _PingWidgetState extends State<PingWidget> {
               isPinging
                   ? Colors.yellow.shade800
                   : pingValue == null
-                  ? Colors.grey.shade900
-                  : const Color.fromARGB(109, 7, 41, 6),
+                      ? Colors.grey.shade900
+                      : const Color.fromARGB(109, 7, 41, 6),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -79,10 +75,9 @@ class _PingWidgetState extends State<PingWidget> {
           children: [
             Icon(
               Icons.signal_wifi_4_bar,
-              color:
-                  isPinging
-                      ? Colors.yellow
-                      : pingValue == null
+              color: isPinging
+                  ? Colors.yellow
+                  : pingValue == null
                       ? Colors.grey
                       : Colors.tealAccent,
               size: 16,
@@ -92,8 +87,8 @@ class _PingWidgetState extends State<PingWidget> {
               isPinging
                   ? 'Pinging'
                   : pingValue != null
-                  ? '$pingValue' + 'ms'
-                  : '—',
+                      ? '$pingValue' + 'ms'
+                      : '—',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
@@ -178,14 +173,11 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
   Future<void> _fetchUploadSpeed() async {
     final stopwatch = Stopwatch()..start();
     try {
-      // Using a more reliable upload test endpoint
-      final response = await http
-          .post(
-            Uri.parse('https://httpbin.org/post'),
-            body: List.filled(1000000, 0),
-            headers: {'Content-Type': 'application/octet-stream'},
-          )
-          .timeout(const Duration(seconds: 5));
+      final response = await http.post(
+        Uri.parse('https://speed.cloudflare.com/__up'),
+        body: List.filled(1000000, 0),
+        headers: {'Content-Type': 'application/octet-stream'},
+      ).timeout(const Duration(seconds: 5));
       stopwatch.stop();
       if (response.statusCode == 200 || response.statusCode == 204) {
         final timeInSeconds = stopwatch.elapsedMilliseconds / 1000;
@@ -279,13 +271,12 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors:
-                        isLoading
-                            ? [Colors.grey.shade700, Colors.grey.shade800]
-                            : [
-                              Colors.blueGrey.shade700,
-                              Colors.blueGrey.shade900,
-                            ],
+                    colors: isLoading
+                        ? [Colors.grey.shade700, Colors.grey.shade800]
+                        : [
+                            Colors.blueGrey.shade700,
+                            Colors.blueGrey.shade900,
+                          ],
                   ),
                 ),
                 child: Icon(

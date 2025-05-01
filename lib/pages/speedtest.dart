@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
@@ -77,22 +81,42 @@ class _SpeedTestPageState extends State<SpeedTestPage>
   Future<void> _fetchUploadSpeed() async {
     final stopwatch = Stopwatch()..start();
     try {
+      final connectivity = await Connectivity().checkConnectivity();
+      if (connectivity == ConnectivityResult.none) {
+        setState(() => uploadSpeed = 0);
+        return;
+      }
+
+      const payloadSize = 1000000;
+      final payload = Uint8List(payloadSize);
       final response = await http.post(
-        Uri.parse('https://httpbin.org/post'),
-        body: List.filled(1000000, 0),
+        Uri.parse('https://speed.cloudflare.com/__up'),
+        body: payload,
         headers: {'Content-Type': 'application/octet-stream'},
-      ).timeout(const Duration(seconds: 5));
+      ).timeout(const Duration(seconds: 10), onTimeout: () {
+        throw TimeoutException('Upload speed test timed out');
+      });
       stopwatch.stop();
+      final timeInSeconds = stopwatch.elapsedMilliseconds / 1000.0;
       if (response.statusCode == 200 || response.statusCode == 204) {
-        final timeInSeconds = stopwatch.elapsedMilliseconds / 1000;
+        if (timeInSeconds <= 0) {
+          throw Exception('Invalid time measurement');
+        }
+        final speedMbps = (payloadSize * 8 / timeInSeconds) / 1000000;
         setState(() {
-          uploadSpeed = (1000000 * 8 / timeInSeconds) / 1000000; // Mbps
+          uploadSpeed = double.parse(speedMbps.toStringAsFixed(2));
         });
       } else {
         setState(() => uploadSpeed = 0);
       }
+    } on TimeoutException {
+      setState(() => uploadSpeed = 0);
+    } on SocketException {
+      setState(() => uploadSpeed = 0);
     } catch (e) {
       setState(() => uploadSpeed = 0);
+    } finally {
+      stopwatch.reset();
     }
   }
 
