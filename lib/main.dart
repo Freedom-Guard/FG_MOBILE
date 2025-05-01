@@ -113,6 +113,9 @@ class _HomePageState extends State<HomePage> {
           "10.jpg",
           "5.jpg",
           "15.jpg",
+          "14.jpg",
+          "4.jpg",
+          "17.jpg",
           "background.jpg"
         ];
         final random = new Random();
