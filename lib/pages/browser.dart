@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class FreedomBrowser extends StatefulWidget {
   @override
@@ -16,6 +18,8 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
   bool isDarkMode = true;
   bool isHttps = true;
   bool isSearchFocused = false;
+  List<String> _searchSuggestions = [];
+  final FocusNode _searchFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -31,13 +35,29 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
           });
         },
         onNavigationRequest: (request) {
-          _urlController.text = request.url;
-          setState(() {});
+          setState(() {
+            _urlController.text = request.url;
+            isSearchFocused = false;
+            _searchSuggestions.clear();
+          });
+          FocusScope.of(context).unfocus();
           return NavigationDecision.navigate;
         },
-        onPageFinished: (_) => setState(() => isLoading = false),
+        onPageFinished: (_) {
+          setState(() {
+            isLoading = false;
+            isSearchFocused = false;
+            _searchSuggestions.clear();
+          });
+          FocusScope.of(context).unfocus();
+        },
       ));
     _loadPrefs();
+    _searchFocusNode.addListener(() {
+      setState(() {
+        isSearchFocused = _searchFocusNode.hasFocus;
+      });
+    });
   }
 
   Future<void> _loadPrefs() async {
@@ -59,13 +79,37 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
     if (currentUrl != null) prefs.setString('last_url', currentUrl);
   }
 
+  Future<void> _fetchSearchSuggestions(String query) async {
+    if (query.isEmpty) {
+      setState(() => _searchSuggestions.clear());
+      return;
+    }
+    try {
+      final response = await http.get(
+        Uri.parse('https://ac.duckduckgo.com/ac?q=$query&type=list'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> suggestions = jsonDecode(response.body)[1];
+        setState(() {
+          _searchSuggestions = suggestions.cast<String>();
+        });
+      }
+    } catch (e) {
+      setState(() => _searchSuggestions.clear());
+    }
+  }
+
   void _goToUrl() {
     var url = _urlController.text.trim();
     if (url.isNotEmpty) {
+      setState(() {
+        isSearchFocused = false;
+        _searchSuggestions.clear();
+      });
+      FocusScope.of(context).unfocus();
       url = url.startsWith("http") ? url : "https://duckduckgo.com/?q=$url";
       final fixedUrl = url.startsWith('http') ? url : 'https://$url';
       _controller.loadRequest(Uri.parse(fixedUrl));
-      setState(() => isSearchFocused = false);
     }
   }
 
@@ -157,6 +201,7 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
                         Navigator.pop(context);
                         _controller.loadRequest(Uri.parse(url));
                         _urlController.text = url;
+                        FocusScope.of(context).unfocus();
                       },
                     ),
                   );
@@ -248,6 +293,7 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
   void dispose() {
     _savePrefs();
     _urlController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -265,6 +311,9 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
         title: AnimatedContainer(
           duration: Duration(milliseconds: 300),
           curve: Curves.easeInOut,
+          width: isSearchFocused
+              ? MediaQuery.of(context).size.width * 0.8
+              : MediaQuery.of(context).size.width,
           child: Row(
             children: [
               Expanded(
@@ -287,9 +336,18 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
                         color: isHttps ? Colors.green : Colors.red),
                   ),
                   onSubmitted: (_) => _goToUrl(),
-                  onTap: () => setState(() => isSearchFocused = true),
-                  onEditingComplete: () =>
-                      setState(() => isSearchFocused = false),
+                  onTap: () {
+                    setState(() {
+                      isSearchFocused = true;
+                      _urlController.selection = TextSelection(
+                          baseOffset: 0,
+                          extentOffset: _urlController.text.length);
+                    });
+                  },
+                  onChanged: (value) => _fetchSearchSuggestions(value),
+                  focusNode: _searchFocusNode,
+                  textInputAction: TextInputAction.search,
+                  onEditingComplete: _goToUrl,
                 ),
               ),
               if (!isSearchFocused) ...[
@@ -307,17 +365,57 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
           ),
         ),
       ),
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _controller),
-          if (isLoading)
-            Center(
-              child: CircularProgressIndicator(
-                color: fgColor,
-                backgroundColor: fgColor.withOpacity(0.1),
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+          setState(() {
+            isSearchFocused = false;
+            _searchSuggestions.clear();
+          });
+        },
+        child: Stack(
+          children: [
+            WebViewWidget(controller: _controller),
+            if (isLoading)
+              Center(
+                child: CircularProgressIndicator(
+                  color: fgColor,
+                  backgroundColor: fgColor.withOpacity(0.1),
+                ),
               ),
-            ),
-        ],
+            if (_searchSuggestions.isNotEmpty && isSearchFocused)
+              Positioned(
+                top: 0,
+                left: 16,
+                right: 16,
+                child: Material(
+                  color: isDarkMode ? Colors.grey[850] : Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  elevation: 4,
+                  child: Container(
+                    constraints: BoxConstraints(maxHeight: 200),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _searchSuggestions.length,
+                      itemBuilder: (context, index) {
+                        final suggestion = _searchSuggestions[index];
+                        return ListTile(
+                          title: Text(
+                            suggestion,
+                            style: TextStyle(color: fgColor),
+                          ),
+                          onTap: () {
+                            _urlController.text = suggestion;
+                            _goToUrl();
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -340,6 +438,7 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
                 icon: Icons.arrow_back_ios_new_rounded,
                 onPressed: () async {
                   if (await _controller.canGoBack()) _controller.goBack();
+                  FocusScope.of(context).unfocus();
                 },
                 color: fgColor,
                 tooltip: 'Back',
@@ -350,6 +449,7 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
                   _controller
                       .loadRequest(Uri.parse('https://start.duckduckgo.com'));
                   _urlController.text = 'https://start.duckduckgo.com';
+                  FocusScope.of(context).unfocus();
                 },
                 color: fgColor,
                 tooltip: 'Home',
@@ -358,6 +458,7 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
                 icon: Icons.arrow_forward_ios_rounded,
                 onPressed: () async {
                   if (await _controller.canGoForward()) _controller.goForward();
+                  FocusScope.of(context).unfocus();
                 },
                 color: fgColor,
                 tooltip: 'Forward',
