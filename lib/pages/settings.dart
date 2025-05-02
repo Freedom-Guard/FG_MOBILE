@@ -1,3 +1,4 @@
+import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/f-link.dart';
 import 'package:Freedom_Guard/pages/split.dart';
@@ -92,6 +93,9 @@ class _SettingsPageState extends State<SettingsPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              Row(
+                children: [],
+              ),
               SettingSwitch(
                 title: "Freedom LINK",
                 value:
@@ -131,7 +135,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 icon: Icons.lan,
               ),
               SettingSwitch(
-                title: "Guard Mode (beta)",
+                title: "Guard Mode",
                 value: bool.tryParse(settingsJson["guard_mode"].toString()) ??
                     false,
                 onChanged: (bool value) {
@@ -140,7 +144,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   });
                   settings.setValue("guard_mode", value.toString());
                 },
-                icon: Icons.shield,
+                icon: Icons.shield_sharp,
               ),
               SettingSwitch(
                 title: "Quick Connect (Sub)",
@@ -433,39 +437,40 @@ class AboutDialogWidget extends StatelessWidget {
               "Freedom Guard",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
+            Text(
+              "6.2",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 25),
             SelectableText(
               "Freedom Guard is an open-source tool to bypass internet censorship.",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
-            Text(
-              "Version: 6.0",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
             const SizedBox(height: 20),
-            Column(
-              spacing: 10,
-              mainAxisAlignment: MainAxisAlignment.end,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 LinkWidget(
                   url: "https://github.com/Freedom-Guard/FG_MOBILE",
                   text: "GitHub",
-                  icon: Icons.report,
+                  icon: Icons.open_in_new,
                 ),
                 LinkWidget(
                   url: "https://t.me/Freedom_Guard_Net",
                   text: "Telegram",
-                  icon: Icons.link,
+                  icon: Icons.open_in_new,
                 ),
                 LinkWidget(
                   url: "https://x.com/Freedom_Guard_N",
                   text: "X",
-                  icon: Icons.link,
+                  icon: Icons.open_in_new,
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(
+              height: 25,
+            ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(

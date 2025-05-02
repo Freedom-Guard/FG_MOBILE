@@ -410,7 +410,7 @@ class _HomePageState extends State<HomePage> {
                               width: 150,
                               height: 150,
                               child: CustomPaint(
-                                painter: PulsePainter(isConnecting),
+                                painter: UltraPulsePainter(isConnecting),
                               ),
                             ),
                           AnimatedScale(
@@ -577,18 +577,18 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class PulsePainter extends CustomPainter {
+class UltraPulsePainter extends CustomPainter {
   final bool isConnecting;
 
-  const PulsePainter(this.isConnecting);
+  const UltraPulsePainter(this.isConnecting);
 
-  static const _pulseCount = 3;
-  static const _baseStrokeWidth = 2.0;
-  static const _animationDurationSeconds = 1.5;
-  static const _pulseSpacing = 0.3;
+  static const _pulseCount = 5;
+  static const _baseStrokeWidth = 1.5;
+  static const _animationDurationSeconds = 2.0;
+  static const _pulseSpacing = 0.4;
   static const _minRadiusFactor = 0.2;
   static const _radiusMultiplier = 0.15;
-  static const _glowOpacity = 0.25;
+  static const _glowOpacity = 0.3;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -602,8 +602,8 @@ class PulsePainter extends CustomPainter {
       ..strokeWidth = _baseStrokeWidth
       ..shader = RadialGradient(
         colors: [
-          Colors.teal.shade300.withOpacity(0.9),
-          Colors.cyan.shade600.withOpacity(0.4),
+          Colors.purple.shade300.withOpacity(0.9),
+          Colors.deepPurple.shade600.withOpacity(0.4),
           Colors.transparent,
         ],
         stops: const [0.0, 0.6, 1.0],
@@ -611,10 +611,10 @@ class PulsePainter extends CustomPainter {
 
     final glowPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = _baseStrokeWidth * 1.2
+      ..strokeWidth = _baseStrokeWidth * 1.8
       ..shader = RadialGradient(
         colors: [
-          Colors.teal.shade200.withOpacity(_glowOpacity),
+          Colors.purple.shade200.withOpacity(_glowOpacity),
           Colors.transparent,
         ],
         stops: const [0.0, 1.0],
@@ -628,7 +628,7 @@ class PulsePainter extends CustomPainter {
       final normalizedProgress = animationProgress / _animationDurationSeconds;
 
       final radiusAnimation =
-          0.4 + 0.6 * (math.sin(normalizedProgress * math.pi * 2) * 0.5 + 0.5);
+          0.6 + 0.7 * (math.sin(normalizedProgress * math.pi * 2) * 0.5 + 0.5);
       final radiusFactor = _minRadiusFactor + (i * _radiusMultiplier);
       final radius = maxRadius * radiusFactor * radiusAnimation;
       final opacity = 0.5 + 0.5 * (1.0 - normalizedProgress);
@@ -637,8 +637,8 @@ class PulsePainter extends CustomPainter {
         center,
         radius.clamp(0.0, maxRadius),
         glowPaint
-          ..strokeWidth = (_baseStrokeWidth * 1.2 * opacity)
-              .clamp(0.4, _baseStrokeWidth * 1.2),
+          ..strokeWidth = (_baseStrokeWidth * 1.8 * opacity)
+              .clamp(0.4, _baseStrokeWidth * 1.8),
       );
 
       canvas.drawCircle(
@@ -654,7 +654,7 @@ class PulsePainter extends CustomPainter {
       ..style = PaintingStyle.fill
       ..shader = RadialGradient(
         colors: [
-          Colors.teal.shade100.withOpacity(0.7),
+          Colors.purple.shade100.withOpacity(0.8),
           Colors.transparent,
         ],
         stops: const [0.0, 1.0],
@@ -665,7 +665,7 @@ class PulsePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    final old = oldDelegate as PulsePainter;
+    final old = oldDelegate as UltraPulsePainter;
     return old.isConnecting != isConnecting;
   }
 
