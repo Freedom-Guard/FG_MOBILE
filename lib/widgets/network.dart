@@ -189,7 +189,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
   }
 
   void _startAutoRefresh() {
-    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 60), (_) {
       if (!isLoading) _fetchNetworkSpeeds();
     });
   }
@@ -203,7 +203,6 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
     ]);
     setState(() {
       isLoading = false;
-      isConnected = downloadSpeed != null || uploadSpeed != null;
     });
   }
 

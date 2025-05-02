@@ -16,6 +16,7 @@ class _SplitPageState extends State<SplitPage> {
   Settings settings = Settings();
   bool isSettingsLoading = true;
   bool isLoading = true;
+  bool checkedAll = false;
 
   @override
   void initState() {
@@ -83,6 +84,7 @@ class _SplitPageState extends State<SplitPage> {
 
   void _toggleAppSelection(String packageName) {
     setState(() {
+      checkedAll = false;
       if (selectedApps.contains(packageName)) {
         selectedApps.remove(packageName);
       } else {
@@ -102,12 +104,19 @@ class _SplitPageState extends State<SplitPage> {
 
   void _selectAllApps() {
     setState(() {
-      selectedApps = installedApps
-          .map((app) => app.packageName ?? "")
-          .where((name) => name.isNotEmpty)
-          .toList();
+      if (checkedAll) {
+        selectedApps = [];
+        checkedAll = false;
+        LogOverlay.showLog("All apps deselected");
+      } else {
+        selectedApps = installedApps
+            .map((app) => app.packageName ?? "")
+            .where((name) => name.isNotEmpty)
+            .toList();
+        checkedAll = true;
+        LogOverlay.showLog("All apps selected");
+      }
     });
-    LogOverlay.showLog("All apps selected");
   }
 
   @override
@@ -123,8 +132,10 @@ class _SplitPageState extends State<SplitPage> {
         ),
         actions: [
           IconButton(
-            icon:
-                const Icon(Icons.check_box_outline_blank, color: Colors.white),
+            icon: checkedAll
+                ? const Icon(Icons.check_box, color: Colors.white)
+                : const Icon(Icons.check_box_outline_blank,
+                    color: Colors.white),
             onPressed: _selectAllApps,
           ),
           IconButton(
