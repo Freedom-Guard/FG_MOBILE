@@ -107,8 +107,16 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
         _searchSuggestions.clear();
       });
       FocusScope.of(context).unfocus();
-      url = url.startsWith("http") ? url : "https://duckduckgo.com/?q=$url";
-      final fixedUrl = url.startsWith('http') ? url : 'https://$url';
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        if (!url.contains(".") && !url.contains(" ")) {
+          url = "https://duckduckgo.com/?q=$url";
+        } else {
+          url = "https://$url";
+        }
+      }
+      if (url.startsWith("http://"))
+        url = url.replaceFirst("http://", "https://");
+      final fixedUrl = url;
       _controller.loadRequest(Uri.parse(fixedUrl));
     }
   }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connect.dart';
@@ -577,18 +578,17 @@ class _HomePageState extends State<HomePage> {
 }
 
 class PulsePainter extends CustomPainter {
-  /// Indicates whether the pulse animation should be drawn.
   final bool isConnecting;
 
   const PulsePainter(this.isConnecting);
 
-  // Constants for animation and styling
   static const _pulseCount = 3;
-  static const _baseStrokeWidth = 2.5;
-  static const _animationDurationSeconds = 1.0;
-  static const _pulseSpacing = 0.5;
-  static const _minRadiusFactor = 0.3;
-  static const _radiusMultiplier = 0.25;
+  static const _baseStrokeWidth = 2.0;
+  static const _animationDurationSeconds = 1.5;
+  static const _pulseSpacing = 0.3;
+  static const _minRadiusFactor = 0.2;
+  static const _radiusMultiplier = 0.15;
+  static const _glowOpacity = 0.25;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -602,11 +602,22 @@ class PulsePainter extends CustomPainter {
       ..strokeWidth = _baseStrokeWidth
       ..shader = RadialGradient(
         colors: [
-          Colors.blue.shade400.withOpacity(0.9),
-          Colors.blue.shade200.withOpacity(0.2),
+          Colors.teal.shade300.withOpacity(0.9),
+          Colors.cyan.shade600.withOpacity(0.4),
           Colors.transparent,
         ],
-        stops: const [0.0, 0.7, 1.0],
+        stops: const [0.0, 0.6, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: maxRadius));
+
+    final glowPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = _baseStrokeWidth * 1.2
+      ..shader = RadialGradient(
+        colors: [
+          Colors.teal.shade200.withOpacity(_glowOpacity),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 1.0],
       ).createShader(Rect.fromCircle(center: center, radius: maxRadius));
 
     final time = DateTime.now().millisecondsSinceEpoch / 1000;
@@ -616,19 +627,40 @@ class PulsePainter extends CustomPainter {
           (time + i * _pulseSpacing) % _animationDurationSeconds;
       final normalizedProgress = animationProgress / _animationDurationSeconds;
 
+      final radiusAnimation =
+          0.4 + 0.6 * (math.sin(normalizedProgress * math.pi * 2) * 0.5 + 0.5);
       final radiusFactor = _minRadiusFactor + (i * _radiusMultiplier);
-      final radiusAnimation = 0.5 + 0.5 * (normalizedProgress * 2 - 1).abs();
       final radius = maxRadius * radiusFactor * radiusAnimation;
-      final opacity = 1.0 - normalizedProgress;
+      final opacity = 0.5 + 0.5 * (1.0 - normalizedProgress);
+
+      canvas.drawCircle(
+        center,
+        radius.clamp(0.0, maxRadius),
+        glowPaint
+          ..strokeWidth = (_baseStrokeWidth * 1.2 * opacity)
+              .clamp(0.4, _baseStrokeWidth * 1.2),
+      );
 
       canvas.drawCircle(
         center,
         radius.clamp(0.0, maxRadius),
         paint
           ..strokeWidth =
-              (_baseStrokeWidth * opacity).clamp(0.5, _baseStrokeWidth),
+              (_baseStrokeWidth * opacity).clamp(0.4, _baseStrokeWidth),
       );
     }
+
+    final corePaint = Paint()
+      ..style = PaintingStyle.fill
+      ..shader = RadialGradient(
+        colors: [
+          Colors.teal.shade100.withOpacity(0.7),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: maxRadius * 0.1));
+
+    canvas.drawCircle(center, maxRadius * 0.1, corePaint);
   }
 
   @override
