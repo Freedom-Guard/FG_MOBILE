@@ -13,6 +13,8 @@
   <a href="https://github.com/Freedom-Guard/FG_MOBILE/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Freedom-Guard/FG_MOBILE?style=flat-square&color=blue" alt="License"></a>
 </div>
 
+آزادی در دستان توست🕊️
+
 ---
 <div align="center">
   <p>🖥️نسخه دسکتاپ <br><a href="https://github.com/Freedom-Guard/Freedom-Guard/releases">Freedom Guard Desktop</a></p>
