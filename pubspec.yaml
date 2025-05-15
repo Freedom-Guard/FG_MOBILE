@@ -37,6 +37,7 @@ dependencies:
   qr_flutter: ^4.1.0
   percent_indicator: ^4.2.5
   webview_flutter: ^4.11.0
+  cloud_firestore: ^5.6.7
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1

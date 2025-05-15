@@ -168,7 +168,9 @@ class _HomePageState extends State<HomePage> {
       try {
         var connStat = false;
         var selectedServer = await serverM.getSelectedServer() as String;
-        if (selectedServer.split("#")[0].isEmpty) {
+        if (await settings.getValue("f_link") == "true") {
+          connStat = await connectFL();
+        } else if (selectedServer.split("#")[0].isEmpty) {
           LogOverlay.showLog(
             "connecting to auto mode",
             backgroundColor: Colors.blueAccent,

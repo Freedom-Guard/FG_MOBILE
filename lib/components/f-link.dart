@@ -1,69 +1,88 @@
-import 'dart:convert';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
-import 'package:Freedom_Guard/components/settings.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_v2ray/flutter_v2ray.dart';
+import 'package:Freedom_Guard/components/connect.dart';
 
+final FlutterV2ray flutterV2ray = FlutterV2ray(
+  onStatusChanged: (status) async {
+    if (status.toString() == "V2RayStatusState.connected") {
+      LogOverlay.showLog(
+        "Connected To VIBE",
+        backgroundColor: Colors.greenAccent,
+      );
+    }
+  },
+);
 Future<void> donateCONFIG(String config, {String core = ""}) async {
-  Settings settings = new Settings();
-  final url = Uri.parse(
-    "https://freedom-link.freedomguard.workers.dev/api/submit-config",
-  );
-
-  final Map<String, dynamic> body = {
-    "key": "donated-config",
-    "config": {
-      "config": config,
-      "isp": (await settings.getValue("user_isp").toString()),
-      "device": "mobile",
-      "ping": (await getIP_Ping())["ping"].toString(),
-      "core":
-          core == "" ? await settings.getValue("core_vpn").toString() : core,
-      "timestamp": DateTime.now().millisecondsSinceEpoch,
-    },
-  };
-
   try {
-    final response = await http.post(
-      url,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer IRAN",
-      },
-      body: jsonEncode(body),
-    );
+    final text = config;
+    if (text.isEmpty) return;
 
-    LogOverlay.showLog("✅ کانفیگ با موفقیت اهدا شد");
-  } catch (error) {
-    LogOverlay.showLog("❌ کانفیگ اهدا نشد: $error");
+    await FirebaseFirestore.instance.collection('configs').add({
+      'config': text,
+      'addedAt': DateTime.now().toIso8601String(),
+      'isActive': true,
+      'ping': (await testConfig(text)).toString()
+    });
+  } catch (e) {
+    LogOverlay.showLog("خطا در ذخیره کانفیگ: ${e.toString()}");
   }
 }
 
-Future<Map<String, dynamic>> getIP_Ping() async {
-  Map<String, dynamic> responseFunc = {
-    "ip": "",
-    "ping": "",
-    "country": "unknown",
-    "filternet": true,
-  };
+Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
+    getRandomConfigs() async {
+  final snapshot = await FirebaseFirestore.instance
+      .collection('configs')
+      .where('isActive', isEqualTo: true)
+      .orderBy('addedAt', descending: true)
+      .limit(15)
+      .get();
 
+  return snapshot.docs;
+}
+
+Future<int> testConfig(String config) async {
   try {
-    final int startTime = DateTime.now().millisecondsSinceEpoch;
-    final http.Response response = await http
-        .get(Uri.parse("https://api.ipify.org?format=json"))
-        .timeout(Duration(seconds: 3));
+    await flutterV2ray.initializeV2Ray();
+    final parser = FlutterV2ray.parseFromURL(config);
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      responseFunc["ip"] = data["ip"];
-      responseFunc["ping"] = DateTime.now().millisecondsSinceEpoch - startTime;
-
-      responseFunc["country"] = "unknown";
-
-      try {
-        responseFunc["filternet"] = false;
-      } catch (err) {}
+    final ping = await flutterV2ray
+        .getServerDelay(config: parser.getFullConfiguration())
+        .timeout(
+      const Duration(seconds: 6),
+      onTimeout: () {
+        return -1;
+      },
+    );
+    if (ping > 0) {
+      return ping;
+    } else {
+      return -1;
     }
-  } catch (error) {}
+  } catch (e) {
+    return -1;
+  }
+}
 
-  return responseFunc;
+Future<bool> tryConnect(var config) async {
+  int resPing = await testConfig(config);
+  Connect conn = Connect();
+  if (resPing > 1) {
+    return (await conn.ConnectVibe(config, []));
+  } else {
+    return false;
+  }
+}
+
+Future<bool> connectFL() async {
+  final configs = await getRandomConfigs();
+  for (var config in configs) {
+    var configStr = config.data()['config'] as String;
+    var res = await tryConnect(configStr);
+    if (res) {
+      return true;
+    }
+  }
+  return false;
 }
