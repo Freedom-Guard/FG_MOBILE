@@ -11,7 +11,11 @@
   <a href="https://github.com/Freedom-Guard/FG_MOBILE/releases"><img src="https://img.shields.io/github/v/release/Freedom-Guard/FG_MOBILE?style=flat-square&color=green" alt="Latest Release"></a>
   <a href="https://github.com/Freedom-Guard/FG_MOBILE/stargazers"><img src="https://img.shields.io/github/stars/Freedom-Guard/FG_MOBILE?style=flat-square&color=yellow" alt="Stars"></a>
   <a href="https://github.com/Freedom-Guard/FG_MOBILE/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Freedom-Guard/FG_MOBILE?style=flat-square&color=blue" alt="License"></a>
+
+  آزادی در دستان توست🕊️
+
 </div>
+
 
 ---
 <div align="center">
@@ -26,8 +30,11 @@
 - **اتصال سریع و پایدار**: اتصال به سرورهای بهینه با یه لمس.
 - **پشتیبانی از Xray**: استفاده از هسته قدرتمند Xray برای امنیت و انعطاف‌پذیری.
 - **کانفیگ خودکار**: کانفیگ خودکار برای دسترسی به اینترنت آزاد.
-- **مدیریت کانفیگ‌ها**: وارد کردن کانفیگ از لینک، فایل یا QR کد.
+- **مدیریت کانفیگ‌ها**:  وارد کردن، به اشتراک گذاری کانفیگ ها.
 - **رابط کاربری دوگانه**: ساده برای کاربران عادی، پیشرفته برای حرفه‌ای‌ها.
+- **مرورگر داخلی**: مرورگر داخلی سریع بدون ذخیره تاریخچه
+- **قابلیت های متنوع**: فعال کردن فرگمنت و mux و ...
+
 
 ## 📲 نصب سریع
 1. آخرین نسخه APK رو از [Releases](https://github.com/Freedom-Guard/FG_MOBILE/releases) دانلود کنید.
