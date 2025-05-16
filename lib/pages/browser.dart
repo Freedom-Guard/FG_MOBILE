@@ -413,7 +413,8 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
                             style: TextStyle(color: fgColor),
                           ),
                           onTap: () {
-                            _urlController.text = suggestion;
+                            _urlController.text =
+                                "https://duckduckgo.com/?q=" + suggestion;
                             _goToUrl();
                           },
                         );

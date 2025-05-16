@@ -169,6 +169,10 @@ class _HomePageState extends State<HomePage> {
         var connStat = false;
         var selectedServer = await serverM.getSelectedServer() as String;
         if (await settings.getValue("f_link") == "true") {
+          LogOverlay.showLog(
+            "connecting to FL mode",
+            backgroundColor: Colors.blueAccent,
+          );
           connStat = await connectFL();
         } else if (selectedServer.split("#")[0].isEmpty) {
           LogOverlay.showLog(
