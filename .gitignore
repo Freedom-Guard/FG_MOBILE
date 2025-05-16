@@ -33,6 +33,7 @@ migrate_working_dir/
 **/android/app/profile
 **/android/app/release
 **/android/app/google-services.json
+**/lib/firebase_options.dart
 **/android/key.jks
 **/android/app/key.properties
 
