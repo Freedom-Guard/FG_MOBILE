@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_v2ray/flutter_v2ray.dart';
 import 'package:Freedom_Guard/components/connect.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 final FlutterV2ray flutterV2ray = FlutterV2ray(
   onStatusChanged: (status) async {
@@ -14,23 +15,34 @@ final FlutterV2ray flutterV2ray = FlutterV2ray(
   },
 );
 
-bool isValidV2RayUrl(String url) {
-  return url.startsWith('vmess://') ||
-      url.startsWith('vless://') ||
-      url.startsWith('trojan://');
+String hashConfig(String config) {
+  final trimmed = config.trim();
+  return sha256.convert(utf8.encode(trimmed)).toString();
 }
 
 Future<bool> donateCONFIG(String config,
     {String core = "", String message = ""}) async {
   try {
     final text = config.trim();
-    if (text.isEmpty || !isValidV2RayUrl(text)) {
+    if (text.isEmpty) {
       LogOverlay.showLog("کانفیگ نامعتبر است",
           backgroundColor: Colors.redAccent);
       return false;
     }
+
+    final docId = hashConfig(text);
+
+    final existing =
+        await FirebaseFirestore.instance.collection('configs').doc(docId).get();
+    if (existing.exists) {
+      LogOverlay.showLog("این کانفیگ قبلاً ثبت شده",
+          backgroundColor: Colors.orangeAccent);
+      return false;
+    }
+
     final ping = await testConfig(text);
-    await FirebaseFirestore.instance.collection('configs').add({
+
+    await FirebaseFirestore.instance.collection('configs').doc(docId).set({
       'config': text,
       'addedAt': DateTime.now().toIso8601String(),
       'isActive': true,
@@ -39,6 +51,7 @@ Future<bool> donateCONFIG(String config,
       'message': message.trim(),
       'core': core,
     });
+
     return true;
   } catch (e) {
     LogOverlay.showLog("خطا در ذخیره کانفیگ: $e",
@@ -62,9 +75,14 @@ Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
 Future<int> testConfig(String config) async {
   try {
     await flutterV2ray.initializeV2Ray();
-    final parser = FlutterV2ray.parseFromURL(config);
+    var parser;
+    try {
+      parser = FlutterV2ray.parseFromURL(config).getFullConfiguration();
+    } catch (_) {
+      parser = jsonDecode(config);
+    }
     final ping = await flutterV2ray
-        .getServerDelay(config: parser.getFullConfiguration())
+        .getServerDelay(config: parser)
         .timeout(const Duration(seconds: 6), onTimeout: () => -1);
     return ping > 0 ? ping : -1;
   } catch (e) {
