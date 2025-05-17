@@ -34,13 +34,13 @@ Future<bool> donateCONFIG(String config,
 
     final existing =
         await FirebaseFirestore.instance.collection('configs').doc(docId).get();
-    
+
     if (existing.exists) {
       LogOverlay.showLog("این کانفیگ قبلاً ثبت شده",
           backgroundColor: Colors.orangeAccent);
       return false;
     }
-    
+
     if (utf8.encode(text).length > 10000) {
       LogOverlay.showLog("کانفیگ بیش از حد بزرگ است",
           backgroundColor: Colors.redAccent);
@@ -109,7 +109,7 @@ Future<bool> tryConnect(String config, String docId) async {
     if (success) {
       await docRef.update({'connected': FieldValue.increment(1)});
       if (message.isNotEmpty) {
-        LogOverlay.showLog(message);
+        LogOverlay.showModal(message);
       }
       return true;
     }

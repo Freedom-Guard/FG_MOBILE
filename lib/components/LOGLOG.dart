@@ -82,6 +82,34 @@ class LogOverlay {
     return File('$path/app_logs.txt');
   }
 
+  static void showModal(
+    String message, {
+    Duration duration = const Duration(seconds: 3),
+    Color backgroundColor = Colors.black87,
+    VoidCallback? onAdTap,
+  }) {
+    final context = navigatorKey.currentContext;
+    if (context == null) {
+      debugPrint('Context not available for modal: $message');
+      return;
+    }
+
+    addLog(message);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return _ModalContent(
+          message: message,
+          duration: duration,
+          backgroundColor: backgroundColor,
+          onAdTap: onAdTap,
+        );
+      },
+    );
+  }
+
   static void showLog(
     String message, {
     Duration duration = const Duration(seconds: 3),
@@ -146,4 +174,114 @@ class _LogData {
   final Duration duration;
   final Color backgroundColor;
   _LogData(this.message, this.duration, this.backgroundColor);
+}
+
+class _ModalContent extends StatefulWidget {
+  final String message;
+  final Duration duration;
+  final Color backgroundColor;
+  final VoidCallback? onAdTap;
+
+  const _ModalContent({
+    required this.message,
+    required this.duration,
+    required this.backgroundColor,
+    this.onAdTap,
+  });
+
+  @override
+  _ModalContentState createState() => _ModalContentState();
+}
+
+class _ModalContentState extends State<_ModalContent> {
+  bool _isButtonEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _isButtonEnabled = true;
+        });
+      }
+    });
+    Future.delayed(widget.duration, () {
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: widget.backgroundColor.withOpacity(0.8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.8,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.message,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 16.0,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (widget.onAdTap != null)
+                  TextButton(
+                    onPressed: widget.onAdTap,
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.blue.withOpacity(0.8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 8.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    child: const Text('مشاهده تبلیغ'),
+                  ),
+                if (widget.onAdTap != null) const SizedBox(width: 8.0),
+                TextButton(
+                  onPressed: _isButtonEnabled
+                      ? () {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
+                        }
+                      : null,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: _isButtonEnabled
+                        ? Colors.red.withOpacity(0.8)
+                        : Colors.grey.withOpacity(0.8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                  child: const Text('خروج'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
