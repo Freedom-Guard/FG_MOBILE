@@ -206,11 +206,6 @@ class _ModalContentState extends State<_ModalContent> {
         });
       }
     });
-    Future.delayed(widget.duration, () {
-      if (mounted && Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      }
-    });
   }
 
   @override
@@ -268,7 +263,7 @@ class _ModalContentState extends State<_ModalContent> {
                     foregroundColor: Colors.white,
                     backgroundColor: _isButtonEnabled
                         ? Colors.red.withOpacity(0.8)
-                        : Colors.grey.withOpacity(0.8),
+                        : Colors.black,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16.0, vertical: 8.0),
                     shape: RoundedRectangleBorder(

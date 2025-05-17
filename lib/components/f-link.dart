@@ -1,11 +1,25 @@
 import 'package:Freedom_Guard/components/LOGLOG.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_v2ray/flutter_v2ray.dart';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:http/http.dart' as http;
+
+Future<String?> getIp() async {
+  try {
+    final res = await http.get(Uri.parse('https://api.ipify.org'));
+    if (res.statusCode == 200) {
+      return res.body.trim();
+    }
+    return null;
+  } catch (e) {
+    LogOverlay.showLog("دریافت آی‌پی با خطا مواجه شد",
+        backgroundColor: Colors.redAccent);
+    return null;
+  }
+}
 
 final FlutterV2ray flutterV2ray = FlutterV2ray(
   onStatusChanged: (status) async {
@@ -30,14 +44,12 @@ Future<bool> donateCONFIG(String config,
           backgroundColor: Colors.redAccent);
       return false;
     }
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      LogOverlay.showLog("لطفا برنامه را یکبار ببندید و دوباره باز کنید.");
-      return false;
-    }
 
+    final ip = await getIp();
+
+    final ipId = 'ip-$ip';
     final statsRef =
-        FirebaseFirestore.instance.collection('usageStats').doc(uid);
+        FirebaseFirestore.instance.collection('usageStats').doc(ipId);
     final statsSnap = await statsRef.get();
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
@@ -56,6 +68,7 @@ Future<bool> donateCONFIG(String config,
       }
       await statsRef.update({'createdToday': FieldValue.increment(1)});
     }
+
     final docId = hashConfig(text);
 
     final existing =
@@ -81,7 +94,7 @@ Future<bool> donateCONFIG(String config,
       'isActive': true,
       'connected': 1,
       'ping': ping.toString(),
-      'message': message.trim(),
+      'message': message.trimLeft().trimRight(),
       'core': core,
     });
 
@@ -95,23 +108,12 @@ Future<bool> donateCONFIG(String config,
 
 Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
     getRandomConfigs() async {
-  final uid = FirebaseAuth.instance.currentUser?.uid;
-  if (uid == null) return [];
+  final ip = await getIp();
+  final ipId = 'ip-$ip';
 
-  final statsRef = FirebaseFirestore.instance.collection('usageStats').doc(uid);
+  final statsRef =
+      FirebaseFirestore.instance.collection('usageStats').doc(ipId);
   final statsSnap = await statsRef.get();
-
-  if (statsSnap.exists) {
-    LogOverlay.addLog("Config exists: ${statsSnap.data()}");
-  } else {
-    LogOverlay.addLog("No config yet. Creating one...");
-    await statsRef.set({
-      'usedToday': 0,
-      'requestedToday': 0,
-      'timestamp': FieldValue.serverTimestamp(),
-    });
-  }
-
   final today = DateTime.now().toIso8601String().substring(0, 10);
 
   if (!statsSnap.exists || statsSnap.data()?['lastUpdate'] != today) {

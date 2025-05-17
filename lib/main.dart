@@ -13,7 +13,6 @@ import 'package:Freedom_Guard/pages/servers.dart';
 import 'package:Freedom_Guard/pages/settings.dart';
 import 'package:Freedom_Guard/pages/speedtest.dart';
 import 'package:Freedom_Guard/widgets/fragment.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'pages/LOGPAGE.dart';
@@ -108,7 +107,6 @@ class _HomePageState extends State<HomePage> {
         checkVPN();
       });
       checkVPN();
-      ensureAnonLogin();
       await checkForUpdate(context);
       setState(() async {
         List<String> backgroundList = [
@@ -126,13 +124,6 @@ class _HomePageState extends State<HomePage> {
         backgroundPath = "assets/" + randomBackground;
       });
     });
-  }
-
-  Future<void> ensureAnonLogin() async {
-    final auth = FirebaseAuth.instance;
-    if (auth.currentUser == null) {
-      await auth.signInAnonymously();
-    }
   }
 
   checkVPN() async {
