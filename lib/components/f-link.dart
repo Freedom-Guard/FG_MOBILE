@@ -77,7 +77,7 @@ Future<bool> donateCONFIG(String config,
     }
 
     if (utf8.encode(text).length > 10000) {
-      LogOverlay.showLog("کانفیگ بیش از حد بزرگ است",
+      LogOverlay.showLog("The config is too large",
           backgroundColor: Colors.redAccent);
       return false;
     }
@@ -185,22 +185,54 @@ Future<int> testConfig(String config) async {
 
 Future<bool> tryConnect(String config, String docId) async {
   final resPing = await testConfig(config);
-  Connect conn = Connect();
+  final conn = Connect();
   final docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
-  final docSnapshot = await docRef.get();
-  final message = docSnapshot.data()?['message'] as String? ?? '';
+
+  String message = '';
+
+  try {
+    final docSnapshot = await docRef.get();
+    message = docSnapshot.data()?['message'] as String? ?? '';
+  } on FirebaseException catch (e) {
+    LogOverlay.showLog("Firebase error getting message: ${e.message}",
+        backgroundColor: Colors.redAccent);
+  } catch (e) {
+    LogOverlay.showLog("Unknown error getting message: $e",
+        backgroundColor: Colors.orangeAccent);
+  }
 
   if (resPing > 1) {
     final success = await conn.ConnectVibe(config, []);
     if (success) {
-      await docRef.update({'connected': FieldValue.increment(1)});
+      try {
+        await docRef.update({'connected': FieldValue.increment(1)});
+      } on FirebaseException catch (e) {
+        LogOverlay.showLog(
+            "Firebase error incrementing connection counter: ${e.message}",
+            backgroundColor: Colors.redAccent);
+      } catch (e) {
+        LogOverlay.showLog("Unknown error incrementing connection counter: $e",
+            backgroundColor: Colors.orangeAccent);
+      }
+
       if (message.isNotEmpty) {
         LogOverlay.showModal(message);
       }
       return true;
     }
   }
-  await docRef.update({'connected': FieldValue.increment(-1)});
+
+  try {
+    await docRef.update({'connected': FieldValue.increment(-1)});
+  } on FirebaseException catch (e) {
+    LogOverlay.showLog(
+        "Firebase error decrementing connection counter: ${e.message}",
+        backgroundColor: Colors.redAccent);
+  } catch (e) {
+    LogOverlay.showLog("Unknown error decrementing connection counter: $e",
+        backgroundColor: Colors.orangeAccent);
+  }
+
   return false;
 }
 
