@@ -144,7 +144,8 @@ Future<List> getRandomConfigs() async {
 Future<void> saveConfigs(
     List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) async {
   final prefs = await SharedPreferences.getInstance();
-  final configsJson = jsonEncode(docs.map((doc) => doc.data()).toList());
+  final configsJson =
+      jsonEncode(docs.map((doc) => {'id': doc.id, ...doc.data()}).toList());
   await prefs.setString('cachedConfigs', configsJson);
   LogOverlay.showLog("Configs cached successfully");
 }
