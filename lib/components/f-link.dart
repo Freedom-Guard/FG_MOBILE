@@ -96,7 +96,7 @@ Future<bool> donateCONFIG(String config,
 
     return true;
   } catch (e) {
-    LogOverlay.showLog("Error saving config: $e",
+    LogOverlay.showLog("Error saving config: $e please turn on vpn",
         backgroundColor: Colors.redAccent);
     return false;
   }
@@ -234,6 +234,10 @@ Future<bool> tryConnect(String config, String docId) async {
   }
 
   return false;
+}
+
+Future<void> refreshCache() async {
+  await getRandomConfigs();
 }
 
 Future<bool> connectFL() async {

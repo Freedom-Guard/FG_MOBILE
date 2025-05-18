@@ -239,6 +239,7 @@ class _HomePageState extends State<HomePage> {
             "connected to ${await settings.getValue("core_vpn")} mode",
             backgroundColor: Colors.greenAccent,
           );
+          refreshCache();
         } else {
           if (await settings.getValue("core_vpn") == "auto") {
             FirebaseAnalytics.instance.logEvent(
