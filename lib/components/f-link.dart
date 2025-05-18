@@ -135,7 +135,7 @@ Future<List> getRandomConfigs() async {
         .get();
 
     await saveConfigs(snapshot.docs);
-    return snapshot.docs;
+    return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
   } catch (_) {
     return await restoreConfigs();
   }
@@ -245,7 +245,7 @@ Future<bool> connectFL() async {
   try {
     final configs = await getRandomConfigs();
     for (var config in configs) {
-      final configStr = config.data()['config'] as String;
+      final configStr = config['config'] as String;
       final docId = config.id;
       final success = await tryConnect(configStr, docId);
       if (success) {
