@@ -168,31 +168,32 @@ class _HomePageState extends State<HomePage> {
       try {
         var connStat = false;
         var selectedServer = await serverM.getSelectedServer() as String;
-        if (await settings.getValue("f_link") == "true") {
+        if (selectedServer.split("#")[0].isEmpty) {
           LogOverlay.showLog(
             "connecting to FL mode",
             backgroundColor: Colors.blueAccent,
           );
           connStat = await connectFL();
-        } else if (selectedServer.split("#")[0].isEmpty) {
-          LogOverlay.showLog(
-            "connecting to auto mode",
-            backgroundColor: Colors.blueAccent,
-          );
-          var timeout = int.tryParse(
-                await settings.getValue("timeout_auto").toString(),
-              ) ??
-              110000;
-          connStat = await connect.ConnectAuto(
-            defSet["fgconfig"]!,
-            110000,
-          ).timeout(
-            Duration(milliseconds: timeout),
-            onTimeout: () {
-              LogOverlay.showLog("Connection to Auto mode timed out.");
-              return false;
-            },
-          );
+          if (!connStat) {
+            LogOverlay.showLog(
+              "connecting to Repo mode",
+              backgroundColor: Colors.blueAccent,
+            );
+            var timeout = int.tryParse(
+                  await settings.getValue("timeout_auto").toString(),
+                ) ??
+                110000;
+            connStat = await connect.ConnectAuto(
+              defSet["fgconfig"]!,
+              110000,
+            ).timeout(
+              Duration(milliseconds: timeout),
+              onTimeout: () {
+                LogOverlay.showLog("Connection to Auto mode timed out.");
+                return false;
+              },
+            );
+          }
         } else {
           LogOverlay.showLog(
             "connecting to config:\n${selectedServer.split("#")[0]}",

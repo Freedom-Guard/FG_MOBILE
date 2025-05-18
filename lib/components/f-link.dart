@@ -6,6 +6,7 @@ import 'package:Freedom_Guard/components/connect.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<String?> getIp() async {
   try {
@@ -15,7 +16,7 @@ Future<String?> getIp() async {
     }
     return null;
   } catch (e) {
-    LogOverlay.showLog("دریافت آی‌پی با خطا مواجه شد",
+    LogOverlay.showLog("Failed to get IP address",
         backgroundColor: Colors.redAccent);
     return null;
   }
@@ -40,12 +41,12 @@ Future<bool> donateCONFIG(String config,
   try {
     final text = config.trim();
     if (text.isEmpty) {
-      LogOverlay.showLog("کانفیگ نامعتبر است",
-          backgroundColor: Colors.redAccent);
+      LogOverlay.showLog("Invalid config", backgroundColor: Colors.redAccent);
       return false;
     }
 
     final ip = await getIp();
+    if (ip == null) return false;
 
     final ipId = 'ip-$ip';
     final statsRef =
@@ -54,15 +55,12 @@ Future<bool> donateCONFIG(String config,
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
     if (!statsSnap.exists || statsSnap.data()?['lastUpdate'] != today) {
-      await statsRef.set({
-        'createdToday': 1,
-        'listedToday': 0,
-        'lastUpdate': today,
-      });
+      await statsRef
+          .set({'createdToday': 1, 'listedToday': 0, 'lastUpdate': today});
     } else {
       final created = statsSnap.data()?['createdToday'] ?? 0;
       if (created >= 50) {
-        LogOverlay.showLog("سقف ثبت روزانه پر شده",
+        LogOverlay.showLog("Daily submission limit reached",
             backgroundColor: Colors.orange);
         return false;
       }
@@ -70,12 +68,10 @@ Future<bool> donateCONFIG(String config,
     }
 
     final docId = hashConfig(text);
-
     final existing =
         await FirebaseFirestore.instance.collection('configs').doc(docId).get();
-
     if (existing.exists) {
-      LogOverlay.showLog("این کانفیگ قبلاً ثبت شده",
+      LogOverlay.showLog("This config is already submitted",
           backgroundColor: Colors.orangeAccent);
       return false;
     }
@@ -94,58 +90,85 @@ Future<bool> donateCONFIG(String config,
       'isActive': true,
       'connected': 1,
       'ping': ping.toString(),
-      'message': message.trimLeft().trimRight(),
+      'message': message.trim(),
       'core': core,
     });
 
     return true;
   } catch (e) {
-    LogOverlay.showLog("خطا در ذخیره کانفیگ: $e",
+    LogOverlay.showLog("Error saving config: $e",
         backgroundColor: Colors.redAccent);
     return false;
   }
 }
 
-Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
-    getRandomConfigs() async {
-  final ip = await getIp();
-  final ipId = 'ip-$ip';
+Future<List> getRandomConfigs() async {
+  try {
+    final ip = await getIp();
+    if (ip == null) return [];
 
-  final statsRef =
-      FirebaseFirestore.instance.collection('usageStats').doc(ipId);
-  final statsSnap = await statsRef.get();
-  final today = DateTime.now().toIso8601String().substring(0, 10);
+    final ipId = 'ip-$ip';
+    final statsRef =
+        FirebaseFirestore.instance.collection('usageStats').doc(ipId);
+    final statsSnap = await statsRef.get();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
 
-  if (!statsSnap.exists || statsSnap.data()?['lastUpdate'] != today) {
-    await statsRef.set({
-      'createdToday': 0,
-      'listedToday': 1,
-      'lastUpdate': today,
-    });
-  } else {
-    final listed = statsSnap.data()?['listedToday'] ?? 0;
-    if (listed >= 50) {
-      LogOverlay.showLog("سقف دریافت روزانه پر شده",
-          backgroundColor: Colors.orange);
-      return [];
+    if (!statsSnap.exists || statsSnap.data()?['lastUpdate'] != today) {
+      await statsRef
+          .set({'createdToday': 0, 'listedToday': 1, 'lastUpdate': today});
+    } else {
+      final listed = statsSnap.data()?['listedToday'] ?? 0;
+      if (listed >= 50) {
+        LogOverlay.showLog("Daily receive limit reached",
+            backgroundColor: Colors.orange);
+        return [];
+      }
+      await statsRef.update({'listedToday': FieldValue.increment(1)});
     }
-    await statsRef.update({'listedToday': FieldValue.increment(1)});
-  }
 
-  final snapshot = await FirebaseFirestore.instance
-      .collection('configs')
-      .where('isActive', isEqualTo: true)
-      .orderBy('connected', descending: true)
-      .orderBy('addedAt', descending: true)
-      .limit(15)
-      .get();
-  return snapshot.docs;
+    final snapshot = await FirebaseFirestore.instance
+        .collection('configs')
+        .where('isActive', isEqualTo: true)
+        .orderBy('connected', descending: true)
+        .orderBy('addedAt', descending: true)
+        .limit(15)
+        .get();
+
+    await saveConfigs(snapshot.docs);
+    return snapshot.docs;
+  } catch (_) {
+    return await restoreConfigs();
+  }
+}
+
+Future<void> saveConfigs(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) async {
+  final prefs = await SharedPreferences.getInstance();
+  final configsJson = jsonEncode(docs.map((doc) => doc.data()).toList());
+  await prefs.setString('cachedConfigs', configsJson);
+  LogOverlay.showLog("Configs cached successfully");
+}
+
+Future<List<dynamic>> restoreConfigs() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final configsJson = prefs.getString('cachedConfigs');
+    if (configsJson != null) {
+      final List<dynamic> configs = jsonDecode(configsJson);
+      LogOverlay.showLog("Configs restored from cache");
+      return configs;
+    }
+  } catch (e) {
+    LogOverlay.showLog("Error restoring configs: $e",
+        backgroundColor: Colors.redAccent);
+  }
+  return [];
 }
 
 Future<int> testConfig(String config) async {
   try {
     await flutterV2ray.initializeV2Ray();
-    var parser;
+    dynamic parser;
     try {
       parser = FlutterV2ray.parseFromURL(config).getFullConfiguration();
     } catch (_) {
@@ -182,15 +205,20 @@ Future<bool> tryConnect(String config, String docId) async {
 }
 
 Future<bool> connectFL() async {
-  final configs = await getRandomConfigs();
-  for (var config in configs) {
-    final configStr = config.data()['config'] as String;
-    final docId = config.id;
-    final success = await tryConnect(configStr, docId);
-    if (success) {
-      return true;
+  try {
+    final configs = await getRandomConfigs();
+    for (var config in configs) {
+      final configStr = config.data()['config'] as String;
+      final docId = config.id;
+      final success = await tryConnect(configStr, docId);
+      if (success) {
+        return true;
+      }
     }
+  } catch (e) {
+    LogOverlay.showLog("Error connecting FL: $e",
+        backgroundColor: Colors.redAccent);
   }
-  LogOverlay.showLog("اتصال ناموفق بود", backgroundColor: Colors.redAccent);
+  LogOverlay.showLog("Connection FL failed", backgroundColor: Colors.redAccent);
   return false;
 }
