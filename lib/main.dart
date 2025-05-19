@@ -171,7 +171,7 @@ class _HomePageState extends State<HomePage> {
         var selectedServer = await serverM.getSelectedServer() as String;
         if (selectedServer.split("#")[0].isEmpty) {
           LogOverlay.showLog(
-            "connecting to FL mode",
+            "connecting to FL mode...",
             backgroundColor: Colors.blueAccent,
           );
           connStat =
@@ -181,7 +181,7 @@ class _HomePageState extends State<HomePage> {
           });
           if (!connStat) {
             LogOverlay.showLog(
-              "connecting to Repo mode",
+              "connecting to Repo mode...",
               backgroundColor: Colors.blueAccent,
             );
             var timeout = int.tryParse(

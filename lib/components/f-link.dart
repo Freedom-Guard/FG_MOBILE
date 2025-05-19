@@ -216,7 +216,7 @@ Future<int> testConfig(String config) async {
     }
     final ping = await flutterV2ray
         .getServerDelay(config: parser)
-        .timeout(const Duration(seconds: 6), onTimeout: () => -1);
+        .timeout(const Duration(seconds: 4), onTimeout: () => -1);
     return ping > 0 ? ping : -1;
   } catch (e) {
     return -1;
@@ -237,12 +237,10 @@ Future<bool> tryConnect(String config, String docId, String message_old) async {
         await docRef.update({'connected': FieldValue.increment(1)});
       } on FirebaseException catch (e) {
         await saveFailedUpdate(docId, 1);
-        LogOverlay.showLog(
-            "Firebase error incrementing connection counter: ${e.message}",
-            backgroundColor: Colors.redAccent);
+        LogOverlay.addLog(
+            "Firebase error incrementing connection counter: ${e.message}");
       } catch (e) {
-        LogOverlay.showLog("Unknown error incrementing connection counter: $e",
-            backgroundColor: Colors.orangeAccent);
+        LogOverlay.addLog("Unknown error incrementing connection counter: $e");
       }
 
       if (message.isNotEmpty) {
