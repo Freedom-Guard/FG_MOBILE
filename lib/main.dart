@@ -9,6 +9,7 @@ import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/browser.dart';
+import 'package:Freedom_Guard/pages/f-link.dart';
 import 'package:Freedom_Guard/pages/servers.dart';
 import 'package:Freedom_Guard/pages/settings.dart';
 import 'package:Freedom_Guard/pages/speedtest.dart';
@@ -294,13 +295,25 @@ class _HomePageState extends State<HomePage> {
                   elevation: 0,
                   centerTitle: true,
                   leading: IconButton(
-                    icon: const Icon(Icons.cable_rounded),
+                    icon: const Icon(Icons.cable),
                     color: Theme.of(context).colorScheme.onSurface,
                     onPressed: () {
                       openXraySettings(context);
                     },
                   ),
                   actions: [
+                    IconButton(
+                      icon: const Icon(Icons.volunteer_activism,
+                          color: Colors.red),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PremiumDonateConfigPage(),
+                          ),
+                        );
+                      },
+                    ),
                     IconButton(
                       icon: const Icon(Icons.public),
                       color: Colors.grey,
@@ -470,31 +483,30 @@ class _HomePageState extends State<HomePage> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF121212),
-                  Colors.black.withOpacity(0.7)
+                  Color.fromARGB(45, 26, 27, 38),
+                  Color.fromARGB(78, 42, 43, 54)
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                  offset: const Offset(0, -2),
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 12,
+                  spreadRadius: 4,
+                  offset: Offset(0, -4),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(0)),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: BottomNavigationBar(
                   backgroundColor: Colors.transparent,
                   selectedItemColor: Colors.white,
-                  unselectedItemColor: Colors.grey.shade400,
+                  unselectedItemColor: Colors.grey.shade500,
                   showSelectedLabels: false,
                   showUnselectedLabels: false,
                   elevation: 0,
@@ -534,50 +546,48 @@ class _HomePageState extends State<HomePage> {
       icon: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 50,
-          padding: const EdgeInsets.all(8),
-          margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          width: 60,
+          padding: EdgeInsets.all(10),
+          margin: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1A1B26), Color(0xFF2A2B36)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 4,
-              ),
-            ],
+            color: Colors.grey.shade900.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: Icon(icon, size: 22, color: Colors.grey.shade300),
+          child: Icon(
+            icon,
+            size: 26,
+            color: Colors.grey.shade400,
+          ),
         ),
       ),
       activeIcon: Container(
-        width: 50,
-        padding: const EdgeInsets.all(8),
-        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        width: 60,
+        padding: EdgeInsets.all(4),
+        margin: EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Theme.of(context).colorScheme.secondary,
-              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              Color(0xFF6B46F6),
+              Color(0xFF48B0F8),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
-              blurRadius: 6,
-              spreadRadius: 1,
-              offset: const Offset(0, 2),
+              color: Color(0xFF6B46F6).withOpacity(0.4),
+              blurRadius: 8,
+              spreadRadius: 2,
+              offset: Offset(0, 4),
             ),
           ],
         ),
-        child: Icon(icon, size: 24, color: Colors.white),
+        child: Icon(
+          icon,
+          size: 24,
+          color: Colors.white,
+        ),
       ),
       label: '',
       tooltip: label,
