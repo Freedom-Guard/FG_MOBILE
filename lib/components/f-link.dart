@@ -5,18 +5,20 @@ import 'package:flutter_v2ray/flutter_v2ray.dart';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 Future<String> getDeviceId() async {
   final prefs = await SharedPreferences.getInstance();
   const key = 'unique_device_id';
+  var uuid = Uuid();
 
-  String? id = prefs.getString(key);
-  if (id != null) return id;
+  try {
+    String? id = prefs.getString(key);
+    if (id != null) return id;
+  } catch (_) {}
 
-  final newId = const Uuid().v4();
+  final newId = uuid.v4();
   await prefs.setString(key, newId);
   return newId;
 }
@@ -78,10 +80,9 @@ Future<bool> donateCONFIG(String config,
       return false;
     }
 
-    final ip = await getDeviceId();
-    if (ip == null) return false;
+    final deviceID = await getDeviceId();
 
-    final ipId = 'ip-$ip';
+    final ipId = '$deviceID';
     final statsRef =
         FirebaseFirestore.instance.collection('usageStats').doc(ipId);
     final statsSnap = await statsRef.get();
@@ -137,9 +138,8 @@ Future<bool> donateCONFIG(String config,
 
 Future<List> getRandomConfigs() async {
   try {
-    final ip = await getDeviceId();
-    if (ip == null) return [];
-    final ipId = 'ip-$ip';
+    final deviceID = await getDeviceId();
+    final ipId = 'ip-$deviceID';
     final statsRef =
         FirebaseFirestore.instance.collection('usageStats').doc(ipId);
     final statsSnap = await statsRef.get();
@@ -164,7 +164,10 @@ Future<List> getRandomConfigs() async {
         .orderBy('addedAt', descending: true)
         .limit(15)
         .get()
-        .timeout(const Duration(seconds: 15));
+        .timeout(Duration(seconds: 15), onTimeout: () {
+      LogOverlay.showLog("Firebase timeout", backgroundColor: Colors.redAccent);
+      throw "timeout fb online";
+    });
 
     await saveConfigs(
         snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList());
@@ -272,7 +275,12 @@ Future<void> refreshCache() async {
 
 Future<bool> connectFL() async {
   try {
-    final configs = await getRandomConfigs();
+    final configs = await getRandomConfigs().timeout(Duration(seconds: 20),
+        onTimeout: () async {
+      LogOverlay.showLog("Connection FL timed out",
+          backgroundColor: Colors.redAccent);
+      return await restoreConfigs();
+    });
     for (var config in configs) {
       final configStr = config['config'] as String;
       final message = config['message'] ?? "";

@@ -174,7 +174,11 @@ class _HomePageState extends State<HomePage> {
             "connecting to FL mode",
             backgroundColor: Colors.blueAccent,
           );
-          connStat = await connectFL();
+          connStat =
+              await connectFL().timeout(Duration(seconds: 30), onTimeout: () {
+            LogOverlay.showLog("Connection to FL mode timed out.");
+            return false;
+          });
           if (!connStat) {
             LogOverlay.showLog(
               "connecting to Repo mode",
