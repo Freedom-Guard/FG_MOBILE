@@ -7,19 +7,18 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
-Future<String?> getIp() async {
-  try {
-    final res = await http.get(Uri.parse('https://api.ipify.org'));
-    if (res.statusCode == 200) {
-      return res.body.trim();
-    }
-    return "0.0.0.0";
-  } catch (e) {
-    LogOverlay.showLog("Failed to get IP address",
-        backgroundColor: Colors.redAccent);
-    return "0.0.0.0";
-  }
+Future<String> getDeviceId() async {
+  final prefs = await SharedPreferences.getInstance();
+  const key = 'unique_device_id';
+
+  String? id = prefs.getString(key);
+  if (id != null) return id;
+
+  final newId = const Uuid().v4();
+  await prefs.setString(key, newId);
+  return newId;
 }
 
 final FlutterV2ray flutterV2ray = FlutterV2ray(
@@ -79,7 +78,7 @@ Future<bool> donateCONFIG(String config,
       return false;
     }
 
-    final ip = await getIp();
+    final ip = await getDeviceId();
     if (ip == null) return false;
 
     final ipId = 'ip-$ip';
@@ -138,7 +137,7 @@ Future<bool> donateCONFIG(String config,
 
 Future<List> getRandomConfigs() async {
   try {
-    final ip = await getIp();
+    final ip = await getDeviceId();
     if (ip == null) return [];
     final ipId = 'ip-$ip';
     final statsRef =
