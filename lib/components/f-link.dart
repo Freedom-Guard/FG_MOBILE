@@ -106,13 +106,12 @@ Future<List> getRandomConfigs() async {
   try {
     final ip = await getIp();
     if (ip == null) return [];
-
+   // throw "";
     final ipId = 'ip-$ip';
     final statsRef =
         FirebaseFirestore.instance.collection('usageStats').doc(ipId);
     final statsSnap = await statsRef.get();
     final today = DateTime.now().toIso8601String().substring(0, 10);
-
     if (!statsSnap.exists || statsSnap.data()?['lastUpdate'] != today) {
       await statsRef
           .set({'createdToday': 0, 'listedToday': 1, 'lastUpdate': today});
@@ -134,28 +133,27 @@ Future<List> getRandomConfigs() async {
         .limit(15)
         .get();
 
-    await saveConfigs(snapshot.docs);
+    await saveConfigs(
+        snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList());
     return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
   } catch (_) {
     return await restoreConfigs();
   }
 }
 
-Future<void> saveConfigs(
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) async {
+Future<void> saveConfigs(List docs) async {
   final prefs = await SharedPreferences.getInstance();
-  final configsJson =
-      jsonEncode(docs.map((doc) => {'id': doc.id, ...doc.data()}).toList());
+  final configsJson = jsonEncode(docs);
   await prefs.setString('cachedConfigs', configsJson);
   LogOverlay.showLog("Configs cached successfully");
 }
 
-Future<List<dynamic>> restoreConfigs() async {
+Future<List> restoreConfigs() async {
   try {
     final prefs = await SharedPreferences.getInstance();
     final configsJson = prefs.getString('cachedConfigs');
     if (configsJson != null) {
-      final List<dynamic> configs = jsonDecode(configsJson);
+      final configs = jsonDecode(configsJson);
       LogOverlay.showLog("Configs restored from cache");
       return configs;
     }
@@ -246,7 +244,7 @@ Future<bool> connectFL() async {
     final configs = await getRandomConfigs();
     for (var config in configs) {
       final configStr = config['config'] as String;
-      final docId = config.id;
+      final docId = config['id'];
       final success = await tryConnect(configStr, docId);
       if (success) {
         return true;
