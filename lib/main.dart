@@ -431,7 +431,7 @@ class _HomePageState extends State<HomePage> {
                               width: 150,
                               height: 150,
                               child: CustomPaint(
-                                painter: UltraPulsePainter(isConnecting),
+                                painter: ConnectPainter(isConnecting),
                               ),
                             ),
                           AnimatedScale(
@@ -595,97 +595,34 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class UltraPulsePainter extends CustomPainter {
+class ConnectPainter extends CustomPainter {
   final bool isConnecting;
-
-  const UltraPulsePainter(this.isConnecting);
-
-  static const _pulseCount = 5;
-  static const _baseStrokeWidth = 1.5;
-  static const _animationDurationSeconds = 2.0;
-  static const _pulseSpacing = 0.4;
-  static const _minRadiusFactor = 0.2;
-  static const _radiusMultiplier = 0.15;
-  static const _glowOpacity = 0.3;
+  const ConnectPainter(this.isConnecting);
 
   @override
   void paint(Canvas canvas, Size size) {
     if (!isConnecting) return;
 
     final center = Offset(size.width / 2, size.height / 2);
-    final maxRadius = size.width / 2;
+    final time = DateTime.now().millisecondsSinceEpoch / 500;
+    final pulse = 2 + math.sin(time % (2 * math.pi)) * 2;
 
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = _baseStrokeWidth
-      ..shader = RadialGradient(
-        colors: [
-          Colors.purple.shade300.withOpacity(0.9),
-          Colors.deepPurple.shade600.withOpacity(0.4),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.6, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: maxRadius));
+      ..strokeWidth = 1
+      ..color = Colors.deepPurple;
 
-    final glowPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = _baseStrokeWidth * 1.8
-      ..shader = RadialGradient(
-        colors: [
-          Colors.purple.shade200.withOpacity(_glowOpacity),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: maxRadius));
+    canvas.drawCircle(center, 8 + pulse, paint);
 
-    final time = DateTime.now().millisecondsSinceEpoch / 1000;
-
-    for (int i = 0; i < _pulseCount; i++) {
-      final animationProgress =
-          (time + i * _pulseSpacing) % _animationDurationSeconds;
-      final normalizedProgress = animationProgress / _animationDurationSeconds;
-
-      final radiusAnimation =
-          0.6 + 0.7 * (math.sin(normalizedProgress * math.pi * 2) * 0.5 + 0.5);
-      final radiusFactor = _minRadiusFactor + (i * _radiusMultiplier);
-      final radius = maxRadius * radiusFactor * radiusAnimation;
-      final opacity = 0.5 + 0.5 * (1.0 - normalizedProgress);
-
-      canvas.drawCircle(
-        center,
-        radius.clamp(0.0, maxRadius),
-        glowPaint
-          ..strokeWidth = (_baseStrokeWidth * 1.8 * opacity)
-              .clamp(0.4, _baseStrokeWidth * 1.8),
-      );
-
-      canvas.drawCircle(
-        center,
-        radius.clamp(0.0, maxRadius),
-        paint
-          ..strokeWidth =
-              (_baseStrokeWidth * opacity).clamp(0.4, _baseStrokeWidth),
-      );
-    }
-
-    final corePaint = Paint()
+    final core = Paint()
       ..style = PaintingStyle.fill
-      ..shader = RadialGradient(
-        colors: [
-          Colors.purple.shade100.withOpacity(0.8),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: maxRadius * 0.1));
+      ..color = Colors.deepPurple;
 
-    canvas.drawCircle(center, maxRadius * 0.1, corePaint);
+    canvas.drawCircle(center, 4, core);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    final old = oldDelegate as UltraPulsePainter;
-    return old.isConnecting != isConnecting;
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 
   @override
   bool shouldRebuildSemantics(covariant CustomPainter oldDelegate) => false;
