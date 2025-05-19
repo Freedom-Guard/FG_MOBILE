@@ -14,11 +14,11 @@ Future<String?> getIp() async {
     if (res.statusCode == 200) {
       return res.body.trim();
     }
-    return null;
+    return "0.0.0.0";
   } catch (e) {
     LogOverlay.showLog("Failed to get IP address",
         backgroundColor: Colors.redAccent);
-    return null;
+    return "0.0.0.0";
   }
 }
 
