@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/servers.dart';
@@ -48,8 +49,8 @@ class _ServersPageState extends State<ServersPage> {
   Future<void> _setOldServers() async {
     final prefs = await SharedPreferences.getInstance();
     try {
-      Map<String, dynamic> oldServersMap = await serversManage.oldServers();
-      final oldServers = oldServersMap.keys.toList();
+      List<String> oldServersMap = await serversManage.oldServers();
+      final oldServers = oldServersMap.toList();
       await prefs.setStringList('servers', oldServers);
     } catch (_) {
     } finally {
@@ -67,6 +68,20 @@ class _ServersPageState extends State<ServersPage> {
     final prefs = await SharedPreferences.getInstance();
     final serverList = prefs.getStringList('servers') ?? [];
     if (mounted) setState(() => servers = serverList);
+  }
+
+  String getNameByConfig(String config) {
+    try {
+      try {
+        config = Uri.decodeFull(config);
+      } catch (_) {}
+      final decoded = jsonDecode(config);
+      final remarks = decoded["remarks"];
+      if (remarks != null) {
+        return remarks.toString();
+      }
+    } catch (_) {}
+    return config.contains("#") ? config.split("#")[1] : config;
   }
 
   Future<void> _saveServers() async {
@@ -309,11 +324,7 @@ class _ServersPageState extends State<ServersPage> {
                                       setState(() {});
                                     },
                                     title: Text(
-                                      (server.split("#").length > 1
-                                          ? safeDecode(server.split("#")[1])
-                                          : server.split("#")[0].length > 10
-                                              ? "${server.split("#")[0].substring(0, 10)}..."
-                                              : server.split("#")[0]),
+                                      (getNameByConfig(server)),
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: isSelected
@@ -497,9 +508,15 @@ class _ServersPageState extends State<ServersPage> {
     }
     if (clipboardData.text!.startsWith("[Interface]")) {
       _addServer("wire:::\n" + clipboardData.text!);
-    }
-    for (var server in clipboardData.text!.split("\n")) {
-      _addServer(server);
+    } else if (clipboardData.text!.startsWith("vless") ||
+        clipboardData.text!.startsWith("vmess") ||
+        clipboardData.text!.startsWith("ss") ||
+        clipboardData.text!.startsWith("trojan")) {
+      for (var server in clipboardData.text!.split("\n")) {
+        _addServer(server);
+      }
+    } else {
+      _addServer(serverController.text);
     }
   }
 

@@ -74,8 +74,8 @@ class ServersM extends ChangeNotifier {
       }
 
       List<String> newServers = List<String>.from(decoded['MOBILE'].toList());
-      Map<String, dynamic> oldData = await oldServers();
-      List<String> currentServers = List<String>.from(oldData['servers'] ?? []);
+      List oldData = await oldServers();
+      List<String> currentServers = List<String>.from(oldData ?? []);
 
       bool isUpdated = false;
 
@@ -98,13 +98,13 @@ class ServersM extends ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>> oldServers() async {
+  Future<List<String>> oldServers() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final serverList = prefs.getStringList('servers') ?? [];
-      return {"servers": serverList};
+      return serverList;
     } catch (e) {
-      return {};
+      return [];
     }
   }
 

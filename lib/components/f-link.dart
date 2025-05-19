@@ -36,10 +36,44 @@ String hashConfig(String config) {
   return sha256.convert(utf8.encode(trimmed)).toString();
 }
 
+Future<void> saveFailedUpdate(String docId, int increment) async {
+  final prefs = await SharedPreferences.getInstance();
+  List<String> failedUpdates = prefs.getStringList('failedUpdates') ?? [];
+  failedUpdates.add(jsonEncode({
+    'docId': docId,
+    'increment': increment,
+    'timestamp': DateTime.now().toIso8601String()
+  }));
+  await prefs.setStringList('failedUpdates', failedUpdates);
+}
+
+Future<void> processFailedUpdates() async {
+  final prefs = await SharedPreferences.getInstance();
+  List<String> failedUpdates = prefs.getStringList('failedUpdates') ?? [];
+  List<String> remainingUpdates = [];
+
+  for (var update in failedUpdates) {
+    try {
+      final data = jsonDecode(update);
+      final docId = data['docId'];
+      final increment = data['increment'];
+      await FirebaseFirestore.instance
+          .collection('configs')
+          .doc(docId)
+          .update({'connected': FieldValue.increment(increment)});
+    } catch (e) {
+      remainingUpdates.add(update);
+    }
+  }
+
+  await prefs.setStringList('failedUpdates', remainingUpdates);
+}
+
 Future<bool> donateCONFIG(String config,
     {String core = "", String message = ""}) async {
   try {
     final text = config.trim();
+    LogOverlay.showLog("Donating...", backgroundColor: Colors.blueAccent);
     if (text.isEmpty) {
       LogOverlay.showLog("Invalid config", backgroundColor: Colors.redAccent);
       return false;
@@ -96,7 +130,7 @@ Future<bool> donateCONFIG(String config,
 
     return true;
   } catch (e) {
-    LogOverlay.showLog("Error saving config: $e please turn on vpn",
+    LogOverlay.showLog("Error saving config: please turn on vpn",
         backgroundColor: Colors.redAccent);
     return false;
   }
@@ -106,7 +140,6 @@ Future<List> getRandomConfigs() async {
   try {
     final ip = await getIp();
     if (ip == null) return [];
-   // throw "";
     final ipId = 'ip-$ip';
     final statsRef =
         FirebaseFirestore.instance.collection('usageStats').doc(ipId);
@@ -131,13 +164,19 @@ Future<List> getRandomConfigs() async {
         .orderBy('connected', descending: true)
         .orderBy('addedAt', descending: true)
         .limit(15)
-        .get();
+        .get()
+        .timeout(const Duration(seconds: 15));
 
     await saveConfigs(
         snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList());
-    return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+    List listConfigs =
+        snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+    listConfigs.shuffle();
+    return listConfigs;
   } catch (_) {
-    return await restoreConfigs();
+    List listConfigs = await restoreConfigs();
+    listConfigs.shuffle();
+    return listConfigs;
   }
 }
 
@@ -171,7 +210,7 @@ Future<int> testConfig(String config) async {
     try {
       parser = FlutterV2ray.parseFromURL(config).getFullConfiguration();
     } catch (_) {
-      parser = jsonDecode(config);
+      parser = (config);
     }
     final ping = await flutterV2ray
         .getServerDelay(config: parser)
@@ -182,23 +221,12 @@ Future<int> testConfig(String config) async {
   }
 }
 
-Future<bool> tryConnect(String config, String docId) async {
+Future<bool> tryConnect(String config, String docId, String message_old) async {
   final resPing = await testConfig(config);
   final conn = Connect();
   final docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
 
-  String message = '';
-
-  try {
-    final docSnapshot = await docRef.get();
-    message = docSnapshot.data()?['message'] as String? ?? '';
-  } on FirebaseException catch (e) {
-    LogOverlay.showLog("Firebase error getting message: ${e.message}",
-        backgroundColor: Colors.redAccent);
-  } catch (e) {
-    LogOverlay.showLog("Unknown error getting message: $e",
-        backgroundColor: Colors.orangeAccent);
-  }
+  String message = message_old;
 
   if (resPing > 1) {
     final success = await conn.ConnectVibe(config, []);
@@ -206,6 +234,7 @@ Future<bool> tryConnect(String config, String docId) async {
       try {
         await docRef.update({'connected': FieldValue.increment(1)});
       } on FirebaseException catch (e) {
+        await saveFailedUpdate(docId, 1);
         LogOverlay.showLog(
             "Firebase error incrementing connection counter: ${e.message}",
             backgroundColor: Colors.redAccent);
@@ -224,10 +253,12 @@ Future<bool> tryConnect(String config, String docId) async {
   try {
     await docRef.update({'connected': FieldValue.increment(-1)});
   } on FirebaseException catch (e) {
+    await saveFailedUpdate(docId, -1);
     LogOverlay.showLog(
         "Firebase error decrementing connection counter: ${e.message}",
         backgroundColor: Colors.redAccent);
   } catch (e) {
+    await saveFailedUpdate(docId, -1);
     LogOverlay.showLog("Unknown error decrementing connection counter: $e",
         backgroundColor: Colors.orangeAccent);
   }
@@ -237,6 +268,7 @@ Future<bool> tryConnect(String config, String docId) async {
 
 Future<void> refreshCache() async {
   await getRandomConfigs();
+  await processFailedUpdates();
 }
 
 Future<bool> connectFL() async {
@@ -244,8 +276,9 @@ Future<bool> connectFL() async {
     final configs = await getRandomConfigs();
     for (var config in configs) {
       final configStr = config['config'] as String;
+      final message = config['message'] ?? "";
       final docId = config['id'];
-      final success = await tryConnect(configStr, docId);
+      final success = await tryConnect(configStr, docId, message);
       if (success) {
         return true;
       }
