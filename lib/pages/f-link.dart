@@ -1,3 +1,4 @@
+import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -327,7 +328,11 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                             configController.text,
                             core: selectedCore!,
                             message: messageController.text,
-                          );
+                          ).timeout(Duration(seconds: 10), onTimeout: () {
+                            LogOverlay.showLog("Connection timed out",
+                                backgroundColor: Colors.redAccent);
+                            return false;
+                          });
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
