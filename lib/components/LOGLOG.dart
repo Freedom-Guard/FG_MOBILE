@@ -1,85 +1,35 @@
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:clipboard/clipboard.dart';
 
 class LogOverlay {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
+
   static final List<_LogData> _logQueue = [];
+  static final List<String> _logs = [];
   static bool _isShowingLog = false;
 
-  static Future<void> addLog(String message) async {
-    try {
-      final now = DateTime.now();
-      message = message.toString().replaceAll("\n", "");
-      final logMessage = '[${now.toIso8601String()}] $message\n';
-      final file = await _getLogFile();
-      if (!await file.exists()) {
-        await file.create(recursive: true);
-      }
-      await file.writeAsString(
-        logMessage,
-        mode: FileMode.append,
-        encoding: utf8,
-      );
-    } catch (e, stackTrace) {
-      debugPrint('Error writing log: $e\nStackTrace: $stackTrace');
-    }
+  static void addLog(String message) {
+    final now = DateTime.now();
+    final logMessage =
+        '[${now.toIso8601String()}] ${message.replaceAll("\n", "")}';
+    _logs.add(logMessage);
   }
 
-  static Future<String> loadLogs() async {
-    try {
-      final file = await _getLogFile();
-      if (!await file.exists()) {
-        return '';
-      }
-      try {
-        return await file.readAsString(encoding: utf8);
-      } catch (e) {
-        try {
-          return await file.readAsString(encoding: latin1);
-        } catch (e) {
-          final bytes = await file.readAsBytes();
-          return bytes.toString();
-        }
-      }
-    } catch (e, stackTrace) {
-      debugPrint('Error reading logs: $e\nStackTrace: $stackTrace');
-      return '';
-    }
-  }
+  static String loadLogs() => _logs.join('\n');
 
-  static Future<void> clearLogs() async {
-    try {
-      final file = await _getLogFile();
-      if (await file.exists()) {
-        await file.delete();
-      }
-    } catch (e, stackTrace) {
-      debugPrint('Error clearing logs: $e\nStackTrace: $stackTrace');
-    }
-  }
+  static void clearLogs() => _logs.clear();
 
   static Future<bool> copyLogs() async {
     try {
-      final logs = await loadLogs();
-      if (logs.isEmpty) {
-        return false;
-      }
+      final logs = loadLogs();
+      if (logs.isEmpty) return false;
       await FlutterClipboard.copy(logs);
       return true;
-    } catch (e, stackTrace) {
-      debugPrint('Error copying logs: $e\nStackTrace: $stackTrace');
+    } catch (e) {
+      debugPrint('Error copying logs: $e');
       return false;
     }
-  }
-
-  static Future<File> _getLogFile() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final path = directory.path;
-    return File('$path/app_logs.txt');
   }
 
   static void showModal(
@@ -89,10 +39,7 @@ class LogOverlay {
     VoidCallback? onAdTap,
   }) {
     final context = navigatorKey.currentContext;
-    if (context == null) {
-      debugPrint('Context not available for modal: $message');
-      return;
-    }
+    if (context == null) return;
 
     addLog(message);
 
@@ -134,10 +81,10 @@ class LogOverlay {
   ) {
     final context = navigatorKey.currentContext;
     if (context == null) {
-      debugPrint('Context not available yet: $message');
       _isShowingLog = false;
       return;
     }
+
     final snackBar = SnackBar(
       content: Text(
         message,
@@ -146,14 +93,15 @@ class LogOverlay {
           fontWeight: FontWeight.w500,
         ),
       ),
-      backgroundColor: backgroundColor.withOpacity(0.8),
-      margin: const EdgeInsets.all(16.0),
+      backgroundColor: backgroundColor.withOpacity(0.85),
+      margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       duration: duration,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((reason) {
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((_) {
       _isShowingLog = false;
       _processQueue();
     });
@@ -190,20 +138,18 @@ class _ModalContent extends StatefulWidget {
   });
 
   @override
-  _ModalContentState createState() => _ModalContentState();
+  State<_ModalContent> createState() => _ModalContentState();
 }
 
 class _ModalContentState extends State<_ModalContent> {
-  bool _isButtonEnabled = false;
+  bool _isExitEnabled = false;
 
   @override
   void initState() {
     super.initState();
     Future.delayed(const Duration(seconds: 5), () {
       if (mounted) {
-        setState(() {
-          _isButtonEnabled = true;
-        });
+        setState(() => _isExitEnabled = true);
       }
     });
   }
@@ -211,70 +157,82 @@ class _ModalContentState extends State<_ModalContent> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: widget.backgroundColor.withOpacity(0.8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              widget.message,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-                fontSize: 16.0,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (widget.onAdTap != null)
-                  TextButton(
-                    onPressed: widget.onAdTap,
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.blue.withOpacity(0.8),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 8.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    child: const Text('مشاهده تبلیغ'),
+      backgroundColor: widget.backgroundColor.withOpacity(0.85),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: Text(
+                  'تبلیغات اهدا کننده',
+                  style: TextStyle(
+                    color: Colors.amber,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                if (widget.onAdTap != null) const SizedBox(width: 8.0),
-                TextButton(
-                  onPressed: _isButtonEnabled
-                      ? () {
-                          if (Navigator.of(context).canPop()) {
-                            Navigator.of(context).pop();
-                          }
-                        }
-                      : null,
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: _isButtonEnabled
-                        ? Colors.red.withOpacity(0.8)
-                        : Colors.black,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 8.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  child: const Text('خروج'),
                 ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 8),
+              Align(
+                  alignment: Alignment.bottomRight,
+                  child: Text(
+                    widget.message,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  )),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  if (widget.onAdTap != null)
+                    TextButton(
+                      onPressed: widget.onAdTap,
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('مشاهده تبلیغ'),
+                    ),
+                  if (widget.onAdTap != null) const SizedBox(width: 12),
+                  Align(
+                      alignment: Alignment.bottomLeft,
+                      child: TextButton(
+                        onPressed: _isExitEnabled
+                            ? () => Navigator.of(context).maybePop()
+                            : null,
+                        style: TextButton.styleFrom(
+                          backgroundColor: _isExitEnabled
+                              ? Colors.red
+                              : Colors.grey.shade800,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('خروج'),
+                      )),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

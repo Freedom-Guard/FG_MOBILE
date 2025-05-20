@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '/components/LOGLOG.dart';
 
 class LogPage extends StatefulWidget {
-
   @override
   State<LogPage> createState() => _LogPageState();
 }
@@ -40,13 +39,12 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
   Future<void> _loadLogs() async {
     String loadedLogs = await LogOverlay.loadLogs();
     setState(() {
-      logs =
-          loadedLogs
-              .split("\n")
-              .where((log) => log.trim().isNotEmpty)
-              .toList()
-              .reversed
-              .toList();
+      logs = loadedLogs
+          .split("\n")
+          .where((log) => log.trim().isNotEmpty)
+          .toList()
+          .reversed
+          .toList();
     });
   }
 
@@ -66,7 +64,7 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
   }
 
   Future<void> _clearLogs() async {
-    await LogOverlay.clearLogs();
+    LogOverlay.clearLogs();
     setState(() => logs = []);
     _showSnackBar('Logs cleared successfully!', Colors.green);
   }
