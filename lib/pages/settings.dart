@@ -1,3 +1,4 @@
+import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/f-link.dart';
 import 'package:Freedom_Guard/pages/split.dart';
@@ -12,6 +13,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _isSettingEnabled = false;
+  bool isLoading = false;
   Settings settings = new Settings();
   Map settingsJson = {};
 
@@ -40,6 +42,14 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
+  Future<void> loadLang() async {
+    String lang = await getLang();
+    initLocal(lang);
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   Future<void> _saveSetting(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
@@ -49,8 +59,8 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Settings",
+        title: Text(
+          tr("settings"),
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -107,11 +117,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 },
                 icon: Icons.link,
               ),
-              SettingSelector(
-                title: "Language",
-                prefKey: "lang",
-                options: ["en", "fa"],
-              ),
               SettingSwitch(
                 title: "Block ads and trackers",
                 value: bool.tryParse(
@@ -161,6 +166,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   settings.setValue("fast_connect", value.toString());
                 },
                 icon: Icons.speed_sharp,
+              ),
+              SettingSelector(
+                title: tr("language"),
+                prefKey: "lang",
+                options: ["en", "fa"],
               ),
               SettingSwitch(
                 title: "Manual mode",

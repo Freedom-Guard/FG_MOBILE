@@ -23,7 +23,11 @@ Map<String, Map<String, String>> _allTranslations = {
 
 Map<String, String> AllTr_fa = {
   'manage-servers-page': "مدیریت سرورها",
+  'settings': 'تنظیمات',
+  'language':'زبان'
 };
 Map<String, String> AllTr_en = {
   'manage-servers-page': "Manage Servers",
+  'settings': 'Settings',
+  'language': "Language"
 };
