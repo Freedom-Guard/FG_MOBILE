@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
+import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/services.dart';
 import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
@@ -118,6 +119,7 @@ class _HomePageState extends State<HomePage>
       ),
     );
     Future.microtask(() async {
+      initLocal(await getLang());
       Timer.periodic(Duration(seconds: 45), (timer) {
         setState(() async {
           isConnected = await checker.checkVPN();

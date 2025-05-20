@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/servers.dart';
+import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -17,8 +19,11 @@ class ServersPage extends StatefulWidget {
 }
 
 class _ServersPageState extends State<ServersPage> {
+  bool isLoading = true;
+
   List<String> servers = [];
   late ServersM serversManage;
+  Settings settings = new Settings();
   final TextEditingController serverController = TextEditingController();
 
   @override
@@ -28,6 +33,15 @@ class _ServersPageState extends State<ServersPage> {
     Future.microtask(() async {
       await serversManage.getSelectedServer();
       await _loadServersAndInit();
+      loadLang();
+    });
+  }
+
+  Future<void> loadLang() async {
+    String lang = await getLang();
+    initLocal(lang);
+    setState(() {
+      isLoading = false;
     });
   }
 
@@ -247,7 +261,7 @@ class _ServersPageState extends State<ServersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Manage Servers"),
+        title: Text(tr("manage-servers-page")),
         backgroundColor: Colors.black,
         actions: [
           IconButton(

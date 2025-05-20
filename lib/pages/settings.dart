@@ -107,6 +107,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 },
                 icon: Icons.link,
               ),
+              SettingSelector(
+                title: "Language",
+                prefKey: "lang",
+                options: ["en", "fa"],
+              ),
               SettingSwitch(
                 title: "Block ads and trackers",
                 value: bool.tryParse(
