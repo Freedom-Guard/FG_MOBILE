@@ -110,7 +110,7 @@ class _SplitPageState extends State<SplitPage> {
         LogOverlay.showLog("All apps deselected");
       } else {
         selectedApps = installedApps
-            .map((app) => app.packageName ?? "")
+            .map((app) => app.packageName)
             .where((name) => name.isNotEmpty)
             .toList();
         checkedAll = true;
@@ -219,13 +219,13 @@ class _SplitPageState extends State<SplitPage> {
                                     : null,
                               ),
                               title: Text(
-                                app.name ?? "No Name",
+                                app.name,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                               subtitle: Text(
-                                app.packageName ?? "No package",
+                                app.packageName,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[600],
@@ -235,7 +235,7 @@ class _SplitPageState extends State<SplitPage> {
                                 activeColor: Colors.blueAccent,
                                 value: selectedApps.contains(app.packageName),
                                 onChanged: (value) => _toggleAppSelection(
-                                  app.packageName ?? "",
+                                  app.packageName,
                                 ),
                               ),
                             ),

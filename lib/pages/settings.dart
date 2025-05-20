@@ -1,4 +1,3 @@
-import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/f-link.dart';
 import 'package:Freedom_Guard/pages/split.dart';

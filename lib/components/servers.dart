@@ -75,7 +75,7 @@ class ServersM extends ChangeNotifier {
 
       List<String> newServers = List<String>.from(decoded['MOBILE'].toList());
       List oldData = await oldServers();
-      List<String> currentServers = List<String>.from(oldData ?? []);
+      List<String> currentServers = List<String>.from(oldData);
 
       bool isUpdated = false;
 

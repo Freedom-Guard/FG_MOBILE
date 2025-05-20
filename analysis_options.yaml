@@ -10,6 +10,7 @@
 analyzer:
   errors:
     deprecated_member_use: ignore
+    sdk_version_since: ignore
     unnecessary_null_comparison: ignore
 include: package:flutter_lints/flutter.yaml 
 

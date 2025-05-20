@@ -282,178 +282,173 @@ class _ServersPageState extends State<ServersPage> {
                     itemBuilder: (context, index) {
                       String server = servers[index];
                       bool isSelected = serversManage.selectedServer == server;
-
                       return Card(
-                        elevation: 3,
+                        elevation: 2,
                         margin: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 12,
-                        ),
-                        color: isSelected
-                            ? const Color(0xFF64B5F6)
-                            : const Color(0xFF212121),
+                            vertical: 10, horizontal: 16),
+                        color: const Color(0xFF121212),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border(
-                              left: BorderSide(
-                                color: isSelected
-                                    ? const Color(0xFF42A5F5)
-                                    : Colors.transparent,
-                                width: 4,
-                              ),
-                            ),
-                            borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(
+                            color: isSelected
+                                ? const Color(0xFF40C4FF)
+                                : Colors.transparent,
+                            width: 1.5,
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
+                        ),
+                        child: InkWell(
+                          onTap: () async {
+                            await serversManage.selectServer(server);
+                            setState(() {});
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          splashColor: isSelected
+                              ? Colors.blueAccent.withOpacity(0.3)
+                              : Colors.grey.withOpacity(0.2),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: isSelected
+                                  ? const Color(0xFF1E1E1E)
+                                  : const Color(0xFF121212),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: ListTile(
-                                    onTap: () async {
-                                      await serversManage.selectServer(
-                                        server,
-                                      );
-                                      setState(() {});
-                                    },
-                                    title: Text(
-                                      (getNameByConfig(server)),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 12),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      getNameByConfig(server),
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: isSelected
-                                            ? FontWeight.w500
+                                            ? FontWeight.w600
                                             : FontWeight.w400,
                                         color: isSelected
-                                            ? Colors.white
-                                            : Colors.grey.shade100,
+                                            ? const Color(0xFFE1F5FE)
+                                            : Colors.grey.shade300,
+                                        letterSpacing: 0.4,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    contentPadding: EdgeInsets.zero,
                                   ),
-                                ),
-                                PopupMenuButton<String>(
-                                  onSelected: (String result) {
-                                    switch (result) {
-                                      case 'edit':
-                                        _editServer(index);
-                                        break;
-                                      case 'share':
-                                        _shareServer(server);
-                                        break;
-                                      case 'delete':
-                                        _removeServer(index);
-                                        break;
-                                      case 'qr':
-                                        _showQRCodeDialog(server);
-                                        break;
-                                    }
-                                  },
-                                  itemBuilder: (
-                                    BuildContext context,
-                                  ) =>
-                                      <PopupMenuEntry<String>>[
-                                    PopupMenuItem<String>(
-                                      value: 'edit',
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.edit,
-                                            size: 20,
-                                            color: Color(0xFF757575),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            'ویرایش',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Color(0xFF212121),
+                                  PopupMenuButton<String>(
+                                    onSelected: (String result) {
+                                      switch (result) {
+                                        case 'edit':
+                                          _editServer(index);
+                                          break;
+                                        case 'share':
+                                          _shareServer(server);
+                                          break;
+                                        case 'delete':
+                                          _removeServer(index);
+                                          break;
+                                        case 'qr':
+                                          _showQRCodeDialog(server);
+                                          break;
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) =>
+                                        <PopupMenuEntry<String>>[
+                                      PopupMenuItem<String>(
+                                        value: 'edit',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.edit,
+                                                size: 18,
+                                                color: Colors.grey.shade400),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              'ویرایش',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey.shade200,
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    PopupMenuItem<String>(
-                                      value: 'share',
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.share_outlined,
-                                            size: 20,
-                                            color: Color(0xFF757575),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            'اشتراک',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Color(0xFF212121),
+                                      PopupMenuItem<String>(
+                                        value: 'share',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.share_outlined,
+                                                size: 18,
+                                                color: Colors.grey.shade400),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              'اشتراک',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey.shade200,
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    PopupMenuItem<String>(
-                                      value: 'qr',
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.qr_code_2_outlined,
-                                            size: 20,
-                                            color: Color(0xFF757575),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            'کد qr',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Color(0xFF212121),
+                                      PopupMenuItem<String>(
+                                        value: 'qr',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.qr_code_2_outlined,
+                                                size: 18,
+                                                color: Colors.grey.shade400),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              'کد QR',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey.shade200,
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    PopupMenuItem<String>(
-                                      value: 'delete',
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.delete,
-                                            size: 20,
-                                            color: Color(0xFFE57373),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            'حذف',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Color(0xFF212121),
+                                      PopupMenuItem<String>(
+                                        value: 'delete',
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.delete,
+                                                size: 18,
+                                                color: Color(0xFFEF5350)),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              'حذف',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey.shade200,
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
+                                    ],
+                                    icon: Icon(
+                                      Icons.more_vert,
+                                      size: 20,
+                                      color: isSelected
+                                          ? const Color(0xFFE1F5FE)
+                                          : Colors.grey.shade400,
                                     ),
-                                  ],
-                                  icon: Icon(
-                                    Icons.more_vert,
-                                    size: 20,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.grey.shade300,
+                                    color: const Color(0xFF1E1E1E),
+                                    elevation: 4,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    offset: const Offset(0, 36),
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 6),
                                   ),
-                                  color: const Color(0xFFFFFFFF),
-                                  elevation: 1,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),

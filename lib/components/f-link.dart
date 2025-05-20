@@ -61,7 +61,10 @@ Future<void> processFailedUpdates() async {
       await FirebaseFirestore.instance
           .collection('configs')
           .doc(docId)
-          .update({'connected': FieldValue.increment(increment)});
+          .update({'connected': FieldValue.increment(increment)}).timeout(
+              Duration(seconds: 10), onTimeout: () {
+        throw "";
+      });
     } catch (e) {
       remainingUpdates.add(update);
     }
@@ -85,7 +88,10 @@ Future<bool> donateCONFIG(String config,
     final ipId = '$deviceID';
     final statsRef =
         FirebaseFirestore.instance.collection('usageStats').doc(ipId);
-    final statsSnap = await statsRef.get();
+    final statsSnap =
+        await statsRef.get().timeout(Duration(seconds: 7), onTimeout: () {
+      throw "";
+    });
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
     if (!statsSnap.exists || statsSnap.data()?['lastUpdate'] != today) {
@@ -102,8 +108,13 @@ Future<bool> donateCONFIG(String config,
     }
 
     final docId = hashConfig(text);
-    final existing =
-        await FirebaseFirestore.instance.collection('configs').doc(docId).get();
+    final existing = await FirebaseFirestore.instance
+        .collection('configs')
+        .doc(docId)
+        .get()
+        .timeout(Duration(seconds: 7), onTimeout: () {
+      throw "";
+    });
     if (existing.exists) {
       LogOverlay.showLog("This config is already submitted",
           backgroundColor: Colors.orangeAccent);
@@ -126,6 +137,8 @@ Future<bool> donateCONFIG(String config,
       'ping': ping.toString(),
       'message': message.trim(),
       'core': core,
+    }).timeout(Duration(seconds: 10), onTimeout: () {
+      throw "";
     });
 
     return true;
@@ -164,7 +177,7 @@ Future<List> getRandomConfigs() async {
         .orderBy('addedAt', descending: true)
         .limit(15)
         .get()
-        .timeout(Duration(seconds: 15), onTimeout: () {
+        .timeout(Duration(seconds: 10), onTimeout: () {
       LogOverlay.showLog("Firebase timeout", backgroundColor: Colors.redAccent);
       throw "timeout fb online";
     });
@@ -234,7 +247,10 @@ Future<bool> tryConnect(String config, String docId, String message_old) async {
     final success = await conn.ConnectVibe(config, []);
     if (success) {
       try {
-        await docRef.update({'connected': FieldValue.increment(1)});
+        await docRef.update({'connected': FieldValue.increment(1)}).timeout(
+            Duration(seconds: 5), onTimeout: () {
+          throw "";
+        });
       } on FirebaseException catch (e) {
         await saveFailedUpdate(docId, 1);
         LogOverlay.addLog(
@@ -267,13 +283,14 @@ Future<bool> tryConnect(String config, String docId, String message_old) async {
 }
 
 Future<void> refreshCache() async {
+  await Future.delayed(Duration(seconds: 3));
   await getRandomConfigs();
   await processFailedUpdates();
 }
 
 Future<bool> connectFL() async {
   try {
-    final configs = await getRandomConfigs().timeout(Duration(seconds: 20),
+    final configs = await getRandomConfigs().timeout(Duration(seconds: 10),
         onTimeout: () async {
       LogOverlay.showLog("Connection FL timed out",
           backgroundColor: Colors.redAccent);
