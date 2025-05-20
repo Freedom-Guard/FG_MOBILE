@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
+import 'package:Freedom_Guard/components/services.dart';
 import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
@@ -118,25 +118,17 @@ class _HomePageState extends State<HomePage>
       ),
     );
     Future.microtask(() async {
-      Timer.periodic(Duration(seconds: 10), (timer) {
-        checkVPN();
+      Timer.periodic(Duration(seconds: 45), (timer) {
+        setState(() async {
+          isConnected = await checker.checkVPN();
+        });
       });
-      checkVPN();
+      setState(() async {
+        isConnected = await checker.checkVPN();
+      });
       await checkForUpdate(context);
       setState(() async {
-        List<String> backgroundList = [
-          "10.jpg",
-          "5.jpg",
-          "15.jpg",
-          "14.jpg",
-          "4.jpg",
-          "17.jpg",
-          "background.jpg"
-        ];
-        final random = new Random();
-        final randomBackground =
-            backgroundList[random.nextInt(backgroundList.length)];
-        backgroundPath = "assets/" + randomBackground;
+        backgroundPath = BackgroundService.getRandomBackground();
       });
     });
   }
@@ -145,20 +137,6 @@ class _HomePageState extends State<HomePage>
   void dispose() {
     _animationController.dispose();
     super.dispose();
-  }
-
-  checkVPN() async {
-    if (await checkForVPN() == true) {
-      setState(() {
-        isConnected = true;
-      });
-    }
-    initSettings();
-  }
-
-  initSettings() async {
-    if (await settings.getValue("core_vpn") == "")
-      settings.setValue("core_vpn", "auto");
   }
 
   Future<void> toggleConnection() async {
@@ -645,7 +623,7 @@ class ConnectPainter extends CustomPainter {
     ];
 
     for (int i = 0; i < 3; i++) {
-      final pulseRadius = 10.0 + (time + i * 0.3) % 1.0 * 40.0; 
+      final pulseRadius = 10.0 + (time + i * 0.3) % 1.0 * 40.0;
       final opacity = 0.7 - (time + i * 0.3) % 1.0 * 0.6;
       final paint = Paint()
         ..style = PaintingStyle.stroke
