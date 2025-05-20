@@ -33,15 +33,6 @@ class _ServersPageState extends State<ServersPage> {
     Future.microtask(() async {
       await serversManage.getSelectedServer();
       await _loadServersAndInit();
-      loadLang();
-    });
-  }
-
-  Future<void> loadLang() async {
-    String lang = await getLang();
-    initLocal(lang);
-    setState(() {
-      isLoading = false;
     });
   }
 
@@ -261,7 +252,7 @@ class _ServersPageState extends State<ServersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr("manage-servers-page")),
+        title: Text(tr("manage-servers-page") as String),
         backgroundColor: Colors.black,
         actions: [
           IconButton(

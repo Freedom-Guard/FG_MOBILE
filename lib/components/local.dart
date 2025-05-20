@@ -1,23 +1,16 @@
 import 'package:Freedom_Guard/components/settings.dart';
 
-Map<String, String> translate = {};
-Settings settings = new Settings();
+final Settings _settings = Settings();
+Map<String, String> _translate = AllTr_en;
+
 String tr(String key) {
-  return translate[key] ?? key;
-}
-void initLocal(String langCode) {
-  translate = _allTranslations[langCode] ?? AllTr_en;
+  return _translate[key] ?? key;
 }
 
-Future<String> getLang() async {
-  return (await settings.getValue("lang") == ""
-      ? "en"
-      : await settings.getValue("lang"));
-}
-
-Future<void> loadLang_Wi() async {
-  String lang = await getLang();
-  initLocal(lang);
+Future<void> initTranslations() async {
+  final lang = await _settings.getValue("lang");
+  final langCode = lang.isEmpty ? "en" : lang;
+  _translate = _allTranslations[langCode] ?? AllTr_en;
 }
 
 Map<String, Map<String, String>> _allTranslations = {
@@ -29,12 +22,21 @@ Map<String, String> AllTr_fa = {
   'manage-servers-page': "مدیریت سرورها",
   'settings': 'تنظیمات',
   'language': 'زبان',
+  'change-language': '!زبان تغییر یافت',
+  'speed-test-net': "تست سرعت اینترنت",
+  'start-test': 'شروع تست',
+  'speed-test':'تست سرعت',
   'about-app': 'گارد آزادی ابزاری متن باز برای عبور از فیلترینگ اینترنت است'
 };
+
 Map<String, String> AllTr_en = {
   'manage-servers-page': "Manage Servers",
   'settings': 'Settings',
   'language': "Language",
+  'change-language': 'Language changed!',
+  'speed-test-net': 'Internet Speed Test',
+  'start-test': 'Start Test',
+  'speed-test': 'Speed Test',
   'about-app':
       'Freedom Guard is an open-source tool to bypass internet censorship.'
 };

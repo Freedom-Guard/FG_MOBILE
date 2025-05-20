@@ -25,8 +25,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initTranslations();
   try {} catch (e) {}
   try {
     await Firebase.initializeApp();
@@ -119,7 +120,6 @@ class _HomePageState extends State<HomePage>
       ),
     );
     Future.microtask(() async {
-      initLocal(await getLang());
       Timer.periodic(Duration(seconds: 45), (timer) {
         setState(() async {
           isConnected = await checker.checkVPN();

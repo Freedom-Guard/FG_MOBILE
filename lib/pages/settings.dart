@@ -1,3 +1,4 @@
+import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/pages/f-link.dart';
@@ -39,14 +40,6 @@ class _SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _isSettingEnabled = prefs.getBool('setting_key') ?? false;
-    });
-  }
-
-  Future<void> loadLang() async {
-    String lang = await getLang();
-    initLocal(lang);
-    setState(() {
-      isLoading = false;
     });
   }
 
@@ -317,6 +310,11 @@ class _SettingSelectorState extends State<SettingSelector> {
   Future<void> _saveValue(String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(widget.prefKey, value);
+    if (widget.prefKey == "lang") {
+      LogOverlay.showLog(tr('change-language'));
+      await initTranslations();
+      Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+    }
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:Freedom_Guard/components/local.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -158,12 +159,12 @@ class _SpeedTestPageState extends State<SpeedTestPage>
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Speed Test'),
+        title: Text(tr('speed-test')),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: SizedBox(
-        width: double.infinity, // Make the container take full width
+        width: double.infinity,
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -200,7 +201,7 @@ class _SpeedTestPageState extends State<SpeedTestPage>
     return SizedBox(
         width: double.infinity,
         child: Text(
-          'Internet Speed Test',
+          tr('speed-test-net'),
           style: GoogleFonts.inter(
             fontSize: 28,
             fontWeight: FontWeight.w700,
@@ -310,7 +311,7 @@ class _SpeedTestPageState extends State<SpeedTestPage>
             ),
             const SizedBox(width: 8),
             Text(
-              isTesting ? 'Testing...' : 'Start Test',
+              isTesting ? 'Testing...' : tr('start-test'),
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,

@@ -3,13 +3,6 @@ import 'package:Freedom_Guard/widgets/link.dart';
 import 'package:flutter/material.dart';
 
 class AboutDialogWidget extends StatelessWidget {
-  void initState() {
-    loadLang();
-  }
-
-  Future<void> loadLang() async {
-    await loadLang_Wi();
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -120,22 +120,33 @@ class Connect {
           },
         });
       }
+      if (mux.trim().isNotEmpty) {
+        final muxJson = json.decode(mux);
+        if (muxJson is Map && muxJson["enabled"] == true) {
+          bool updated = false;
+          if (parsedJson["outbounds"] is List) {
+            for (var outbound in parsedJson["outbounds"]) {
+              if (outbound is Map && outbound.containsKey("mux")) {
+                outbound["mux"] = muxJson;
+                updated = true;
+                break;
+              }
+            }
+            if (!updated &&
+                parsedJson["outbounds"].isNotEmpty &&
+                parsedJson["outbounds"][0] is Map) {
+              parsedJson["outbounds"][0]["mux"] = muxJson;
+            }
+          }
+        }
+      }
 
-      if (mux != "" && json.decode(mux)["enabled"] == true) {
-        parsedJson["mux"] = json.decode(mux);
-      }
-      if (fragment != "" && json.decode(fragment)["enabled"] == true) {
-        parsedJson["fragment"] = json.decode(fragment);
-      }
-    } else if (parsedJson is List<dynamic>) {
-      parsedJson.forEach((element) {
-        if (mux != "") {
-          element["mux"] = json.decode(mux);
+      if (fragment.trim().isNotEmpty) {
+        final fragJson = json.decode(fragment);
+        if (fragJson is Map && fragJson["enabled"] == true) {
+          parsedJson["outbounds"][0]["settings"]["fragment"] = fragJson;
         }
-        if (fragment != "") {
-          element["fragment"] = json.decode(fragment);
-        }
-      });
+      }
     }
     return jsonEncode(parsedJson).toString();
   }
