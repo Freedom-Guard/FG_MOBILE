@@ -88,7 +88,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   bool isConnected = false;
   String backgroundPath = "";
   bool isPressed = false;
@@ -96,6 +97,8 @@ class _HomePageState extends State<HomePage> {
   Connect connect = new Connect();
   ServersM serverM = new ServersM();
   Settings settings = new Settings();
+  late AnimationController _animationController;
+  late Animation<double> _pulseAnimation;
   Map<String, String> defSet = {
     "fgconfig":
         "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
@@ -103,6 +106,17 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+
+    _pulseAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
     Future.microtask(() async {
       Timer.periodic(Duration(seconds: 10), (timer) {
         checkVPN();
@@ -125,6 +139,12 @@ class _HomePageState extends State<HomePage> {
         backgroundPath = "assets/" + randomBackground;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   checkVPN() async {
@@ -274,6 +294,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  @override
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -430,13 +451,20 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           if (isConnecting)
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 2000),
-                              width: 150,
-                              height: 150,
-                              child: CustomPaint(
-                                painter: ConnectPainter(isConnecting),
-                              ),
+                            AnimatedBuilder(
+                              animation: _pulseAnimation,
+                              builder: (context, child) {
+                                return Container(
+                                  width: 150,
+                                  height: 150,
+                                  child: CustomPaint(
+                                    painter: ConnectPainter(
+                                      isConnecting,
+                                      animationValue: _pulseAnimation.value,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           AnimatedScale(
                             scale: isPressed ? 0.85 : 1.0,
@@ -460,9 +488,7 @@ class _HomePageState extends State<HomePage> {
                                 shadows: [
                                   Shadow(
                                     color: isConnected
-                                        ? Colors.green.shade900.withOpacity(
-                                            0.7,
-                                          )
+                                        ? Colors.green.shade900.withOpacity(0.7)
                                         : Colors.blueGrey.shade900
                                             .withOpacity(0.5),
                                     blurRadius: 15,
@@ -601,28 +627,53 @@ class _HomePageState extends State<HomePage> {
 
 class ConnectPainter extends CustomPainter {
   final bool isConnecting;
-  const ConnectPainter(this.isConnecting);
+  final double animationValue;
+
+  ConnectPainter(this.isConnecting, {required this.animationValue});
 
   @override
   void paint(Canvas canvas, Size size) {
     if (!isConnecting) return;
 
     final center = Offset(size.width / 2, size.height / 2);
-    final time = DateTime.now().millisecondsSinceEpoch / 500;
-    final pulse = 2 + math.sin(time % (2 * math.pi)) * 2;
+    final time = animationValue;
 
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
-      ..color = Colors.deepPurple;
+    final pulseColors = [
+      Colors.blueAccent.withOpacity(0.7),
+      Colors.cyanAccent.withOpacity(0.5),
+      Colors.tealAccent.withOpacity(0.3),
+    ];
 
-    canvas.drawCircle(center, 8 + pulse, paint);
+    for (int i = 0; i < 3; i++) {
+      final pulseRadius = 10.0 + (time + i * 0.3) % 1.0 * 40.0; 
+      final opacity = 0.7 - (time + i * 0.3) % 1.0 * 0.6;
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0
+        ..color = pulseColors[i % pulseColors.length].withOpacity(opacity);
 
-    final core = Paint()
+      canvas.drawCircle(center, pulseRadius, paint);
+    }
+
+    final glowPaint = Paint()
       ..style = PaintingStyle.fill
-      ..color = Colors.deepPurple;
+      ..shader = RadialGradient(
+        colors: [
+          Colors.white.withOpacity(0.4),
+          Colors.blueAccent.withOpacity(0.2),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.5, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: 12.0));
 
-    canvas.drawCircle(center, 4, core);
+    canvas.drawCircle(center, 8.0 + math.sin(time * math.pi) * 2.0, glowPaint);
+
+    final corePaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = Colors.blueAccent.withOpacity(0.9);
+
+    canvas.drawCircle(
+        center, 5.0 + math.sin(time * math.pi * 2) * 1.5, corePaint);
   }
 
   @override
