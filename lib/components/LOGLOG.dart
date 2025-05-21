@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:clipboard/clipboard.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LogOverlay {
   static final GlobalKey<NavigatorState> navigatorKey =
@@ -33,7 +34,8 @@ class LogOverlay {
   }
 
   static void showModal(
-    String message, {
+    String message,
+    String telegramLink, {
     Duration duration = const Duration(seconds: 3),
     Color backgroundColor = Colors.black87,
     VoidCallback? onAdTap,
@@ -49,6 +51,7 @@ class LogOverlay {
       builder: (BuildContext context) {
         return _ModalContent(
           message: message,
+          telegramLink: telegramLink,
           duration: duration,
           backgroundColor: backgroundColor,
           onAdTap: onAdTap,
@@ -126,12 +129,14 @@ class _LogData {
 
 class _ModalContent extends StatefulWidget {
   final String message;
+  final String telegramLink;
   final Duration duration;
   final Color backgroundColor;
   final VoidCallback? onAdTap;
 
   const _ModalContent({
     required this.message,
+    required this.telegramLink,
     required this.duration,
     required this.backgroundColor,
     this.onAdTap,
@@ -152,6 +157,21 @@ class _ModalContentState extends State<_ModalContent> {
         setState(() => _isExitEnabled = true);
       }
     });
+  }
+
+  void openTelegram(String telegramLink) async {
+    if (telegramLink.startsWith("@")) {
+      telegramLink = "https://t.me/" + telegramLink.split("@")[1];
+    }
+    final uri = Uri.parse(telegramLink);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      LogOverlay.showLog(
+        "Cannot open the link.",
+        backgroundColor: Colors.redAccent,
+      );
+    }
   }
 
   @override
@@ -195,20 +215,19 @@ class _ModalContentState extends State<_ModalContent> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  if (widget.onAdTap != null)
-                    TextButton(
-                      onPressed: widget.onAdTap,
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                  TextButton(
+                    onPressed: () => openTelegram(widget.telegramLink),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text('مشاهده تبلیغ'),
                     ),
+                    child: const Text('مشاهده کانال'),
+                  ),
                   if (widget.onAdTap != null) const SizedBox(width: 12),
                   Align(
                       alignment: Alignment.bottomLeft,

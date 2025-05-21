@@ -73,9 +73,32 @@ Future<void> processFailedUpdates() async {
   await prefs.setStringList('failedUpdates', remainingUpdates);
 }
 
+bool isValidTelegramLink(String input) {
+  final uriPattern = RegExp(r"^https:\/\/t\.me\/[a-zA-Z0-9_]{5,32}$");
+  final usernamePattern = RegExp(r"^@[a-zA-Z0-9_]{5,32}$");
+
+  if (input.trim().isEmpty) {
+    LogOverlay.showLog("لینک یا آیدی وارد نشده!",
+        backgroundColor: Colors.redAccent);
+    return false;
+  }
+
+  if (uriPattern.hasMatch(input) || usernamePattern.hasMatch(input)) {
+    return true;
+  }
+
+  LogOverlay.showLog("لینک یا آیدی تلگرام نامعتبر است!",
+      backgroundColor: Colors.redAccent);
+  return false;
+}
+
 Future<bool> donateCONFIG(String config,
-    {String core = "", String message = ""}) async {
+    {String core = "", String message = "", String telegramLink = ""}) async {
   try {
+    if (!isValidTelegramLink(telegramLink)) {
+      return false;
+    }
+
     final text = config.trim();
     LogOverlay.showLog("Donating...", backgroundColor: Colors.blueAccent);
     if (text.isEmpty) {
@@ -137,6 +160,7 @@ Future<bool> donateCONFIG(String config,
       'ping': ping.toString(),
       'message': message.trim(),
       'core': core,
+      'telegramLink': telegramLink.trim(),
     }).timeout(Duration(seconds: 10), onTimeout: () {
       throw "";
     });
@@ -236,7 +260,8 @@ Future<int> testConfig(String config) async {
   }
 }
 
-Future<bool> tryConnect(String config, String docId, String message_old) async {
+Future<bool> tryConnect(String config, String docId, String message_old,
+    String telegramLink) async {
   final resPing = await testConfig(config);
   final conn = Connect();
   final docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
@@ -260,7 +285,9 @@ Future<bool> tryConnect(String config, String docId, String message_old) async {
       }
 
       if (message.isNotEmpty) {
-        LogOverlay.showModal(message);
+        if (isValidTelegramLink(telegramLink)) {
+          LogOverlay.showModal(message, telegramLink);
+        }
       }
       return true;
     }
@@ -299,8 +326,9 @@ Future<bool> connectFL() async {
     for (var config in configs) {
       final configStr = config['config'] as String;
       final message = config['message'] ?? "";
+      final telegramLink = config['telegramLink'] ?? "";
       final docId = config['id'];
-      final success = await tryConnect(configStr, docId, message);
+      final success = await tryConnect(configStr, docId, message, telegramLink);
       if (success) {
         return true;
       }

@@ -11,9 +11,10 @@ class PremiumDonateConfigPage extends StatefulWidget {
 
 class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
     with SingleTickerProviderStateMixin {
-  String? selectedCore;
+  String? selectedCore = "Mobile Vibe Core";
   final TextEditingController configController = TextEditingController();
   final TextEditingController messageController = TextEditingController();
+  final TextEditingController telegramLinkController = TextEditingController();
   final List<String> cores = ['Mobile Vibe Core'];
   bool isButtonHovered = false;
   bool isBackButtonHovered = false;
@@ -41,6 +42,7 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
     _controller.dispose();
     configController.dispose();
     messageController.dispose();
+    telegramLinkController.dispose();
     super.dispose();
   }
 
@@ -118,6 +120,48 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                       ),
                     ),
                   ),
+                  const SizedBox(height: 40),
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.shade900.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.purple.shade900.withOpacity(0.5),
+                                blurRadius: 30,
+                                spreadRadius: -5),
+                            BoxShadow(
+                                color: Colors.cyan.shade600.withOpacity(0.3),
+                                blurRadius: 20,
+                                spreadRadius: -3),
+                          ],
+                          border: Border.all(
+                              color: Colors.cyan.shade400.withOpacity(0.4),
+                              width: 2),
+                        ),
+                        child: TextField(
+                          controller: telegramLinkController, // اضافه شده
+                          maxLines: 1,
+                          style: GoogleFonts.vazirmatn(
+                              color: Colors.white, fontSize: 16),
+                          decoration: InputDecoration(
+                            hintText: 'لینک کانال تلگرام (اختیاری)',
+                            hintStyle: GoogleFonts.vazirmatn(
+                                color: Colors.white38, fontSize: 16),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide.none),
+                            contentPadding: EdgeInsets.all(20),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                   Center(
                       child: Icon(Icons.volunteer_activism,
                           color: Colors.redAccent, size: 44)),
@@ -174,39 +218,6 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                     ),
                   ),
                   const SizedBox(height: 50),
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.purple.shade900.withOpacity(0.4),
-                                Colors.cyan.shade900.withOpacity(0.3)
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(35),
-                            border: Border.all(
-                                color: Colors.purple.shade400.withOpacity(0.5),
-                                width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                  color:
-                                      Colors.purple.shade900.withOpacity(0.5),
-                                  blurRadius: 25,
-                                  spreadRadius: -5),
-                              BoxShadow(
-                                  color: Colors.cyan.shade400.withOpacity(0.3),
-                                  blurRadius: 15,
-                                  spreadRadius: -3),
-                            ]),
-                      ),
-                    ),
-                  ),
                   DropdownButtonFormField<String>(
                     value: selectedCore,
                     hint: Text('انتخاب هسته',
@@ -226,7 +237,7 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                           EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                       border: InputBorder.none,
                     ),
-                    dropdownColor: Colors.purple.shade800,
+                    dropdownColor: const Color.fromARGB(0, 0, 0, 0),
                     icon: Icon(Icons.expand_more,
                         color: Colors.white70, size: 28),
                   ),
@@ -304,6 +315,48 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                           decoration: InputDecoration(
                             hintText:
                                 'پیام تبلیغاتی خود را وارد کنید (اختیاری)',
+                            hintStyle: GoogleFonts.vazirmatn(
+                                color: Colors.white38, fontSize: 16),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide.none),
+                            contentPadding: EdgeInsets.all(20),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.shade900.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.purple.shade900.withOpacity(0.5),
+                                blurRadius: 30,
+                                spreadRadius: -5),
+                            BoxShadow(
+                                color: Colors.cyan.shade600.withOpacity(0.3),
+                                blurRadius: 20,
+                                spreadRadius: -3),
+                          ],
+                          border: Border.all(
+                              color: Colors.cyan.shade400.withOpacity(0.4),
+                              width: 2),
+                        ),
+                        child: TextField(
+                          controller: telegramLinkController, // اضافه شده
+                          maxLines: 1,
+                          style: GoogleFonts.vazirmatn(
+                              color: Colors.white, fontSize: 16),
+                          decoration: InputDecoration(
+                            hintText: 'لینک کانال تلگرام (اختیاری)',
                             hintStyle: GoogleFonts.vazirmatn(
                                 color: Colors.white38, fontSize: 16),
                             border: OutlineInputBorder(
