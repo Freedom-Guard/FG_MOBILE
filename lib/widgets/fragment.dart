@@ -92,7 +92,6 @@ class XraySettingsDialog {
                       const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
                         children: [
                           const Text(
                             'Bypass IRAN',
@@ -190,8 +189,7 @@ class XraySettingsDialog {
                                 'mux': {
                                   'enabled': muxEnabled,
                                   if (muxEnabled)
-                                    'concurrency':
-                                        int.tryParse(
+                                    'concurrency': int.tryParse(
                                           concurrencyController.text,
                                         ) ??
                                         8,
@@ -216,6 +214,7 @@ class XraySettingsDialog {
                               'Save',
                               style: TextStyle(
                                 fontSize: 16,
+                                color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

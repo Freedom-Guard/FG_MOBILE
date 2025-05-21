@@ -1,3 +1,4 @@
+import 'package:Freedom_Guard/components/local.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
@@ -91,29 +92,35 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.grey[900]!, Colors.black],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(),
-              Expanded(
-                child: logs.isEmpty ? _buildEmptyState() : _buildLogList(),
+    return Directionality(
+        textDirection:
+            getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.grey[900]!, Colors.black],
               ),
-              _buildActionButtons(),
-            ],
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  _buildAppBar(),
+                  Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Expanded(
+                        child:
+                            logs.isEmpty ? _buildEmptyState() : _buildLogList(),
+                      )),
+                  _buildActionButtons(),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildAppBar() {
@@ -137,7 +144,7 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
           ),
           const SizedBox(width: 8),
           Text(
-            'Logs',
+            tr('logs'),
             style: GoogleFonts.inter(
               color: Colors.white,
               fontWeight: FontWeight.w700,
@@ -228,13 +235,13 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
         children: [
           _buildActionButton(
             icon: Icons.copy,
-            label: 'Copy',
+            label: tr('copy'),
             color: Colors.blueAccent,
             onTap: _copyLogs,
           ),
           _buildActionButton(
             icon: Icons.delete,
-            label: 'Clear',
+            label: tr('clear'),
             color: Colors.redAccent,
             onTap: _clearLogs,
           ),

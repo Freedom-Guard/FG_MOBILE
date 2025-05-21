@@ -1,4 +1,5 @@
 import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:installed_apps/installed_apps.dart';
@@ -166,8 +167,8 @@ class _SplitPageState extends State<SplitPage> {
             color: Theme.of(context).scaffoldBackgroundColor,
             child: SwitchListTile(
               activeColor: Colors.blueAccent,
-              title: const Text(
-                "Show system apps",
+              title: Text(
+                tr("show-system-apps"),
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),
               value: showSystemApps,

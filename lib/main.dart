@@ -80,7 +80,11 @@ class FreedomGuardApp extends StatelessWidget {
         highlightColor: Colors.transparent,
         hoverColor: Colors.transparent,
       ),
-      home: HomePage(),
+      home: Directionality(
+        textDirection:
+            getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
+        child: HomePage(),
+      ),
     );
   }
 }
@@ -274,7 +278,6 @@ class _HomePageState extends State<HomePage>
     });
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return Stack(

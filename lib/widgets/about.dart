@@ -3,7 +3,6 @@ import 'package:Freedom_Guard/widgets/link.dart';
 import 'package:flutter/material.dart';
 
 class AboutDialogWidget extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -37,6 +36,7 @@ class AboutDialogWidget extends StatelessWidget {
             const SizedBox(height: 20),
             Wrap(
               alignment: WrapAlignment.start,
+              spacing: 30,
               children: [
                 LinkWidget(
                   url: "https://github.com/Freedom-Guard/FG_MOBILE",
@@ -75,8 +75,8 @@ class AboutDialogWidget extends StatelessWidget {
                   horizontal: 32,
                 ),
               ),
-              child: const Text(
-                "Close",
+              child: Text(
+                tr("close"),
                 style: TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),

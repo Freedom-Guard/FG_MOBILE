@@ -302,7 +302,8 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                           style: GoogleFonts.vazirmatn(
                               color: Colors.white, fontSize: 16),
                           decoration: InputDecoration(
-                            hintText: 'پیام خود را وارد کنید (اختیاری)',
+                            hintText:
+                                'پیام تبلیغاتی خود را وارد کنید (اختیاری)',
                             hintStyle: GoogleFonts.vazirmatn(
                                 color: Colors.white38, fontSize: 16),
                             border: OutlineInputBorder(

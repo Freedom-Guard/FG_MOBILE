@@ -50,154 +50,160 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          tr("settings"),
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.volunteer_activism, color: Colors.red),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PremiumDonateConfigPage(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.merge_type_sharp, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => SplitPage()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AboutDialogWidget();
-                },
-              );
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Row(
-                children: [],
-              ),
-              SettingSwitch(
-                title: "Freedom LINK",
-                value:
-                    bool.tryParse(settingsJson["f_link"].toString()) ?? false,
-                onChanged: (bool value) {
-                  setState(() {
-                    settingsJson["f_link"] = value.toString();
-                  });
-                  settings.setValue("f_link", value.toString());
-                },
-                icon: Icons.link,
-              ),
-              SettingSwitch(
-                title: "Block ads and trackers",
-                value: bool.tryParse(
-                      settingsJson["block_ads_trackers"].toString(),
-                    ) ??
-                    false,
-                onChanged: (bool value) {
-                  setState(() {
-                    settingsJson["block_ads_trackers"] = value.toString();
-                  });
-                  settings.setValue("block_ads_trackers", value.toString());
-                },
-                icon: Icons.block,
-              ),
-              SettingSwitch(
-                title: "Bypass LAN",
-                value: bool.tryParse(settingsJson["bypass_lan"].toString()) ??
-                    false,
-                onChanged: (bool value) {
-                  setState(() {
-                    settingsJson["bypass_lan"] = value.toString();
-                  });
-                  settings.setValue("bypass_lan", value.toString());
-                },
-                icon: Icons.lan,
-              ),
-              SettingSwitch(
-                title: "Guard Mode",
-                value: bool.tryParse(settingsJson["guard_mode"].toString()) ??
-                    false,
-                onChanged: (bool value) {
-                  setState(() {
-                    settingsJson["guard_mode"] = value.toString();
-                  });
-                  settings.setValue("guard_mode", value.toString());
-                },
-                icon: Icons.shield_sharp,
-              ),
-              SettingSwitch(
-                title: "Quick Connect (Sub)",
-                value: bool.tryParse(settingsJson["fast_connect"].toString()) ??
-                    false,
-                onChanged: (bool value) {
-                  setState(() {
-                    settingsJson["fast_connect"] = value.toString();
-                  });
-                  settings.setValue("fast_connect", value.toString());
-                },
-                icon: Icons.speed_sharp,
-              ),
-              SettingSelector(
-                title: tr("language"),
-                prefKey: "lang",
-                options: ["en", "fa"],
-              ),
-              SettingSwitch(
-                title: "Manual mode",
-                value: _isSettingEnabled,
-                onChanged: (bool value) {
-                  setState(() => _isSettingEnabled = value);
-                  _saveSetting("setting_key", value);
-                },
-              ),
-              if (_isSettingEnabled)
-                Column(
-                  children: [
-                    const SettingInput(
-                      title: "Auto Mode Timeout",
-                      prefKey: "timeout_auto",
-                      hintText: "110000",
+    return Directionality(
+        textDirection:
+            getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(
+              tr("settings"),
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.volunteer_activism, color: Colors.red),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PremiumDonateConfigPage(),
                     ),
-                    const SettingInput(
-                      title: "تعداد درخواست\u200cهای هم\u200cزمان",
-                      prefKey: "batch_size",
-                      hintText: "15",
-                    ),
-                    SettingSelector(
-                      title: "CORE VPN",
-                      prefKey: "core_vpn",
-                      options: ["auto", "vibe", "warp"],
-                    ),
-                  ],
-                ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.merge_type_sharp, color: Colors.white),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SplitPage()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.info_outline),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AboutDialogWidget();
+                    },
+                  );
+                },
+              ),
             ],
           ),
-        ),
-      ),
-    );
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [],
+                  ),
+                  SettingSwitch(
+                    title: tr("freedom-link"),
+                    value: bool.tryParse(settingsJson["f_link"].toString()) ??
+                        false,
+                    onChanged: (bool value) {
+                      setState(() {
+                        settingsJson["f_link"] = value.toString();
+                      });
+                      settings.setValue("f_link", value.toString());
+                    },
+                    icon: Icons.link,
+                  ),
+                  SettingSwitch(
+                    title: tr("block-ads-trackers"),
+                    value: bool.tryParse(
+                          settingsJson["block_ads_trackers"].toString(),
+                        ) ??
+                        false,
+                    onChanged: (bool value) {
+                      setState(() {
+                        settingsJson["block_ads_trackers"] = value.toString();
+                      });
+                      settings.setValue("block_ads_trackers", value.toString());
+                    },
+                    icon: Icons.block,
+                  ),
+                  SettingSwitch(
+                    title: tr("bypass-lan"),
+                    value:
+                        bool.tryParse(settingsJson["bypass_lan"].toString()) ??
+                            false,
+                    onChanged: (bool value) {
+                      setState(() {
+                        settingsJson["bypass_lan"] = value.toString();
+                      });
+                      settings.setValue("bypass_lan", value.toString());
+                    },
+                    icon: Icons.lan,
+                  ),
+                  SettingSwitch(
+                    title: tr("guard-mode"),
+                    value:
+                        bool.tryParse(settingsJson["guard_mode"].toString()) ??
+                            false,
+                    onChanged: (bool value) {
+                      setState(() {
+                        settingsJson["guard_mode"] = value.toString();
+                      });
+                      settings.setValue("guard_mode", value.toString());
+                    },
+                    icon: Icons.shield_sharp,
+                  ),
+                  SettingSwitch(
+                    title: tr("quick-connect-sub"),
+                    value: bool.tryParse(
+                            settingsJson["fast_connect"].toString()) ??
+                        false,
+                    onChanged: (bool value) {
+                      setState(() {
+                        settingsJson["fast_connect"] = value.toString();
+                      });
+                      settings.setValue("fast_connect", value.toString());
+                    },
+                    icon: Icons.speed_sharp,
+                  ),
+                  SettingSelector(
+                    title: tr("language"),
+                    prefKey: "lang",
+                    options: ["en", "fa"],
+                  ),
+                  SettingSwitch(
+                    title: "Manual mode",
+                    value: _isSettingEnabled,
+                    onChanged: (bool value) {
+                      setState(() => _isSettingEnabled = value);
+                      _saveSetting("setting_key", value);
+                    },
+                  ),
+                  if (_isSettingEnabled)
+                    Column(
+                      children: [
+                        const SettingInput(
+                          title: "Auto Mode Timeout",
+                          prefKey: "timeout_auto",
+                          hintText: "110000",
+                        ),
+                        const SettingInput(
+                          title: "تعداد درخواست\u200cهای هم\u200cزمان",
+                          prefKey: "batch_size",
+                          hintText: "15",
+                        ),
+                        SettingSelector(
+                          title: "CORE VPN",
+                          prefKey: "core_vpn",
+                          options: ["auto", "vibe", "warp"],
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ));
   }
 }
 

@@ -135,7 +135,11 @@ class Connect {
             if (!updated &&
                 parsedJson["outbounds"].isNotEmpty &&
                 parsedJson["outbounds"][0] is Map) {
-              parsedJson["outbounds"][0]["mux"] = muxJson;
+              var counter = 0;
+              for (var i in parsedJson["outbounds"]) {
+                parsedJson["outbounds"][counter]["mux"] = muxJson;
+                counter++;
+              }
             }
           }
         }
@@ -144,7 +148,14 @@ class Connect {
       if (fragment.trim().isNotEmpty) {
         final fragJson = json.decode(fragment);
         if (fragJson is Map && fragJson["enabled"] == true) {
-          parsedJson["outbounds"][0]["settings"]["fragment"] = fragJson;
+          var counter = 0;
+          for (var i in parsedJson["outbounds"]) {
+            if (parsedJson["outbounds"][counter]["protocol"] == 'freedom') {
+              parsedJson["outbounds"][counter]["settings"]["fragment"] =
+                  fragJson;
+            }
+            counter++;
+          }
         }
       }
     }
