@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:Freedom_Guard/components/fsecure.dart';
 
 Future<String> getDeviceId() async {
   final prefs = await SharedPreferences.getInstance();
@@ -158,6 +159,7 @@ Future<bool> donateCONFIG(String config,
       'ping': ping.toString(),
       'message': message.trim(),
       'core': core,
+      'secretKey': FSecure.key,
       'telegramLink': telegramLink.trim(),
     }).timeout(Duration(seconds: 10), onTimeout: () {
       throw "";

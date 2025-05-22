@@ -38,6 +38,11 @@ jobs:
         run: |
           mkdir -p android/app
           echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+      
+      - name: Create fsecure.dart 
+        run: |
+          mkdir -p lib/components
+          echo "${{ secrets.FSECURE_FILE }}" > lib/components/fsecure.dart
 
       - name: Build Android APK
         run: flutter build apk --release
