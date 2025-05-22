@@ -221,20 +221,21 @@ class _ModalContentState extends State<_ModalContent> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  TextButton(
-                    onPressed: () => openTelegram(widget.telegramLink),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  if (widget.telegramLink != "")
+                    TextButton(
+                      onPressed: () => openTelegram(widget.telegramLink),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
+                      child: const Text('مشاهده کانال'),
                     ),
-                    child: const Text('مشاهده کانال'),
-                  ),
-                  if (widget.onAdTap != null) const SizedBox(width: 12),
+                  const SizedBox(width: 20),
                   Align(
                       alignment: Alignment.bottomLeft,
                       child: TextButton(
