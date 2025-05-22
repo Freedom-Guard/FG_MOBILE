@@ -528,7 +528,7 @@ class _HomePageState extends State<HomePage>
                   items: [
                     _buildNavItem(
                       Icons.settings_sharp,
-                      "Settings",
+                      tr("settings"),
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => SettingsPage()),
@@ -537,7 +537,7 @@ class _HomePageState extends State<HomePage>
                     _buildNavItem(Icons.home, "خانه", () {}),
                     _buildNavItem(
                       Icons.cloud_sync_outlined,
-                      "Manage Servers",
+                      tr("manage-servers-page"),
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => ServersPage()),
@@ -619,44 +619,80 @@ class ConnectPainter extends CustomPainter {
     if (!isConnecting) return;
 
     final center = Offset(size.width / 2, size.height / 2);
-    final time = animationValue;
+    final t = animationValue;
+    final spin = t * math.pi * 2;
 
-    final pulseColors = [
-      Colors.blueAccent.withOpacity(0.7),
-      Colors.cyanAccent.withOpacity(0.5),
-      Colors.tealAccent.withOpacity(0.3),
+    final pulsePaints = [
+      Colors.cyanAccent.withOpacity(0.3),
+      Colors.blueAccent.withOpacity(0.2),
+      Colors.tealAccent.withOpacity(0.15),
     ];
 
     for (int i = 0; i < 3; i++) {
-      final pulseRadius = 10.0 + (time + i * 0.3) % 1.0 * 40.0;
-      final opacity = 0.7 - (time + i * 0.3) % 1.0 * 0.6;
+      final progress = (t + i * 0.2) % 1.0;
+      final radius = 24 + progress * 50;
+      final opacity = (1.0 - progress).clamp(0.0, 1.0);
       final paint = Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0
-        ..color = pulseColors[i % pulseColors.length].withOpacity(opacity);
-
-      canvas.drawCircle(center, pulseRadius, paint);
+        ..strokeWidth = 2 - progress
+        ..color = pulsePaints[i].withOpacity(opacity * 0.6);
+      canvas.drawCircle(center, radius, paint);
     }
 
-    final glowPaint = Paint()
-      ..style = PaintingStyle.fill
+    final haloPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          Colors.white.withOpacity(0.4),
+          Colors.cyanAccent.withOpacity(0.5),
           Colors.blueAccent.withOpacity(0.2),
           Colors.transparent,
         ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: 12.0));
+        stops: const [0.0, 0.4, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: 40));
+    canvas.drawCircle(center, 40, haloPaint);
 
-    canvas.drawCircle(center, 8.0 + math.sin(time * math.pi) * 2.0, glowPaint);
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(spin);
+    final ringShader = SweepGradient(
+      colors: [
+        Colors.cyanAccent.withOpacity(0.8),
+        Colors.blueAccent.withOpacity(0.6),
+        Colors.tealAccent.withOpacity(0.8),
+        Colors.cyanAccent.withOpacity(0.8),
+      ],
+      stops: const [0.0, 0.3, 0.7, 1.0],
+    ).createShader(Rect.fromCircle(center: Offset.zero, radius: 14));
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..shader = ringShader;
+    canvas.drawCircle(Offset.zero, 14, ringPaint);
+    canvas.restore();
+
+    final orbitRadius = 14;
+    final orbitX = center.dx + math.sin(spin) * orbitRadius;
+    final orbitY = center.dy + math.cos(spin) * orbitRadius;
+    final orbitPaint = Paint()..color = Colors.white.withOpacity(0.9);
+    canvas.drawCircle(Offset(orbitX, orbitY), 3.5, orbitPaint);
 
     final corePaint = Paint()
-      ..style = PaintingStyle.fill
-      ..color = Colors.blueAccent.withOpacity(0.9);
+      ..shader = RadialGradient(
+        colors: [
+          Colors.blueAccent,
+          Colors.deepPurpleAccent,
+        ],
+        stops: const [0.3, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: 9));
+    canvas.drawCircle(center, 7.0 + math.sin(t * math.pi * 2) * 1.5, corePaint);
 
-    canvas.drawCircle(
-        center, 5.0 + math.sin(time * math.pi * 2) * 1.5, corePaint);
+    final coreGlow = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.white.withOpacity(0.6),
+          Colors.transparent,
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: 12));
+    canvas.drawCircle(center, 12, coreGlow);
   }
 
   @override
