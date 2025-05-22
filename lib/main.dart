@@ -17,7 +17,7 @@ import 'package:Freedom_Guard/pages/speedtest.dart';
 import 'package:Freedom_Guard/widgets/fragment.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'pages/LOGPAGE.dart';
+import 'pages/logs.dart';
 import 'components/LOGLOG.dart';
 import 'widgets/network.dart';
 
