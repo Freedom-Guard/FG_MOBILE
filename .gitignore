@@ -87,6 +87,7 @@ fastlane/test_output/
 firebase.json
 **/firebase_app_id_file.json
 crashlytics/
+lib/components/fsecure.dart
 
 # IntelliJ related
 *.iml
