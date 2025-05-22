@@ -8,6 +8,7 @@ import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:Freedom_Guard/components/fsecure.dart';
+import 'package:crypto/crypto.dart';
 
 Future<String> getDeviceId() async {
   final prefs = await SharedPreferences.getInstance();
@@ -148,7 +149,6 @@ Future<bool> donateCONFIG(String config,
           backgroundColor: Colors.redAccent);
       return false;
     }
-
     final ping = await testConfig(text);
 
     await FirebaseFirestore.instance.collection('configs').doc(docId).set({
@@ -159,15 +159,19 @@ Future<bool> donateCONFIG(String config,
       'ping': ping.toString(),
       'message': message.trim(),
       'core': core,
-      'secretKey': FSecure.key,
+      'secretKey': md5.convert(utf8.encode(FSecure.getKey())).toString(),
       'telegramLink': telegramLink.trim(),
     }).timeout(Duration(seconds: 10), onTimeout: () {
       throw "";
     });
-
+    await FirebaseFirestore.instance
+        .collection('configs')
+        .doc(docId)
+        .update({'secretKey': ""});
+        
     return true;
   } catch (e) {
-    LogOverlay.showLog("Error saving config: please turn on vpn",
+    LogOverlay.showLog("Error saving config: $e please turn on vpn",
         backgroundColor: Colors.redAccent);
     return false;
   }
