@@ -295,7 +295,7 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                                   width: 2),
                             ),
                             child: TextField(
-                              controller: telegramLinkController, // اضافه شده
+                              controller: telegramLinkController,
                               maxLines: 1,
                               style: GoogleFonts.vazirmatn(
                                   color: Colors.white, fontSize: 16),
@@ -328,6 +328,7 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                                 configController.text,
                                 core: selectedCore!,
                                 message: messageController.text,
+                                telegramLink: telegramLinkController.text,
                               ).timeout(Duration(seconds: 10), onTimeout: () {
                                 LogOverlay.showLog("Connection timed out",
                                     backgroundColor: Colors.redAccent);

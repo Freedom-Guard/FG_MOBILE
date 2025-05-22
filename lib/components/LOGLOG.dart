@@ -60,12 +60,16 @@ class LogOverlay {
     );
   }
 
-  static void showLog(
-    String message, {
-    Duration duration = const Duration(seconds: 3),
-    Color backgroundColor = Colors.black87,
-  }) {
+  static void showLog(String message,
+      {Duration duration = const Duration(seconds: 3),
+      Color backgroundColor = Colors.black87,
+      String type = "info"}) {
     addLog(message);
+    backgroundColor = type == "info"
+        ? Colors.blueAccent
+        : type == "error"
+            ? Colors.redAccent
+            : Colors.greenAccent;
     _logQueue.add(_LogData(message, duration, backgroundColor));
     _processQueue();
   }
@@ -89,13 +93,15 @@ class LogOverlay {
     }
 
     final snackBar = SnackBar(
-      content: Text(
-        message,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
+      content: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Text(
+            message,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+            ),
+          )),
       backgroundColor: backgroundColor.withOpacity(0.85),
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

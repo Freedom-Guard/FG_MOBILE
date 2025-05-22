@@ -156,45 +156,49 @@ class _SpeedTestPageState extends State<SpeedTestPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: Text(tr('speed-test')),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SizedBox(
-        width: double.infinity,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.grey[900]!, Colors.black],
-            ),
+    return Directionality(
+        textDirection:
+            getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            title: Text(tr('speed-test')),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
           ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildHeader(),
-                  const SizedBox(height: 32),
-                  if (status != "Complete") _buildStartButton(),
-                  const SizedBox(height: 32),
-                  _buildProgressIndicator(),
-                  const SizedBox(height: 32),
-                  _buildSpeedCards(),
-                  const SizedBox(height: 52),
-                  if (status == "Complete") _buildStartButton(),
-                ],
+          body: SizedBox(
+            width: double.infinity,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.grey[900]!, Colors.black],
+                ),
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 32),
+                      if (status != "Complete") _buildStartButton(),
+                      const SizedBox(height: 32),
+                      _buildProgressIndicator(),
+                      const SizedBox(height: 32),
+                      _buildSpeedCards(),
+                      const SizedBox(height: 52),
+                      if (status == "Complete") _buildStartButton(),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildHeader() {

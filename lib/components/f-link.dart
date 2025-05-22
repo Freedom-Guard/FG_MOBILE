@@ -74,35 +74,33 @@ Future<void> processFailedUpdates() async {
 }
 
 bool isValidTelegramLink(String input) {
-  final uriPattern = RegExp(r"^https:\/\/t\.me\/[a-zA-Z0-9_]{5,32}$");
-  final usernamePattern = RegExp(r"^@[a-zA-Z0-9_]{5,32}$");
-
-  if (input.trim().isEmpty) {
-    LogOverlay.showLog("لینک یا آیدی وارد نشده!",
-        backgroundColor: Colors.redAccent);
+  if (input.startsWith("https://t.me/")) {
+    return true;
+  } else if (input.startsWith("@")) {
+    return true;
+  } else if (input == "") {
+    return true;
+  } else {
     return false;
   }
-
-  if (uriPattern.hasMatch(input) || usernamePattern.hasMatch(input)) {
-    return true;
-  }
-
-  LogOverlay.showLog("لینک یا آیدی تلگرام نامعتبر است!",
-      backgroundColor: Colors.redAccent);
-  return false;
 }
 
 Future<bool> donateCONFIG(String config,
     {String core = "", String message = "", String telegramLink = ""}) async {
   try {
-    if (!isValidTelegramLink(telegramLink)) {
+    if (await isValidTelegramLink(telegramLink)) {
+      if (telegramLink.startsWith("@")) {
+        telegramLink = "https://t.me/" + telegramLink.split("@")[1];
+      }
+    } else {
+      LogOverlay.showLog("لینک کانال تلگرام نامعتبر است", type: "error");
       return false;
     }
 
     final text = config.trim();
-    LogOverlay.showLog("Donating...", backgroundColor: Colors.blueAccent);
+    LogOverlay.showLog("Donating...");
     if (text.isEmpty) {
-      LogOverlay.showLog("Invalid config", backgroundColor: Colors.redAccent);
+      LogOverlay.showLog("Invalid config", type: 'error');
       return false;
     }
 
@@ -285,7 +283,10 @@ Future<bool> tryConnect(String config, String docId, String message_old,
       }
 
       if (message.isNotEmpty) {
-        if (isValidTelegramLink(telegramLink)) {
+        if (!isValidTelegramLink(telegramLink)) {
+          telegramLink = "";
+          LogOverlay.showModal(message, telegramLink);
+        } else {
           LogOverlay.showModal(message, telegramLink);
         }
       }

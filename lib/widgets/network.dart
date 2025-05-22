@@ -60,103 +60,106 @@ class _PingWidgetState extends State<PingWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: isPinging ? null : _fetchPing,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 400),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isPinging
-                ? [Colors.amber.shade600, Colors.amber.shade800]
-                : ping == null
-                    ? [Colors.grey.shade700, Colors.grey.shade900]
-                    : [
-                        const Color.fromARGB(255, 36, 0, 121),
-                        const Color.fromARGB(255, 77, 0, 45),
-                      ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            stops: const [0.0, 1.0],
-          ),
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: isPinging
-                  ? Colors.amberAccent.withOpacity(0.4)
-                  : ping == null
-                      ? Colors.grey.withOpacity(0.25)
-                      : const Color.fromARGB(255, 159, 100, 255)
-                          .withOpacity(0.35),
-              blurRadius: 8,
-              spreadRadius: 1,
-              offset: const Offset(0, 3),
-            ),
-          ],
-          border: Border.all(
-            color: isPinging
-                ? Colors.amberAccent.withOpacity(0.5)
-                : ping == null
-                    ? Colors.white.withOpacity(0.1)
-                    : const Color.fromARGB(255, 159, 100, 255).withOpacity(0.3),
-            width: 1.2,
-          ),
-          color: Colors.black.withOpacity(0.05),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) => ScaleTransition(
-                scale: animation,
-                child: child,
-              ),
-              child: Icon(
-                isPinging ? Icons.sync : Icons.signal_wifi_4_bar,
-                key: ValueKey(isPinging),
-                color: isPinging
-                    ? Colors.white
+    return Directionality(
+        textDirection: TextDirection.ltr,
+        child: GestureDetector(
+          onTap: isPinging ? null : _fetchPing,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 400),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isPinging
+                    ? [Colors.amber.shade600, Colors.amber.shade800]
                     : ping == null
-                        ? Colors.grey.shade400
-                        : const Color.fromARGB(255, 167, 100, 255),
-                size: 14,
+                        ? [Colors.grey.shade700, Colors.grey.shade900]
+                        : [
+                            const Color.fromARGB(255, 36, 0, 121),
+                            const Color.fromARGB(255, 77, 0, 45),
+                          ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                stops: const [0.0, 1.0],
               ),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: isPinging
+                      ? Colors.amberAccent.withOpacity(0.4)
+                      : ping == null
+                          ? Colors.grey.withOpacity(0.25)
+                          : const Color.fromARGB(255, 159, 100, 255)
+                              .withOpacity(0.35),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+              border: Border.all(
+                color: isPinging
+                    ? Colors.amberAccent.withOpacity(0.5)
+                    : ping == null
+                        ? Colors.white.withOpacity(0.1)
+                        : const Color.fromARGB(255, 159, 100, 255)
+                            .withOpacity(0.3),
+                width: 1.2,
+              ),
+              color: Colors.black.withOpacity(0.05),
             ),
-            const SizedBox(width: 6),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 300),
-              style: TextStyle(
-                color: Colors.white.withOpacity(isPinging ? 0.9 : 1.0),
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-                fontFamily: 'Roboto',
-                shadows: [
-                  Shadow(
-                    color: isPinging
-                        ? Colors.amberAccent.withOpacity(0.3)
-                        : ping == null
-                            ? Colors.grey.withOpacity(0.2)
-                            : const Color.fromARGB(255, 159, 100, 255)
-                                .withOpacity(0.3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) => ScaleTransition(
+                    scale: animation,
+                    child: child,
                   ),
-                ],
-              ),
-              child: Text(
-                isPinging
-                    ? 'Pinging'
-                    : ping != null
-                        ? '$ping ms'
-                        : '—',
-              ),
+                  child: Icon(
+                    isPinging ? Icons.sync : Icons.signal_wifi_4_bar,
+                    key: ValueKey(isPinging),
+                    color: isPinging
+                        ? Colors.white
+                        : ping == null
+                            ? Colors.grey.shade400
+                            : const Color.fromARGB(255, 167, 100, 255),
+                    size: 14,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 300),
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(isPinging ? 0.9 : 1.0),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                    fontFamily: 'Roboto',
+                    shadows: [
+                      Shadow(
+                        color: isPinging
+                            ? Colors.amberAccent.withOpacity(0.3)
+                            : ping == null
+                                ? Colors.grey.withOpacity(0.2)
+                                : const Color.fromARGB(255, 159, 100, 255)
+                                    .withOpacity(0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    isPinging
+                        ? 'Pinging'
+                        : ping != null
+                            ? '$ping ms'
+                            : '—',
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 }
 
@@ -282,126 +285,130 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
   }
 
   Widget _buildConnectedWidget(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.65,
-      margin: const EdgeInsets.all(10),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blueGrey.shade800, Colors.black87],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const PingWidget(),
-          GestureDetector(
-            onTap: isLoading ? null : _fetchNetworkSpeeds,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: isLoading
-                      ? [Colors.grey.shade700, Colors.grey.shade800]
-                      : [Colors.teal.shade700, Colors.teal.shade900],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Icon(
-                Icons.refresh,
-                color: Colors.white.withOpacity(isLoading ? 0.6 : 1.0),
-                size: 16,
-              ),
+    return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.65,
+          margin: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueGrey.shade800, Colors.black87],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const PingWidget(),
+              GestureDetector(
+                onTap: isLoading ? null : _fetchNetworkSpeeds,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: isLoading
+                          ? [Colors.grey.shade700, Colors.grey.shade800]
+                          : [Colors.teal.shade700, Colors.teal.shade900],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.refresh,
+                    color: Colors.white.withOpacity(isLoading ? 0.6 : 1.0),
+                    size: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ));
   }
 
   Widget _buildStatusWidget(BuildContext context) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.65,
-      margin: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blueGrey.shade800, Colors.black87],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Container(
+          width: MediaQuery.of(context).size.width * 0.65,
+          margin: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blueGrey.shade800, Colors.black87],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Network Status",
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                        fontFamily: 'Roboto',
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Network Status",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                            fontFamily: 'Roboto',
+                          ),
+                        ),
+                        const PingWidget(),
+                      ],
                     ),
-                    const PingWidget(),
+                    const SizedBox(height: 10),
+                    _buildStatusCard(),
                   ],
                 ),
-                const SizedBox(height: 10),
-                _buildStatusCard(),
-              ],
-            ),
-          ),
-          if (isLoading)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.tealAccent,
-                    strokeWidth: 2,
+              ),
+              if (isLoading)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.tealAccent,
+                        strokeWidth: 2,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-        ],
-      ),
-    );
+            ],
+          ),
+        ));
   }
 
   Widget _buildStatusCard() {
