@@ -42,7 +42,7 @@ jobs:
       - name: Create fsecure.dart 
         run: |
           mkdir -p lib/components
-          echo "${{ secrets.FSECURE }}" > lib/components/fsecure.dart
+          echo '${{ secrets.FSECURE }}' > lib/components/fsecure.dart
 
       - name: Build Android APK
         run: flutter build apk --release
