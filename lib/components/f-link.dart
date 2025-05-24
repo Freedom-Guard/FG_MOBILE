@@ -168,7 +168,7 @@ Future<bool> donateCONFIG(String config,
         .collection('configs')
         .doc(docId)
         .update({'secretKey': ""});
-        
+
     return true;
   } catch (e) {
     LogOverlay.showLog("Error saving config: $e please turn on vpn",
@@ -296,6 +296,7 @@ Future<bool> tryConnect(String config, String docId, String message_old,
           LogOverlay.showModal(message, telegramLink);
         }
       }
+      rating(docId);
       return true;
     }
   }
@@ -320,6 +321,15 @@ Future<void> refreshCache() async {
   await Future.delayed(Duration(seconds: 3));
   await getRandomConfigs();
   await processFailedUpdates();
+}
+
+Future<void> rating(String docID) async {
+  final rate = await showRatingModal("آیا این کانفیگ کار میکند؟", docID);
+  if (rate > 3) {
+    saveFailedUpdate(docID, rate);
+  } else if (rate < 3) {
+    saveFailedUpdate(docID, rate == 2 ? 2 : 5);
+  }
 }
 
 Future<bool> connectFL() async {

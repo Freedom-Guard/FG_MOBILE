@@ -10,7 +10,6 @@ on:
 permissions:
   contents: write  
   
-
 jobs:
   build:
     name: Build Flutter APK

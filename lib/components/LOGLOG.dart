@@ -264,3 +264,126 @@ class _ModalContentState extends State<_ModalContent> {
     );
   }
 }
+
+Future<int> showRatingModal(
+    String message, String docId) async {
+  final context = LogOverlay.navigatorKey.currentContext;
+  if (context == null) {
+    return -1;
+  }
+
+  final rating = await showDialog<int>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return _RatingModalContent(
+        message: message,
+        docId: docId,
+      );
+    },
+  );
+
+  return rating ?? -1;
+}
+
+// Add new class
+class _RatingModalContent extends StatefulWidget {
+  final String message;
+  final String docId;
+
+  const _RatingModalContent({
+    required this.message,
+    required this.docId,
+  });
+
+  @override
+  State<_RatingModalContent> createState() => _RatingModalContentState();
+}
+
+class _RatingModalContentState extends State<_RatingModalContent> {
+  int _rating = 0;
+  bool _isExitEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() => _isExitEnabled = true);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.black87.withOpacity(0.85),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: Text(
+                  'امتیاز به کانفیگ',
+                  style: TextStyle(
+                    color: Colors.amber,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  return IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _rating = index + 1;
+                      });
+                    },
+                    icon: Icon(
+                      _rating > index ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                      size: 30,
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(width: 20),
+                  TextButton(
+                    onPressed: _isExitEnabled
+                        ? () => Navigator.of(context).pop(_rating)
+                        : null,
+                    style: TextButton.styleFrom(
+                      backgroundColor:
+                          _isExitEnabled ? Colors.red : Colors.grey.shade800,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('ارسال'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
