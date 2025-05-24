@@ -331,7 +331,7 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                                 telegramLink: telegramLinkController.text,
                               ).timeout(Duration(seconds: 10), onTimeout: () {
                                 LogOverlay.showLog("Connection timed out",
-                                    backgroundColor: Colors.redAccent);
+                                    type: "error");
                                 return false;
                               });
                               ScaffoldMessenger.of(context).showSnackBar(

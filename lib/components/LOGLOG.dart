@@ -60,17 +60,60 @@ class LogOverlay {
     );
   }
 
+  static Future<int> showRatingModal(
+      String message, String telegramLink, String docId) async {
+    final context = navigatorKey.currentContext;
+    if (context == null) return -1;
+
+    addLog("Showing rating modal for config: $docId");
+
+    final rating = await showDialog<int>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return _RatingModalContent(
+          message: message,
+          docId: docId,
+        );
+      },
+    );
+
+    return rating ?? -1;
+  }
+
   static void showLog(String message,
       {Duration duration = const Duration(seconds: 3),
       Color backgroundColor = Colors.black87,
       String type = "info"}) {
     addLog(message);
+    Color textColor;
     backgroundColor = type == "info"
         ? Colors.blueAccent
         : type == "error"
             ? Colors.redAccent
-            : Colors.greenAccent;
-    _logQueue.add(_LogData(message, duration, backgroundColor));
+            : type == "success"
+                ? Colors.greenAccent
+                : type == "warning"
+                    ? Colors.orangeAccent
+                    : type == "rating"
+                        ? Colors.amber
+                        : type == "debug"
+                            ? Colors.purpleAccent
+                            : type == "critical"
+                                ? Colors.red.shade900
+                                : type == "notification"
+                                    ? Colors.tealAccent
+                                    : type == "info_light"
+                                        ? Colors.lightBlue
+                                        : type == "success_light"
+                                            ? Colors.green.shade300
+                                            : Colors.black87;
+
+    textColor = type == "info_light" || type == "success_light"
+        ? Colors.black87
+        : Colors.white;
+
+    _logQueue.add(_LogData(message, duration, backgroundColor, textColor));
     _processQueue();
   }
 
@@ -78,13 +121,15 @@ class LogOverlay {
     if (_isShowingLog || _logQueue.isEmpty) return;
     _isShowingLog = true;
     final logData = _logQueue.removeAt(0);
-    _showSnackBar(logData.message, logData.duration, logData.backgroundColor);
+    _showSnackBar(logData.message, logData.duration, logData.backgroundColor,
+        logData.textColor);
   }
 
   static void _showSnackBar(
     String message,
     Duration duration,
     Color backgroundColor,
+    Color textColor,
   ) {
     final context = navigatorKey.currentContext;
     if (context == null) {
@@ -94,14 +139,15 @@ class LogOverlay {
 
     final snackBar = SnackBar(
       content: Directionality(
-          textDirection: TextDirection.ltr,
-          child: Text(
-            message,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          )),
+        textDirection: TextDirection.ltr,
+        child: Text(
+          message,
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
       backgroundColor: backgroundColor.withOpacity(0.85),
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -130,7 +176,10 @@ class _LogData {
   final String message;
   final Duration duration;
   final Color backgroundColor;
-  _LogData(this.message, this.duration, this.backgroundColor);
+  final Color textColor;
+
+  _LogData(this.message, this.duration, this.backgroundColor,
+      [this.textColor = Colors.white]);
 }
 
 class _ModalContent extends StatefulWidget {
@@ -175,7 +224,7 @@ class _ModalContentState extends State<_ModalContent> {
     } else {
       LogOverlay.showLog(
         "Cannot open the link.",
-        backgroundColor: Colors.redAccent,
+        type: "error",
       );
     }
   }
@@ -265,8 +314,7 @@ class _ModalContentState extends State<_ModalContent> {
   }
 }
 
-Future<int> showRatingModal(
-    String message, String docId) async {
+Future<int> showRatingModal(String message, String docId) async {
   final context = LogOverlay.navigatorKey.currentContext;
   if (context == null) {
     return -1;

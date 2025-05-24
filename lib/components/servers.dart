@@ -55,9 +55,7 @@ class ServersM extends ChangeNotifier {
     try {
       if (server.split("#")[0] == "") return;
       LogOverlay.showLog(
-        "ping: " + (await connect.testConfig(server)).toString(),
-        backgroundColor: Colors.blueAccent,
-      );
+          "ping: " + (await connect.testConfig(server)).toString());
     } catch (e) {}
   }
 

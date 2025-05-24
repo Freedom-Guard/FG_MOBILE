@@ -13,10 +13,7 @@ class Connect {
   final FlutterV2ray flutterV2ray = FlutterV2ray(
     onStatusChanged: (status) async {
       if (status.toString() == "V2RayStatusState.connected") {
-        LogOverlay.showLog(
-          "Connected To VIBE",
-          backgroundColor: Colors.greenAccent,
-        );
+        LogOverlay.showLog("Connected To VIBE", type: "success");
       }
     },
   );
@@ -36,14 +33,11 @@ class Connect {
           .get(Uri.parse('https://www.google.com'))
           .timeout(const Duration(seconds: 5));
       if (response.statusCode == 200) {
-        LogOverlay.showLog(
-          "Connected To internet",
-          backgroundColor: Colors.greenAccent,
-        );
+        LogOverlay.showLog("Connected To internet", type: "success");
         return true;
       }
     } catch (_) {}
-    LogOverlay.showLog("No internet");
+    LogOverlay.showLog("No internet", type: "error");
     return false;
   }
 
@@ -213,7 +207,7 @@ class Connect {
     try {
       await flutterV2ray.initializeV2Ray();
     } catch (_) {
-      LogOverlay.showLog("Failed to initialize VIBE");
+      LogOverlay.showLog("Failed to initialize VIBE", type: "error");
       return false;
     }
 
@@ -266,15 +260,13 @@ class Connect {
         return true;
       } else {
         LogOverlay.showLog(
-          "Permission Denied: Please grant necessary permissions to establish a connection.",
-          backgroundColor: Colors.redAccent,
-        );
+            "Permission Denied: Please grant necessary permissions to establish a connection.",
+            type: "error");
       }
     } catch (e, stackTrace) {
       LogOverlay.showLog(
-        "Failed to connect to VIBE \n ${e.toString()}\nStackTrace: ${stackTrace.toString()}",
-        backgroundColor: Colors.redAccent,
-      );
+          "Failed to connect to VIBE \n ${e.toString()}\nStackTrace: ${stackTrace.toString()}",
+          type: "error");
       return false;
     } finally {
       stopwatch.stop();
@@ -348,15 +340,13 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
 
       LogOverlay.showLog(
         "Connected To WARP",
-        backgroundColor: Colors.greenAccent,
+        type: "success",
       );
       isConnected = true;
       return true;
     } catch (e) {
-      LogOverlay.showLog(
-        "Failed to connect to WARP \nError: $e",
-        backgroundColor: Colors.redAccent,
-      );
+      LogOverlay.showLog("Failed to connect to WARP \nError: $e",
+          type: "error");
       return false;
     }
   }
@@ -412,11 +402,12 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
         }
         return connStat;
       } else {
-        LogOverlay.showLog('Failed to load config: ${response.statusCode}');
+        LogOverlay.showLog('Failed to load config: ${response.statusCode}',
+            type: "error");
         return false;
       }
     } catch (e, stackTrace) {
-      LogOverlay.showLog('Error in ConnectAuto: $e\nStackTrace: $stackTrace');
+      LogOverlay.addLog('Error in ConnectAuto: $e\nStackTrace: $stackTrace');
       return false;
     }
   }
@@ -476,16 +467,11 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
         if (sub == backupSub &&
             bestConfig.isNotEmpty &&
             await isConfigValid(bestConfig)) {
-          LogOverlay.showLog(
-            "Quick connect activated",
-            backgroundColor: Colors.deepPurpleAccent,
-          );
+          LogOverlay.showLog("Quick connect activated", type: "success");
           return bestConfig;
         }
-        LogOverlay.showLog(
-          "Quick connect failed, switching to normal mode",
-          backgroundColor: Colors.orangeAccent,
-        );
+        LogOverlay.showLog("Quick connect failed, switching to normal mode",
+            type: "warning");
       }
 
       await settings.setValue("backup_sub", sub.toString());
@@ -498,7 +484,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
       if (uri == null || !uri.hasScheme) {
         LogOverlay.showLog(
           "Invalid subscription URL",
-          backgroundColor: Colors.redAccent,
+          type: "error",
         );
         return null;
       }
@@ -510,10 +496,8 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
           );
 
       if (response.statusCode != 200) {
-        LogOverlay.showLog(
-          "Server error: ${response.statusCode}",
-          backgroundColor: Colors.redAccent,
-        );
+        LogOverlay.showLog("Server error: ${response.statusCode}",
+            type: "error");
         return null;
       }
 
@@ -529,10 +513,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
       final configs =
           data.split('\n').where((e) => e.trim().isNotEmpty).toList();
       if (configs.isEmpty) {
-        LogOverlay.showLog(
-          "No configs found in subscription",
-          backgroundColor: Colors.redAccent,
-        );
+        LogOverlay.showLog("No configs found in subscription", type: "error");
         return null;
       }
 
@@ -540,10 +521,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
         await flutterV2ray.initializeV2Ray();
       } catch (e) {
         debugPrint('Failed to initialize V2Ray: $e');
-        LogOverlay.showLog(
-          "VIBE initialization failed",
-          backgroundColor: Colors.redAccent,
-        );
+        LogOverlay.showLog("VIBE initialization failed", type: "error");
         return null;
       }
 
@@ -584,10 +562,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
       }
 
       if (results.isEmpty) {
-        LogOverlay.showLog(
-          "No valid configs found",
-          backgroundColor: Colors.redAccent,
-        );
+        LogOverlay.showLog("No valid configs found", type: "error");
         return null;
       }
 
@@ -596,16 +571,12 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
 
       LogOverlay.showLog(
         "Best config selected with ping ${results.first['ping']}ms",
-        backgroundColor: Colors.blueAccent,
       );
       await settings.setValue("best_config_backup", bestConfig);
       return bestConfig.toString();
     } catch (e, stackTrace) {
       debugPrint('Error in getBestConfigFromSub: $e');
-      LogOverlay.showLog(
-        "Unexpected error: $e $stackTrace",
-        backgroundColor: Colors.redAccent,
-      );
+      LogOverlay.showLog("Unexpected error: $e", type: "error");
       return null;
     }
   }

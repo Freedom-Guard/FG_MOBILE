@@ -152,10 +152,7 @@ class _HomePageState extends State<HomePage>
         isConnected = false;
         isConnecting = false;
       });
-      LogOverlay.showLog(
-        "Connection process stopped.",
-        backgroundColor: Colors.orangeAccent,
-      );
+      LogOverlay.showLog("Connection process stopped.", type: "warning");
       return;
     }
 
@@ -174,10 +171,7 @@ class _HomePageState extends State<HomePage>
         var connStat = false;
         var selectedServer = await serverM.getSelectedServer() as String;
         if (selectedServer.split("#")[0].isEmpty) {
-          LogOverlay.showLog(
-            "connecting to FL mode...",
-            backgroundColor: Colors.blueAccent,
-          );
+          LogOverlay.showLog("connecting to FL mode...");
           connStat =
               await connectFL().timeout(Duration(seconds: 30), onTimeout: () {
             LogOverlay.showLog("Connection to FL mode timed out.");
@@ -198,7 +192,8 @@ class _HomePageState extends State<HomePage>
             ).timeout(
               Duration(milliseconds: timeout),
               onTimeout: () {
-                LogOverlay.showLog("Connection to Auto mode timed out.");
+                LogOverlay.showLog("Connection to Auto mode timed out.",
+                    type: "error");
                 return false;
               },
             );
@@ -206,7 +201,6 @@ class _HomePageState extends State<HomePage>
         } else {
           LogOverlay.showLog(
             "connecting to config:\n${selectedServer.split("#")[0]}",
-            backgroundColor: Colors.blueAccent,
           );
           if (selectedServer.startsWith("http")) {
             var bestConfig = await connect.getBestConfigFromSub(
@@ -245,9 +239,8 @@ class _HomePageState extends State<HomePage>
             connect.startConfigUpdateTimer(defSet["fgconfig"]!, 150000);
           }
           LogOverlay.showLog(
-            "connected to ${await settings.getValue("core_vpn")} mode",
-            backgroundColor: Colors.greenAccent,
-          );
+              "connected to ${await settings.getValue("core_vpn")} mode",
+              type: "success");
           refreshCache();
         } else {
           if (await settings.getValue("core_vpn") == "auto") {
@@ -261,15 +254,14 @@ class _HomePageState extends State<HomePage>
             );
           }
           LogOverlay.showLog(
-            "not connected to ${await settings.getValue("core_vpn")} mode",
-            backgroundColor: Colors.redAccent,
-          );
+              "not connected to ${await settings.getValue("core_vpn")} mode",
+              type: "error");
         }
       } catch (e) {
         setState(() {
           isConnected = false;
         });
-        LogOverlay.showLog("خطا در اتصال: $e");
+        LogOverlay.showLog("خطا در اتصال: $e", type: "error");
       }
     }
 

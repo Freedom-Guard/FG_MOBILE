@@ -123,8 +123,7 @@ Future<bool> donateCONFIG(String config,
     } else {
       final created = statsSnap.data()?['createdToday'] ?? 0;
       if (created >= 50) {
-        LogOverlay.showLog("Daily submission limit reached",
-            backgroundColor: Colors.orange);
+        LogOverlay.showLog("Daily submission limit reached", type: "error");
         return false;
       }
       await statsRef.update({'createdToday': FieldValue.increment(1)});
@@ -139,14 +138,12 @@ Future<bool> donateCONFIG(String config,
       throw "";
     });
     if (existing.exists) {
-      LogOverlay.showLog("This config is already submitted",
-          backgroundColor: Colors.orangeAccent);
+      LogOverlay.showLog("This config is already submitted", type: "error");
       return false;
     }
 
     if (utf8.encode(text).length > 10000) {
-      LogOverlay.showLog("The config is too large",
-          backgroundColor: Colors.redAccent);
+      LogOverlay.showLog("The config is too large", type: "error");
       return false;
     }
     final ping = await testConfig(text);
@@ -172,7 +169,7 @@ Future<bool> donateCONFIG(String config,
     return true;
   } catch (e) {
     LogOverlay.showLog("Error saving config: $e please turn on vpn",
-        backgroundColor: Colors.redAccent);
+        type: "error");
     return false;
   }
 }
@@ -191,8 +188,7 @@ Future<List> getRandomConfigs() async {
     } else {
       final listed = statsSnap.data()?['listedToday'] ?? 0;
       if (listed >= 50) {
-        LogOverlay.showLog("Daily receive limit reached",
-            backgroundColor: Colors.orange);
+        LogOverlay.showLog("Daily receive limit reached", type: "warning");
         return [];
       }
       await statsRef.update({'listedToday': FieldValue.increment(1)});
@@ -206,7 +202,7 @@ Future<List> getRandomConfigs() async {
         .limit(15)
         .get()
         .timeout(Duration(seconds: 10), onTimeout: () {
-      LogOverlay.showLog("Firebase timeout", backgroundColor: Colors.redAccent);
+      LogOverlay.showLog("Server FG timeout", type: "error");
       throw "timeout fb online";
     });
 
@@ -240,8 +236,7 @@ Future<List> restoreConfigs() async {
       return configs;
     }
   } catch (e) {
-    LogOverlay.showLog("Error restoring configs: $e",
-        backgroundColor: Colors.redAccent);
+    LogOverlay.showLog("Error restoring configs: $e", type: "error");
   }
   return [];
 }
@@ -305,13 +300,11 @@ Future<bool> tryConnect(String config, String docId, String message_old,
     await docRef.update({'connected': FieldValue.increment(-1)});
   } on FirebaseException catch (e) {
     await saveFailedUpdate(docId, -1);
-    LogOverlay.showLog(
-        "Firebase error decrementing connection counter: ${e.message}",
-        backgroundColor: Colors.redAccent);
+    LogOverlay.addLog(
+        "Server error decrementing connection counter: ${e.message}");
   } catch (e) {
     await saveFailedUpdate(docId, -1);
-    LogOverlay.showLog("Unknown error decrementing connection counter: $e",
-        backgroundColor: Colors.orangeAccent);
+    LogOverlay.addLog("Unknown error decrementing connection counter: $e");
   }
 
   return false;
@@ -336,8 +329,6 @@ Future<bool> connectFL() async {
   try {
     final configs = await getRandomConfigs().timeout(Duration(seconds: 10),
         onTimeout: () async {
-      LogOverlay.showLog("Connection FL timed out",
-          backgroundColor: Colors.redAccent);
       return await restoreConfigs();
     });
     for (var config in configs) {
@@ -351,9 +342,8 @@ Future<bool> connectFL() async {
       }
     }
   } catch (e) {
-    LogOverlay.showLog("Error connecting FL: $e",
-        backgroundColor: Colors.redAccent);
+    LogOverlay.showLog("Error connecting FL: $e", type: "error");
   }
-  LogOverlay.showLog("Connection FL failed", backgroundColor: Colors.redAccent);
+  LogOverlay.showLog("Connection FL failed", type: "warning");
   return false;
 }

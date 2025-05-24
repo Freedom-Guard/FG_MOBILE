@@ -290,7 +290,7 @@ Future<void> openXraySettings(BuildContext context) async {
     initialConfig: initialConfig,
     onConfigChanged: (newConfig) {
       String jsonConfig = jsonEncode(newConfig);
-      LogOverlay.showLog('Updated Xray Config: $jsonConfig');
+      LogOverlay.showLog('Updated Xray Config: \n $jsonConfig');
     },
   );
 }
