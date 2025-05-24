@@ -331,10 +331,9 @@ Future<int> showRatingModal(String message, String docId) async {
     },
   );
 
-  return rating ?? -1;
+  return rating ?? 3;
 }
 
-// Add new class
 class _RatingModalContent extends StatefulWidget {
   final String message;
   final String docId;
@@ -407,16 +406,16 @@ class _RatingModalContentState extends State<_RatingModalContent> {
               ),
               const SizedBox(height: 20),
               Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const SizedBox(width: 20),
                   TextButton(
-                    onPressed: _isExitEnabled
+                    onPressed: _isExitEnabled && _rating > 0
                         ? () => Navigator.of(context).pop(_rating)
                         : null,
                     style: TextButton.styleFrom(
-                      backgroundColor:
-                          _isExitEnabled ? Colors.red : Colors.grey.shade800,
+                      backgroundColor: _isExitEnabled && _rating > 0
+                          ? Colors.blueAccent
+                          : Colors.grey.shade800,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 10),
@@ -425,6 +424,19 @@ class _RatingModalContentState extends State<_RatingModalContent> {
                       ),
                     ),
                     child: const Text('ارسال'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(-1),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('لغو'),
                   ),
                 ],
               ),

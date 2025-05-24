@@ -574,7 +574,7 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
       );
       await settings.setValue("best_config_backup", bestConfig);
       return bestConfig.toString();
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('Error in getBestConfigFromSub: $e');
       LogOverlay.showLog("Unexpected error: $e", type: "error");
       return null;
