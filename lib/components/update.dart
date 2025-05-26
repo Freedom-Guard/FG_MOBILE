@@ -7,14 +7,14 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 Future<void> checkForUpdate(BuildContext context) async {
   final response = await http.get(
     Uri.parse(
-      'https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/latest.json',
+      'https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/mobile.json',
     ),
   );
 
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
     final latestVersion = data['version'];
-    const currentVersion = '7.0.0';
+    const currentVersion = '7.1.0';
 
     if (latestVersion.compareTo(currentVersion) > 0) {
       showDialog(

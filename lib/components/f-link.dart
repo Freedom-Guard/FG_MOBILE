@@ -317,6 +317,7 @@ Future<void> refreshCache() async {
 }
 
 Future<void> rating(String docID) async {
+  await Future.delayed(Duration(seconds: 10));
   final rate = await showRatingModal("آیا این کانفیگ کار میکند؟", docID);
   if (rate > 3) {
     saveFailedUpdate(docID, rate);
