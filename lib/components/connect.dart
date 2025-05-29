@@ -198,6 +198,7 @@ class Connect {
 
   // Connects to a single V2Ray config
   Future<bool> ConnectVibe(String config, dynamic args) async {
+    await disConnect();
     final stopwatch = Stopwatch()..start();
     LogOverlay.showLog(
       "Connecting To VIBE...",
