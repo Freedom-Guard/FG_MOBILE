@@ -252,7 +252,7 @@ Future<int> testConfig(String config) async {
     }
     final ping = await flutterV2ray
         .getServerDelay(config: parser)
-        .timeout(const Duration(seconds: 4), onTimeout: () => -1);
+        .timeout(const Duration(seconds: 3), onTimeout: () => -1);
     return ping > 0 ? ping : -1;
   } catch (e) {
     return -1;
@@ -328,7 +328,7 @@ Future<void> rating(String docID) async {
 
 Future<bool> connectFL() async {
   try {
-    final configs = await getRandomConfigs().timeout(Duration(seconds: 10),
+    final configs = await getRandomConfigs().timeout(Duration(seconds: 7),
         onTimeout: () async {
       return await restoreConfigs();
     });
