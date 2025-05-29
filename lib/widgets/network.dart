@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'package:Freedom_Guard/components/connect.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_v2ray/model/v2ray_status.dart';
+import 'package:flutter_v2ray/flutter_v2ray.dart';
 import 'package:http/http.dart' as http;
 
 class NetworkStatusWidget extends StatefulWidget {
@@ -11,7 +12,6 @@ class NetworkStatusWidget extends StatefulWidget {
 }
 
 class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
-  final v2rayStatus = ValueNotifier<V2RayStatus>(V2RayStatus());
   bool isPinging = false;
   int? ping;
   Timer? _autoRefreshTimer;
@@ -126,14 +126,14 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
                       color: status.download == null
                           ? Colors.grey
                           : Colors.blueAccent,
-                      value: _formatSpeed(status.download),
+                      value: _formatSpeed(status.downloadSpeed),
                     ),
                     _buildStatusTile(
                       icon: Icons.upload,
                       color: status.upload == null
                           ? Colors.grey
                           : Colors.orangeAccent,
-                      value: _formatSpeed(status.upload),
+                      value: _formatSpeed(status.uploadSpeed),
                     ),
                     _buildStatusTile(
                       icon: Icons.access_time,

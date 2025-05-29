@@ -7,14 +7,15 @@ import 'package:wireguard_flutter/wireguard_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
+ValueNotifier<V2RayStatus> v2rayStatus =
+    ValueNotifier<V2RayStatus>(V2RayStatus());
+
 class Connect {
   bool isConnected = false;
   Settings settings = new Settings();
-  final FlutterV2ray flutterV2ray = FlutterV2ray(
-    onStatusChanged: (status) async {
-      if (status.toString() == "V2RayStatusState.connected") {
-        LogOverlay.showLog("Connected To VIBE", type: "success");
-      }
+  late final FlutterV2ray flutterV2ray = FlutterV2ray(
+    onStatusChanged: (status) {
+      v2rayStatus.value = status;
     },
   );
   final wireguard = WireGuardFlutter.instance;
