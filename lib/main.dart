@@ -479,7 +479,7 @@ class _HomePageState extends State<HomePage>
                   ),
                 ),
                 SizedBox(height: 25),
-                if (isConnected) NetworkStatusWidget() else (PingWidget()),
+                if (isConnected) NetworkStatusWidget(),
                 Spacer(flex: 1),
               ],
             ),
