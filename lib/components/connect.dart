@@ -166,10 +166,7 @@ class Connect extends Tools {
         }
 
         if (ping != -1) {
-          LogOverlay.showLog(
-            'Ping connecting $ping ms',
-            backgroundColor: Colors.blueAccent,
-          );
+          LogOverlay.addLog('Ping connecting $ping ms');
         }
         String parsedJson = await addOptionsToVibe(jsonDecode(parser));
         LogOverlay.addLog(parsedJson);
