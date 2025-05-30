@@ -223,7 +223,7 @@ Future<void> saveConfigs(List docs) async {
   final prefs = await SharedPreferences.getInstance();
   final configsJson = jsonEncode(docs);
   await prefs.setString('cachedConfigs', configsJson);
-  LogOverlay.showLog("Configs cached successfully");
+  LogOverlay.addLog("Configs cached successfully");
 }
 
 Future<List> restoreConfigs() async {
@@ -232,7 +232,7 @@ Future<List> restoreConfigs() async {
     final configsJson = prefs.getString('cachedConfigs');
     if (configsJson != null) {
       final configs = jsonDecode(configsJson);
-      LogOverlay.showLog("Configs restored from cache");
+      LogOverlay.addLog("Configs restored from cache");
       return configs;
     }
   } catch (e) {

@@ -234,10 +234,6 @@ class _HomePageState extends State<HomePage>
           if ((await settings.getValue("f_link").toString()) == "true") {
             donateCONFIG(selectedServer.split("#")[0]);
           }
-          if (await settings.getValue("core_vpn") == "auto" ||
-              await settings.getValue("core_vpn") == "") {
-            connect.startConfigUpdateTimer(defSet["fgconfig"]!, 150000);
-          }
           LogOverlay.showLog(
               "connected to ${await settings.getValue("core_vpn")} mode",
               type: "success");

@@ -3,23 +3,13 @@ import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_v2ray/flutter_v2ray.dart';
-import 'package:wireguard_flutter/wireguard_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
 ValueNotifier<V2RayStatus> v2rayStatus =
     ValueNotifier<V2RayStatus>(V2RayStatus());
 
-class Connect {
-  bool isConnected = false;
-  Settings settings = new Settings();
-  late final FlutterV2ray flutterV2ray = FlutterV2ray(
-    onStatusChanged: (status) {
-      v2rayStatus.value = status;
-    },
-  );
-  final wireguard = WireGuardFlutter.instance;
-
+class Connect extends Tools {
   Future<void> connected() async {
     isConnected = true;
   }
@@ -28,6 +18,7 @@ class Connect {
     return isConnected;
   }
 
+  // Test Internet
   Future<bool> test() async {
     try {
       final response = await http
@@ -42,37 +33,17 @@ class Connect {
     return false;
   }
 
+  // Diconnect VPN
   Future<void> disConnect() async {
-    await flutterV2ray.initializeV2Ray();
-    flutterV2ray.stopV2Ray();
-    wireguard.stopVpn();
-    stopConfigUpdateTimer();
-  }
-
-  Timer? _configUpdateTimer;
-  void startConfigUpdateTimer(String fgconfig, int timeout) {
-    if (_configUpdateTimer != null && _configUpdateTimer!.isActive) {
-      _configUpdateTimer!.cancel();
-    }
-    _configUpdateTimer = Timer.periodic(const Duration(minutes: 15), (
-      timer,
-    ) async {
-      if (isConnected && (await settings.getValue("guard_mode") == true)) {
-        if (!(await test()) && !(await test()) && !(await test())) {
-          await disConnect();
-          await ConnectAuto(fgconfig, timeout);
-        }
-      }
-    });
-  }
-
-  void stopConfigUpdateTimer() {
-    if (_configUpdateTimer != null && _configUpdateTimer!.isActive) {
-      _configUpdateTimer!.cancel();
-      _configUpdateTimer = null;
+    try {
+      await flutterV2ray.initializeV2Ray();
+      flutterV2ray.stopV2Ray();
+    } catch (_) {
+      LogOverlay.addLog("Failed to disconnect");
     }
   }
 
+  // Add Fragment, Mux, ...
   Future<String> addOptionsToVibe(dynamic parsedJson) async {
     String mux = await settings.getValue("mux");
     String fragment = await settings.getValue("fragment");
@@ -157,46 +128,6 @@ class Connect {
     return jsonEncode(parsedJson).toString();
   }
 
-  Future<dynamic> getSubNetforBypassVibe() async {
-    if (await settings.getValue("bypass_lan") == "true") {
-      LogOverlay.showLog("Bypass LAN Enabled");
-      return [
-        "0.0.0.0/5",
-        "8.0.0.0/7",
-        "11.0.0.0/8",
-        "12.0.0.0/6",
-        "16.0.0.0/4",
-        "32.0.0.0/3",
-        "64.0.0.0/2",
-        "128.0.0.0/3",
-        "160.0.0.0/5",
-        "168.0.0.0/6",
-        "172.0.0.0/12",
-        "172.32.0.0/11",
-        "172.64.0.0/10",
-        "172.128.0.0/9",
-        "173.0.0.0/8",
-        "174.0.0.0/7",
-        "176.0.0.0/4",
-        "192.0.0.0/9",
-        "192.128.0.0/11",
-        "192.160.0.0/13",
-        "192.169.0.0/16",
-        "192.170.0.0/15",
-        "192.172.0.0/14",
-        "192.176.0.0/12",
-        "192.192.0.0/10",
-        "193.0.0.0/8",
-        "194.0.0.0/7",
-        "196.0.0.0/6",
-        "200.0.0.0/5",
-        "208.0.0.0/4",
-        "240.0.0.0/4",
-      ];
-    } else
-      return null;
-  }
-
   // Connects to a single V2Ray config
   Future<bool> ConnectVibe(String config, dynamic args) async {
     await disConnect();
@@ -279,78 +210,8 @@ class Connect {
     return false;
   }
 
-  Future<Map<String, String>?> parseWireGuardLink(String link) async {
-    try {
-      final uri = Uri.parse(link);
-      if (uri.scheme != 'wireguard') return null;
-
-      final params = uri.queryParameters.map(
-        (key, value) => MapEntry(key, Uri.decodeComponent(value)),
-      );
-
-      final privateKey = Uri.decodeComponent(uri.userInfo);
-      if (privateKey.isEmpty) return null;
-
-      final publicKey = params['publickey'];
-      final address = params['address'];
-      final mtu = params['mtu'];
-      final endpoint = '${uri.host}:${uri.port}';
-      if (publicKey == null || address == null || mtu == null) return null;
-
-      final config = '''
-[Interface]
-PrivateKey = $privateKey
-Address = $address
-${_optionalField("DNS", params['dns'])}
-MTU = $mtu
-
-[Peer]
-PublicKey = $publicKey
-AllowedIPs = ${params['allowedips'] ?? '0.0.0.0/0, ::/0'}
-Endpoint = $endpoint
-${_optionalField("PresharedKey", params['presharedkey'])}
-${_optionalField("PersistentKeepalive", params['keepalive'])}
-''';
-
-      return {'config': config, 'serverAddress': endpoint};
-    } catch (e) {
-      return null;
-    }
-  }
-
-  String _optionalField(String key, String? value) {
-    return value != null && value.isNotEmpty ? "$key = $value\n" : "";
-  }
-
   Future<bool> ConnectWarp(String config, List<String> args) async {
-    try {
-      var conf = {};
-      if (config.startsWith("wire:::")) {
-        conf["config"] = config.split("wire:::\n")[1];
-        conf["serverAddress"] = conf["config"].split("\n")[1];
-      } else {
-        conf = await parseWireGuardLink(config) as Map<String, String>;
-      }
-      if (conf == "") return false;
-
-      await wireguard.initialize(interfaceName: 'wg0');
-      await wireguard.startVpn(
-        serverAddress: conf["serverAddress"]!,
-        wgQuickConfig: conf["config"]!,
-        providerBundleIdentifier: 'com.freedom.guard',
-      );
-
-      LogOverlay.showLog(
-        "Connected To WARP",
-        type: "success",
-      );
-      isConnected = true;
-      return true;
-    } catch (e) {
-      LogOverlay.showLog("Failed to connect to WARP \nError: $e",
-          type: "error");
-      return false;
-    }
+    return false;
   }
 
   // Fetches and processes configs from a URL
@@ -413,6 +274,17 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
       return false;
     }
   }
+}
+
+class Tools {
+  bool isConnected = false;
+  Settings settings = new Settings();
+
+  late final FlutterV2ray flutterV2ray = FlutterV2ray(
+    onStatusChanged: (status) {
+      v2rayStatus.value = status;
+    },
+  );
 
   debugPrint(message) {
     LogOverlay.addLog(message);
@@ -448,6 +320,46 @@ ${_optionalField("PersistentKeepalive", params['keepalive'])}
 
   Future<bool> isConfigValid(String config) async {
     return await testConfig(config) > 0;
+  }
+
+  Future<dynamic> getSubNetforBypassVibe() async {
+    if (await settings.getValue("bypass_lan") == "true") {
+      LogOverlay.showLog("Bypass LAN Enabled");
+      return [
+        "0.0.0.0/5",
+        "8.0.0.0/7",
+        "11.0.0.0/8",
+        "12.0.0.0/6",
+        "16.0.0.0/4",
+        "32.0.0.0/3",
+        "64.0.0.0/2",
+        "128.0.0.0/3",
+        "160.0.0.0/5",
+        "168.0.0.0/6",
+        "172.0.0.0/12",
+        "172.32.0.0/11",
+        "172.64.0.0/10",
+        "172.128.0.0/9",
+        "173.0.0.0/8",
+        "174.0.0.0/7",
+        "176.0.0.0/4",
+        "192.0.0.0/9",
+        "192.128.0.0/11",
+        "192.160.0.0/13",
+        "192.169.0.0/16",
+        "192.170.0.0/15",
+        "192.172.0.0/14",
+        "192.176.0.0/12",
+        "192.192.0.0/10",
+        "193.0.0.0/8",
+        "194.0.0.0/7",
+        "196.0.0.0/6",
+        "200.0.0.0/5",
+        "208.0.0.0/4",
+        "240.0.0.0/4",
+      ];
+    } else
+      return null;
   }
 
   Future<String?> getBestConfigFromSub(
