@@ -524,7 +524,7 @@ class _ServersPageState extends State<ServersPage> {
         _addServer(server);
       }
     } else {
-      _addServer(serverController.text);
+      _addServer(clipboardData.text!);
     }
   }
 

@@ -104,6 +104,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
                           : Colors.redAccent,
                       size: 14,
                     ),
+                    Text(status.state),
                     _buildRefreshButton(),
                   ],
                 ),
