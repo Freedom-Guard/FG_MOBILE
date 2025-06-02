@@ -2,7 +2,6 @@ name: flutter_v2ray
 description: A plugin that allow you to making v2ray connection (VPN Mode & Proxy Only)
 
 version: 1.0.10
-homepage: https://github.com/blueboy-tm/flutter_v2ray/
 
 environment:
   sdk: '>=3.1.0 <4.0.0'
