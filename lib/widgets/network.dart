@@ -96,15 +96,14 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Icon(
-                      status.state == "CONNECTED"
-                          ? Icons.circle
-                          : Icons.error_outline,
-                      color: status.state == "CONNECTED"
-                          ? Colors.greenAccent
-                          : Colors.redAccent,
+                      Icons.circle,
+                      color: Colors.greenAccent,
                       size: 14,
                     ),
-                    Text(status.state),
+                    Text(
+                      "CONNECTED",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     _buildRefreshButton(),
                   ],
                 ),

@@ -15,7 +15,7 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
   final TextEditingController _urlController = TextEditingController();
   List<String> _bookmarks = [];
   bool isLoading = true;
-  bool isDarkMode = true;
+  bool isDarkMode = false;
   bool isHttps = true;
   bool isSearchFocused = false;
   List<String> _searchSuggestions = [];
@@ -65,7 +65,7 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
     final lastUrl =
         prefs.getString('last_url') ?? 'https://start.duckduckgo.com';
     _bookmarks = prefs.getStringList('bookmarks') ?? [];
-    isDarkMode = prefs.getBool('dark_mode') ?? true;
+    isDarkMode = prefs.getBool('dark_mode') ?? false;
     _urlController.text = lastUrl;
     _controller.loadRequest(Uri.parse(lastUrl));
     setState(() {});

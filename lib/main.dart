@@ -590,7 +590,7 @@ class _HomePageState extends State<HomePage>
           color: Colors.white,
         ),
       ),
-      label: '',
+      label: label,
       tooltip: label,
     );
   }
@@ -599,54 +599,8 @@ class _HomePageState extends State<HomePage>
 class ConnectPainter extends CustomPainter {
   final bool isConnecting;
   final double animationValue;
-  final List<Paint> _pulsePaints;
-  final Paint _staticPaint;
-  final Paint _staticIconLinePaint;
-  final Paint _staticIconArcPaint;
-  final Paint _auraPaint;
-  final List<Paint> _spinningBandPaints;
-  final Paint _particlePaint;
-  final Paint _corePaint;
-  final Paint _coreBrightSpotPaint;
-  final Paint _activeIconLinePaint;
-  final Paint _activeIconArcPaint;
 
-  ConnectPainter(this.isConnecting, {required this.animationValue})
-      : _pulsePaints =
-            List.generate(3, (_) => Paint()..style = PaintingStyle.stroke),
-        _staticPaint = Paint(),
-        _staticIconLinePaint = Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0
-          ..strokeCap = StrokeCap.round
-          ..color = Colors.grey.shade800,
-        _staticIconArcPaint = Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0
-          ..strokeCap = StrokeCap.round
-          ..color = Colors.grey.shade700,
-        _auraPaint = Paint(),
-        _spinningBandPaints =
-            List.generate(2, (_) => Paint()..style = PaintingStyle.stroke),
-        _particlePaint = Paint()..color = Colors.white.withOpacity(0.9),
-        _corePaint = Paint(),
-        _coreBrightSpotPaint = Paint(),
-        _activeIconLinePaint = Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.2
-          ..strokeCap = StrokeCap.round
-          ..color = Colors.white,
-        _activeIconArcPaint = Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.2
-          ..strokeCap = StrokeCap.round
-          ..color = Colors.cyan.shade100 {
-    _staticPaint.shader = RadialGradient(
-      colors: [Colors.grey.shade400, Colors.grey.shade600],
-      stops: const [0.3, 1.0],
-    ).createShader(Rect.fromCircle(
-        center: Offset.zero, radius: 20)); // Placeholder, updated in paint
-  }
+  ConnectPainter(this.isConnecting, {required this.animationValue});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -654,160 +608,75 @@ class ConnectPainter extends CustomPainter {
     final t = animationValue;
 
     if (!isConnecting) {
-      _staticPaint.shader = RadialGradient(
-        colors: [Colors.grey.shade400, Colors.grey.shade600],
-        stops: const [0.3, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: 20));
-      canvas.drawCircle(center, 20, _staticPaint);
-      _drawPowerIconSymbol(canvas, center, 1.0, false);
+      final paint = Paint()
+        ..shader = RadialGradient(
+          colors: [Colors.grey.shade400, Colors.grey.shade600],
+          stops: const [0.3, 1.0],
+        ).createShader(Rect.fromCircle(center: center, radius: 20));
+      canvas.drawCircle(center, 20, paint);
+      _drawIcon(canvas, center, 6, Colors.grey.shade800, Colors.grey.shade700);
       return;
     }
 
-    final double overallProgress = t;
+    final pulse = math.pow(math.sin(t * math.pi * 2), 8).toDouble();
+    final outerRadius = 20.0 + pulse * 30;
+    final outerOpacity = (0.2 + 0.3 * pulse).clamp(0.0, 1.0);
+    final outerPaint = Paint()
+      ..color = Colors.cyanAccent.withOpacity(outerOpacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.5 - pulse * 2;
 
-    // 1. Outer Aura
-    final auraRadius = 10 + overallProgress * 80;
-    final auraOpacity = math.pow(1.0 - overallProgress, 2.5).toDouble() * 0.25;
-    _auraPaint.color = Colors.cyan.withOpacity(auraOpacity.clamp(0.0, 0.25));
-    canvas.drawCircle(center, auraRadius, _auraPaint);
+    canvas.drawCircle(center, outerRadius, outerPaint);
 
-    // 2. Pulsing Ripples
-    final pulseBaseColors = [
-      Colors.blue.shade300,
-      Colors.cyan.shade200,
-      Colors.teal.shade300,
-    ];
-    for (int i = 0; i < 3; i++) {
-      final progress = (overallProgress * 1.2 + i * 0.25) % 1.0;
-      final radius = 20 + progress * 60;
-      final opacity = math.pow(1.0 - progress, 3.5).toDouble().clamp(0.0, 1.0);
-      final strokeWidth = (2.8 - progress * 2.8).clamp(0.1, 2.8);
+    final coreRadius = 12.0 + pulse * 6.0;
+    final corePaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.white.withOpacity(0.9),
+          Colors.blue.shade400.withOpacity(0.8),
+          Colors.blue.shade900.withOpacity(0.5)
+        ],
+        stops: [0.0, 0.5, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: coreRadius));
 
-      _pulsePaints[i]
-        ..color = pulseBaseColors[i].withOpacity(opacity * 0.6)
-        ..strokeWidth = strokeWidth;
-      canvas.drawCircle(center, radius, _pulsePaints[i]);
-    }
+    canvas.drawCircle(center, coreRadius, corePaint);
 
-    // 3. Spinning Energy Bands
-    final spin1 = overallProgress * math.pi * 2.5;
-    final spin2 = -overallProgress * math.pi * 3.0;
-    final bandRadii = [23.0, 19.0];
-    final bandStrokeWidths = [3.5, 2.5];
-    final bandColors = [
-      [Colors.cyan.shade400, Colors.blue.shade500.withOpacity(0.7)],
-      [Colors.teal.shade200, Colors.cyan.shade100.withOpacity(0.7)],
-    ];
+    final brightSpotPaint = Paint()
+      ..color = Colors.white.withOpacity(0.7 + pulse * 0.3);
+    canvas.drawCircle(center, coreRadius * 0.35, brightSpotPaint);
 
-    for (int i = 0; i < 2; i++) {
-      canvas.save();
-      canvas.translate(center.dx, center.dy);
-      canvas.rotate(i == 0 ? spin1 : spin2);
-      _spinningBandPaints[i]
-        ..shader = SweepGradient(
-          colors: bandColors[i],
-          stops: const [0.0, 0.75],
-          startAngle: 0.0,
-          endAngle: math.pi * 1.5,
-        ).createShader(
-            Rect.fromCircle(center: Offset.zero, radius: bandRadii[i]))
-        ..strokeWidth = bandStrokeWidths[i];
-      canvas.drawCircle(Offset.zero, bandRadii[i], _spinningBandPaints[i]);
-      canvas.restore();
-    }
-
-    // 4. Particle System
-    const int numParticles = 7;
-    final particleSeed = (t * 1000).toInt();
-    for (int i = 0; i < numParticles; i++) {
-      final particleRandom = math.Random(particleSeed + i);
-      final lifeProgress =
-          (overallProgress * 1.8 + particleRandom.nextDouble() * 0.5) % 1.0;
-      final angle = particleRandom.nextDouble() * math.pi * 2 +
-          (i % 2 == 0 ? spin1 : spin2) * 0.3;
-      final distance =
-          15 + lifeProgress * (30 + particleRandom.nextDouble() * 10);
-      final size = (1.8 - lifeProgress * 1.5).clamp(0.5, 2.2);
-      final opacity = math.pow(1.0 - lifeProgress, 2).toDouble() *
-          (0.6 + particleRandom.nextDouble() * 0.4);
-
-      _particlePaint.color = Colors.white.withOpacity(opacity.clamp(0.0, 1.0));
-      canvas.drawCircle(
-        Offset(center.dx + math.cos(angle) * distance,
-            center.dy + math.sin(angle) * distance),
-        size,
-        _particlePaint,
-      );
-    }
-
-    // 5. Core Element
-    final corePulse = 0.5 + 0.5 * math.sin(overallProgress * math.pi * 5);
-    final baseCoreRadius = 10.0;
-    final currentCoreRadius = baseCoreRadius + corePulse * 3.5;
-
-    _corePaint.shader = RadialGradient(
-      colors: [
-        Colors.white.withOpacity(0.9 + corePulse * 0.1),
-        Colors.blue.shade300.withOpacity(0.7 + corePulse * 0.2),
-        Colors.blue.shade600.withOpacity(0.6 + corePulse * 0.1)
-      ],
-      stops: [0.0, 0.3 + corePulse * 0.3, 1.0],
-      center: Alignment.center,
-    ).createShader(Rect.fromCircle(center: center, radius: currentCoreRadius));
-    canvas.drawCircle(center, currentCoreRadius, _corePaint);
-
-    _coreBrightSpotPaint.color = Colors.white.withOpacity(corePulse * 0.85);
-    canvas.drawCircle(center, currentCoreRadius * (0.4 + corePulse * 0.2),
-        _coreBrightSpotPaint);
-
-    // 6. Integrated Power Icon
-    _drawPowerIconSymbol(canvas, center, corePulse, true, t);
+    _drawIcon(
+        canvas,
+        center,
+        6.0 + pulse * 1.5,
+        Colors.white.withOpacity(0.8 + pulse * 0.2),
+        Colors.cyanAccent.withOpacity(0.7 + pulse * 0.3));
   }
 
-  void _drawPowerIconSymbol(
-      Canvas canvas, Offset center, double pulseFactor, bool isOn,
-      [double t = 0.0]) {
-    final double lineYOffset;
-    final double arcRadius;
-    final double arcStartAngle;
-    final double arcSweepAngle;
-    final Paint linePaint;
-    final Paint arcPaint;
+  void _drawIcon(Canvas canvas, Offset center, double size, Color lineColor,
+      Color arcColor) {
+    final linePaint = Paint()
+      ..color = lineColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
 
-    if (isOn) {
-      lineYOffset = 6.0 + pulseFactor * 2.0;
-      arcRadius = 6.0 + pulseFactor * 1.5;
-      arcStartAngle = math.pi / 2 + 0.4 - pulseFactor * 0.15;
-      arcSweepAngle = math.pi * 1.6 + pulseFactor * 0.25;
-
-      final activeLineOpacity = 0.8 + 0.2 * math.sin(t * math.pi * 8);
-      _activeIconLinePaint.color = Colors.white.withOpacity(activeLineOpacity);
-      linePaint = _activeIconLinePaint;
-
-      final activeArcOpacity =
-          0.7 + 0.3 * math.sin(t * math.pi * 6 + math.pi / 2);
-      _activeIconArcPaint.color =
-          Colors.cyan.shade100.withOpacity(activeArcOpacity);
-      arcPaint = _activeIconArcPaint;
-    } else {
-      lineYOffset = 6.0;
-      arcRadius = 6.0;
-      arcStartAngle = math.pi / 2 + 0.5;
-      arcSweepAngle = math.pi * 1.5;
-      linePaint = _staticIconLinePaint;
-      arcPaint = _staticIconArcPaint;
-    }
+    final arcPaint = Paint()
+      ..color = arcColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
 
     canvas.drawLine(
-      Offset(center.dx, center.dy - lineYOffset),
-      Offset(center.dx, center.dy + lineYOffset),
+      Offset(center.dx, center.dy - size),
+      Offset(center.dx, center.dy + size),
       linePaint,
     );
 
     canvas.drawArc(
-      Rect.fromCircle(center: center, radius: arcRadius),
-      arcStartAngle,
-      arcSweepAngle,
+      Rect.fromCircle(center: center, radius: size),
+      math.pi / 2 + 0.3,
+      math.pi * 1.55,
       false,
       arcPaint,
     );
