@@ -476,7 +476,7 @@ class _HomePageState extends State<HomePage>
                 ),
                 SizedBox(height: 25),
                 if (isConnected) NetworkStatusWidget(),
-                Spacer(flex: 1),
+                if (!isConnected) Spacer(flex: 1),
               ],
             ),
           ),

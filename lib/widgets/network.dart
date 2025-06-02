@@ -56,25 +56,23 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
   }
 
   String _formatSpeed(int? speed) {
-    if (speed == null) return "—";
+    if (speed == null) return '—';
     final mbps = speed / 1000000;
     return mbps >= 1
-        ? "${mbps.toStringAsFixed(1)} Mbps"
-        : "${(speed / 1000).toStringAsFixed(0)} Kbps";
+        ? '${mbps.toStringAsFixed(1)} Mbps'
+        : '${(speed / 1000).toStringAsFixed(0)} Kbps';
   }
 
   String _formatSize(int? bytes) {
-    if (bytes == null) return "—";
+    if (bytes == null) return '—';
+    final gb = bytes / (1024 * 1024 * 1024);
     final mb = bytes / (1024 * 1024);
-    return mb >= 1
-        ? "${mb.toStringAsFixed(1)} MB"
-        : "${(bytes / 1024).toStringAsFixed(0)} KB";
+    return gb >= 1
+        ? '${gb.toStringAsFixed(1)} GB'
+        : '${mb.toStringAsFixed(1)} MB';
   }
 
-  String _formatDuration(String? duration) {
-    if (duration == null) return "—";
-    return duration;
-  }
+  String _formatDuration(String? duration) => duration ?? '—';
 
   @override
   Widget build(BuildContext context) {
@@ -86,16 +84,16 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
           return Center(
             child: Container(
               width: MediaQuery.of(context).size.width * 0.85,
-              padding: const EdgeInsets.all(20),
-              margin: const EdgeInsets.symmetric(vertical: 20),
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
                 color: const Color(0xFF111111),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.25),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -104,46 +102,35 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.circle, color: Colors.greenAccent, size: 12),
-                      const SizedBox(width: 6),
+                      const Icon(Icons.circle,
+                          color: Colors.greenAccent, size: 12),
+                      const SizedBox(width: 8),
                       const Text(
-                        "CONNECTED",
+                        'CONNECTED',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
+                          letterSpacing: 0.5,
                         ),
                       ),
                       const Spacer(),
                       _buildRefreshButton(),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   Wrap(
-                    runSpacing: 16,
-                    spacing: 16,
+                    spacing: 12,
+                    runSpacing: 12,
                     children: [
-                      _buildTile("Ping", Icons.wifi,
-                          ping == null ? "—" : "$ping ms", Colors.greenAccent),
+                      _buildTile('Ping', Icons.wifi,
+                          ping == null ? '—' : '$ping ms', Colors.greenAccent),
                       _buildTile(
-                          "Download",
-                          Icons.download,
-                          _formatSpeed(status.downloadSpeed),
-                          Colors.blueAccent),
-                      _buildTile(
-                          "Upload",
-                          Icons.upload,
-                          _formatSpeed(status.uploadSpeed),
-                          Colors.orangeAccent),
-                      _buildTile(
-                          "Uptime",
+                          'Uptime',
                           Icons.timer,
                           _formatDuration(status.duration),
                           Colors.purpleAccent),
-                      _buildTile("Total DL", Icons.data_usage,
-                          _formatSize(status.download), Colors.blue),
-                      _buildTile("Total UL", Icons.upload_file,
-                          _formatSize(status.upload), Colors.deepOrange),
+                      _buildNetworkTile(status, "speed"),
+                      _buildNetworkTile(status, "network"),
                     ],
                   ),
                 ],
@@ -157,40 +144,123 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
 
   Widget _buildTile(String label, IconData icon, String value, Color color) {
     return Container(
-      width: (MediaQuery.of(context).size.width * 0.85 - 48) / 2,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+      width: (MediaQuery.of(context).size.width * 0.85 - 44) / 2,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 18),
-          const SizedBox(width: 10),
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   label,
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.6),
                     fontSize: 12,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   value,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.95),
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
-          )
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNetworkTile(V2RayStatus status, String type) {
+    return Container(
+      width: (MediaQuery.of(context).size.width * 0.85 - 44) / 2,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(type == "speed" ? Icons.speed : Icons.data_usage_sharp,
+              color: Colors.blueAccent, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  type == "speed" ? "Speed" : "Total",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.6),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    type == 'speed'
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '↓ ${_formatSpeed(status.downloadSpeed)}',
+                                style: const TextStyle(
+                                  color: Colors.blueAccent,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                '↑ ${_formatSpeed(status.uploadSpeed)}',
+                                style: const TextStyle(
+                                  color: Colors.orangeAccent,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '↓ ${_formatSize(status.download)}',
+                                style: TextStyle(
+                                  color: Colors.blueAccent.withOpacity(0.8),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '↑ ${_formatSize(status.upload)}',
+                                style: TextStyle(
+                                  color: Colors.orangeAccent.withOpacity(0.8),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -199,8 +269,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
   Widget _buildRefreshButton() {
     return GestureDetector(
       onTap: isPinging ? null : _fetchPing,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+      child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -208,8 +277,8 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
         ),
         child: Icon(
           Icons.refresh,
-          size: 18,
-          color: Colors.white.withOpacity(isPinging ? 0.4 : 0.9),
+          size: 20,
+          color: Colors.white.withOpacity(isPinging ? 0.5 : 1),
         ),
       ),
     );
