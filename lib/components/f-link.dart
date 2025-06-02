@@ -328,7 +328,7 @@ Future<void> rating(String docID) async {
 
 Future<bool> connectFL() async {
   try {
-    final configs = await getRandomConfigs().timeout(Duration(seconds: 7),
+    final configs = await getRandomConfigs().timeout(Duration(seconds: 5),
         onTimeout: () async {
       return await restoreConfigs();
     });
