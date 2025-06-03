@@ -27,11 +27,28 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
+    signingConfigs {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            val props = java.util.Properties()
+            val keyPropsFile = rootProject.file("key.properties")
+            if (keyPropsFile.exists()) {
+                props.load(java.io.FileInputStream(keyPropsFile))
+                storeFile = file(props["storeFile"] ?: "")
+                storePassword = props["storePassword"] as String?
+                keyAlias = props["keyAlias"] as String?
+                keyPassword = props["keyPassword"] as String?
+            }
         }
     }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.getByName("release") 
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
+    }
+
 
     sourceSets {
         getByName("main") {

@@ -42,6 +42,19 @@ jobs:
         run: |
           mkdir -p lib/components
           echo "${{ secrets.FSECURE }}" | base64 -d > lib/components/fsecure.dart
+      
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/release-key.jks
+
+      - name: Create key.properties
+        run: |
+          cat <<EOF > android/key.properties
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=release-key.jks
+          EOF
 
       - name: Build Android APK
         run: flutter build apk --release

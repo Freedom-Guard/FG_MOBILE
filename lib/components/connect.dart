@@ -276,7 +276,6 @@ class Connect extends Tools {
 class Tools {
   bool isConnected = false;
   Settings settings = new Settings();
-
   late final FlutterV2ray flutterV2ray = FlutterV2ray(
     onStatusChanged: (status) {
       v2rayStatus.value = status;
