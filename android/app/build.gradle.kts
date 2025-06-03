@@ -1,6 +1,8 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
-    id("com.google.gms.google-services")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -16,46 +18,45 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = "1.8"
     }
 
     defaultConfig {
         applicationId = "com.freedom.guard"
-        minSdk =  flutter.minSdkVersion
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    val keyPropsFile = rootProject.file("key.properties")
+    val keyProps = Properties()
+    if (keyPropsFile.exists()) {
+        keyProps.load(FileInputStream(keyPropsFile))
+    }
+
     signingConfigs {
-        release {
-            val props = java.util.Properties()
-            val keyPropsFile = rootProject.file("key.properties")
-            if (keyPropsFile.exists()) {
-                props.load(java.io.FileInputStream(keyPropsFile))
-                storeFile = file(props["storeFile"] ?: "")
-                storePassword = props["storePassword"] as String?
-                keyAlias = props["keyAlias"] as String?
-                keyPassword = props["keyPassword"] as String?
-            }
+        create("release") {
+            storeFile = file(keyProps["storeFile"] ?: "")
+            storePassword = keyProps["storePassword"] as String?
+            keyAlias = keyProps["keyAlias"] as String?
+            keyPassword = keyProps["keyPassword"] as String?
         }
     }
 
     buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("release") 
+        getByName("release") {
             isMinifyEnabled = false
-            isShrinkResources = false
+            isShrinkResources = false 
+            signingConfig = signingConfigs.getByName("release")
         }
     }
-
 
     sourceSets {
         getByName("main") {
             jniLibs.srcDirs("src/main/jniLibs")
         }
     }
-
 }
 
 flutter {
