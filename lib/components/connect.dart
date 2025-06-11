@@ -76,7 +76,7 @@ class Connect extends Tools {
       if (childLock) {
         parsedJson["routing"]["rules"].add({
           "type": "field",
-          "domain": ["pornhub.com"],
+          "domain": [""],
           "outboundTag": "blockedrule",
         });
       }
