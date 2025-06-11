@@ -14,6 +14,7 @@ import 'package:Freedom_Guard/pages/f-link.dart';
 import 'package:Freedom_Guard/pages/servers.dart';
 import 'package:Freedom_Guard/pages/settings.dart';
 import 'package:Freedom_Guard/pages/speedtest.dart';
+import 'package:Freedom_Guard/pages/child.dart';
 import 'package:Freedom_Guard/widgets/fragment.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

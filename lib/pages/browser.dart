@@ -60,6 +60,10 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
     });
   }
 
+  Future<void> clearEverything() async {
+    // clear cache, cookie, ...
+  }
+
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     final lastUrl =
@@ -311,172 +315,180 @@ class _FreedomBrowserState extends State<FreedomBrowser> {
     final fgColor = isDarkMode ? Colors.white : Colors.black;
     final inputColor = isDarkMode ? Colors.grey[850] : Colors.grey[200];
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        backgroundColor: isDarkMode ? Colors.grey[900] : Colors.grey[100],
-        elevation: 0,
-        title: AnimatedContainer(
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          width: isSearchFocused
-              ? MediaQuery.of(context).size.width * 0.8
-              : MediaQuery.of(context).size.width,
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _urlController,
-                  style: TextStyle(color: fgColor),
-                  decoration: InputDecoration(
-                    hintText: 'Enter URL or search',
-                    hintStyle: TextStyle(color: fgColor.withOpacity(0.5)),
-                    filled: true,
-                    fillColor: inputColor,
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide.none,
+    return WillPopScope(
+        onWillPop: () async {
+          await clearEverything();
+          return true;
+        },
+        child: Scaffold(
+          backgroundColor: bgColor,
+          appBar: AppBar(
+            backgroundColor: isDarkMode ? Colors.grey[900] : Colors.grey[100],
+            elevation: 0,
+            title: AnimatedContainer(
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              width: isSearchFocused
+                  ? MediaQuery.of(context).size.width * 0.8
+                  : MediaQuery.of(context).size.width,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _urlController,
+                      style: TextStyle(color: fgColor),
+                      decoration: InputDecoration(
+                        hintText: 'Enter URL or search',
+                        hintStyle: TextStyle(color: fgColor.withOpacity(0.5)),
+                        filled: true,
+                        fillColor: inputColor,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        prefixIcon: Icon(
+                            isHttps
+                                ? Icons.lock_outline
+                                : Icons.lock_open_outlined,
+                            color: isHttps ? Colors.green : Colors.red),
+                      ),
+                      onSubmitted: (_) => _goToUrl(),
+                      onTap: () {
+                        setState(() {
+                          isSearchFocused = true;
+                          _urlController.selection = TextSelection(
+                              baseOffset: 0,
+                              extentOffset: _urlController.text.length);
+                        });
+                      },
+                      onChanged: (value) => _fetchSearchSuggestions(value),
+                      focusNode: _searchFocusNode,
+                      textInputAction: TextInputAction.search,
+                      onEditingComplete: _goToUrl,
                     ),
-                    prefixIcon: Icon(
-                        isHttps ? Icons.lock_outline : Icons.lock_open_outlined,
-                        color: isHttps ? Colors.green : Colors.red),
                   ),
-                  onSubmitted: (_) => _goToUrl(),
-                  onTap: () {
-                    setState(() {
-                      isSearchFocused = true;
-                      _urlController.selection = TextSelection(
-                          baseOffset: 0,
-                          extentOffset: _urlController.text.length);
-                    });
-                  },
-                  onChanged: (value) => _fetchSearchSuggestions(value),
-                  focusNode: _searchFocusNode,
-                  textInputAction: TextInputAction.search,
-                  onEditingComplete: _goToUrl,
-                ),
+                  if (!isSearchFocused) ...[
+                    SizedBox(width: 8),
+                    IconButton(
+                      icon: Icon(Icons.refresh_sharp, color: fgColor),
+                      onPressed: () => _controller.reload(),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.more_vert_rounded, color: fgColor),
+                      onPressed: _showMoreOptions,
+                    ),
+                  ],
+                ],
               ),
-              if (!isSearchFocused) ...[
-                SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(Icons.refresh_sharp, color: fgColor),
-                  onPressed: () => _controller.reload(),
-                ),
-                IconButton(
-                  icon: Icon(Icons.more_vert_rounded, color: fgColor),
-                  onPressed: _showMoreOptions,
+            ),
+          ),
+          body: GestureDetector(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+              setState(() {
+                isSearchFocused = false;
+                _searchSuggestions.clear();
+              });
+            },
+            child: Stack(
+              children: [
+                WebViewWidget(controller: _controller),
+                if (isLoading)
+                  Center(
+                    child: CircularProgressIndicator(
+                      color: fgColor,
+                      backgroundColor: fgColor.withOpacity(0.1),
+                    ),
+                  ),
+                if (_searchSuggestions.isNotEmpty && isSearchFocused)
+                  Positioned(
+                    top: 0,
+                    left: 16,
+                    right: 16,
+                    child: Material(
+                      color: isDarkMode ? Colors.grey[850] : Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      elevation: 4,
+                      child: Container(
+                        constraints: BoxConstraints(maxHeight: 200),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _searchSuggestions.length,
+                          itemBuilder: (context, index) {
+                            final suggestion = _searchSuggestions[index];
+                            return ListTile(
+                              title: Text(
+                                suggestion,
+                                style: TextStyle(color: fgColor),
+                              ),
+                              onTap: () {
+                                _urlController.text =
+                                    "https://duckduckgo.com/?q=" + suggestion;
+                                _goToUrl();
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: isDarkMode ? Colors.grey[900] : Colors.grey[100],
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: Offset(0, -2),
                 ),
               ],
-            ],
-          ),
-        ),
-      ),
-      body: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-          setState(() {
-            isSearchFocused = false;
-            _searchSuggestions.clear();
-          });
-        },
-        child: Stack(
-          children: [
-            WebViewWidget(controller: _controller),
-            if (isLoading)
-              Center(
-                child: CircularProgressIndicator(
-                  color: fgColor,
-                  backgroundColor: fgColor.withOpacity(0.1),
-                ),
-              ),
-            if (_searchSuggestions.isNotEmpty && isSearchFocused)
-              Positioned(
-                top: 0,
-                left: 16,
-                right: 16,
-                child: Material(
-                  color: isDarkMode ? Colors.grey[850] : Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  elevation: 4,
-                  child: Container(
-                    constraints: BoxConstraints(maxHeight: 200),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _searchSuggestions.length,
-                      itemBuilder: (context, index) {
-                        final suggestion = _searchSuggestions[index];
-                        return ListTile(
-                          title: Text(
-                            suggestion,
-                            style: TextStyle(color: fgColor),
-                          ),
-                          onTap: () {
-                            _urlController.text =
-                                "https://duckduckgo.com/?q=" + suggestion;
-                            _goToUrl();
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: isDarkMode ? Colors.grey[900] : Colors.grey[100],
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: Offset(0, -2),
             ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavButton(
-                icon: Icons.arrow_back_ios_new_rounded,
-                onPressed: () async {
-                  if (await _controller.canGoBack()) _controller.goBack();
-                  FocusScope.of(context).unfocus();
-                },
-                color: fgColor,
-                tooltip: 'Back',
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavButton(
+                    icon: Icons.arrow_back_ios_new_rounded,
+                    onPressed: () async {
+                      if (await _controller.canGoBack()) _controller.goBack();
+                      FocusScope.of(context).unfocus();
+                    },
+                    color: fgColor,
+                    tooltip: 'Back',
+                  ),
+                  _buildNavButton(
+                    icon: Icons.home_rounded,
+                    onPressed: () {
+                      _controller.loadRequest(
+                          Uri.parse('https://start.duckduckgo.com'));
+                      _urlController.text = 'https://start.duckduckgo.com';
+                      FocusScope.of(context).unfocus();
+                    },
+                    color: fgColor,
+                    tooltip: 'Home',
+                  ),
+                  _buildNavButton(
+                    icon: Icons.arrow_forward_ios_rounded,
+                    onPressed: () async {
+                      if (await _controller.canGoForward())
+                        _controller.goForward();
+                      FocusScope.of(context).unfocus();
+                    },
+                    color: fgColor,
+                    tooltip: 'Forward',
+                  ),
+                ],
               ),
-              _buildNavButton(
-                icon: Icons.home_rounded,
-                onPressed: () {
-                  _controller
-                      .loadRequest(Uri.parse('https://start.duckduckgo.com'));
-                  _urlController.text = 'https://start.duckduckgo.com';
-                  FocusScope.of(context).unfocus();
-                },
-                color: fgColor,
-                tooltip: 'Home',
-              ),
-              _buildNavButton(
-                icon: Icons.arrow_forward_ios_rounded,
-                onPressed: () async {
-                  if (await _controller.canGoForward()) _controller.goForward();
-                  FocusScope.of(context).unfocus();
-                },
-                color: fgColor,
-                tooltip: 'Forward',
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildNavButton({

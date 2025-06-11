@@ -48,11 +48,22 @@ class Connect extends Tools {
     String mux = await settings.getValue("mux");
     String fragment = await settings.getValue("fragment");
     String BypassIran = await settings.getValue("bypass_iran");
+    bool childLock = await settings.getBool("child_lock_enabled");
     String blockTADS = await settings.getValue("block_ads_trackers");
     LogOverlay.addLog("fragment: " + jsonEncode(fragment).toString());
     LogOverlay.addLog("mux: " + mux.toString());
 
     if (parsedJson is Map<String, dynamic>) {
+      parsedJson["outbounds"] ??= [];
+      parsedJson["routing"] ??= {};
+      parsedJson["routing"]["rules"] ??= [];
+      parsedJson["outbounds"].add({
+        "protocol": "blackhole",
+        "tag": "blockedrule",
+        "settings": {
+          "response": {"type": "http"},
+        },
+      });
       if (BypassIran == "true") {
         parsedJson["routing"] ??= {};
         parsedJson["routing"]["rules"] ??= [];
@@ -62,13 +73,20 @@ class Connect extends Tools {
           "outboundTag": "direct",
         });
       }
+      if (childLock) {
+        parsedJson["routing"]["rules"].add({
+          "type": "field",
+          "domain": ["pornhub.com"],
+          "outboundTag": "blockedrule",
+        });
+      }
       if (blockTADS == "true") {
         parsedJson["routing"] ??= {};
         parsedJson["routing"]["rules"] ??= [];
 
         (parsedJson["routing"]["rules"] as List).addAll([
           {
-            "outboundTag": "Reject",
+            "outboundTag": "blockedrule",
             "domain": [
               "geosite:category-ads-all",
               "geosite:category-public-tracker",
@@ -76,15 +94,6 @@ class Connect extends Tools {
             "type": "field",
           },
         ]);
-
-        parsedJson["outbounds"] ??= [];
-        parsedJson["outbounds"].add({
-          "protocol": "blackhole",
-          "tag": "Reject",
-          "settings": {
-            "response": {"type": "http"},
-          },
-        });
       }
       if (mux.trim().isNotEmpty) {
         final muxJson = json.decode(mux);
