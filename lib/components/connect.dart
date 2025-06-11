@@ -207,12 +207,48 @@ class Connect extends Tools {
     return false;
   }
 
-  Future<bool> ConnectWarp(String config, List<String> args) async {
+  Future<bool> ConnectSub(String config, String type) async {
+    await disConnect();
+    List configs = [];
+
+    try {
+      final response = await http.get(Uri.parse(config));
+      if (response.statusCode == 200) {
+        String raw = response.body.trim();
+        String decoded;
+        try {
+          decoded = utf8.decode(base64Decode(raw));
+          LogOverlay.addLog("Base64 decoded successfully");
+        } catch (e) {
+          decoded = raw;
+          LogOverlay.addLog("Base64 decode failed, using raw text");
+        }
+        configs =
+            type == "sub" ? decoded.split('\n') : jsonDecode(decoded)["MOBILE"];
+      }
+    } catch (e) {
+      LogOverlay.showLog("config error \n $e", type: "error");
+    }
+
+    configs.shuffle();
+
+    for (String cfg in configs) {
+      if (cfg.startsWith("warp")) {
+        continue;
+      } else if (cfg.startsWith("http")) {
+        return await ConnectSub(cfg, "sub");
+      } else if (await testConfig(cfg.replaceAll("vibe,;,", "")) != -1) {
+        if (await ConnectVibe(cfg, [])) {
+          return true;
+        }
+      }
+    }
+
     return false;
   }
 
   // Fetches and processes configs from a URL
-  Future<bool> ConnectAuto(String fgconfig, int timeout) async {
+  Future<bool> ConnectFG(String fgconfig, int timeout) async {
     try {
       final uri = Uri.parse(fgconfig);
       final response = await http.get(uri).timeout(
@@ -234,12 +270,12 @@ class Connect extends Tools {
         for (var config in publicServers) {
           if (config.split(",;,")[0] == "vibe") {
             config = config.split(",;,")[1].split("#")[0];
-            if (config.startsWith("http")) {
-              var bestConfig = await getBestConfigFromSub(config);
-              if (bestConfig != null && await testConfig(bestConfig) != -1) {
-                connStat = await ConnectVibe(bestConfig, []);
-                if (connStat == true) break;
-              }
+            if (config.startsWith("http") ||
+                config.startsWith("freedom-guard")) {
+              connStat = await ConnectSub(
+                  config.replaceAll("freedom-guard://", ""),
+                  config.startsWith("freedom-guard") ? "fgAuto" : "sub");
+              if (connStat == true) break;
             } else {
               if (await testConfig(config) != -1) {
                 connStat = true;
@@ -247,17 +283,7 @@ class Connect extends Tools {
                 if (connStat == true) break;
               }
             }
-          } else if (config.split(",;,")[0] == "warp") {
-            // config = config.split(",;,")[1].split("#")[0];
-            // LogOverlay.showLog(config);
-            // await ConnectWarp();
-            // if (await test()) {
-            //   connStat = true;
-            //   break;
-            // } else {
-            //   await disConnect();
-            // }
-          }
+          } else if (config.split(",;,")[0] == "warp") {}
           await Future.delayed(const Duration(milliseconds: 500));
         }
         return connStat;
@@ -281,6 +307,12 @@ class Tools {
       v2rayStatus.value = status;
     },
   );
+
+  bool isBase64(String str) {
+    final base64RegExp = RegExp(r'^[A-Za-z0-9+/]+={0,2}$');
+    str = str.replaceAll('\n', '').replaceAll('\r', '');
+    return str.length % 4 == 0 && base64RegExp.hasMatch(str);
+  }
 
   debugPrint(message) {
     LogOverlay.addLog(message);

@@ -169,7 +169,8 @@ class _HomePageState extends State<HomePage>
     } else {
       try {
         var connStat = false;
-        var selectedServer = await serverM.getSelectedServer() as String;
+        var selectedServer =
+            (await serverM.getSelectedServer() as String).trim();
         if (selectedServer.split("#")[0].isEmpty) {
           LogOverlay.showLog("connecting to FL mode...");
           connStat =
@@ -186,7 +187,7 @@ class _HomePageState extends State<HomePage>
                   await settings.getValue("timeout_auto").toString(),
                 ) ??
                 110000;
-            connStat = await connect.ConnectAuto(
+            connStat = await connect.ConnectFG(
               defSet["fgconfig"]!,
               110000,
             ).timeout(
@@ -202,21 +203,15 @@ class _HomePageState extends State<HomePage>
           LogOverlay.showLog(
             "connecting to config:\n${selectedServer.split("#")[0]}",
           );
-          if (selectedServer.startsWith("http")) {
-            var bestConfig = await connect.getBestConfigFromSub(
-              selectedServer.split("#")[0],
-            );
-            if (bestConfig != null) {
-              connStat = await connect.ConnectVibe(bestConfig, "args");
-            }
-          } else if (selectedServer.startsWith("wireguard") ||
-              selectedServer.startsWith("wire:::")) {
-            connStat = await connect.ConnectWarp(selectedServer, []);
+          if (selectedServer.startsWith("http") ||
+              selectedServer.startsWith("freedom-guard")) {
+            connStat = await connect.ConnectSub(
+                selectedServer.replaceAll("freedom-guard://", ""),
+                selectedServer.startsWith("freedom-guard") ? "fgAuto" : "sub");
           } else {
             connStat = await connect.ConnectVibe(selectedServer, "args");
           }
         }
-
         setState(() {
           isConnected = connStat;
         });
