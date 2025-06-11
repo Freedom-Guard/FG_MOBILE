@@ -24,7 +24,7 @@ class AboutDialogWidget extends StatelessWidget {
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             Text(
-              "7.2.0",
+              "7.4.0",
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 25),
