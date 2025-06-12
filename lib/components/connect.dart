@@ -245,7 +245,10 @@ class Connect extends Tools {
       if (cfg.startsWith("warp")) {
         continue;
       } else if (cfg.startsWith("http")) {
-        return await ConnectSub(cfg, "sub");
+        return await ConnectSub(cfg, "sub").timeout(Duration(seconds: 30),
+            onTimeout: () {
+          return false;
+        });
       } else if (await testConfig(cfg.replaceAll("vibe,;,", "")) != -1) {
         if (await ConnectVibe(cfg, [])) {
           return true;
@@ -282,8 +285,11 @@ class Connect extends Tools {
             if (config.startsWith("http") ||
                 config.startsWith("freedom-guard")) {
               connStat = await ConnectSub(
-                  config.replaceAll("freedom-guard://", ""),
-                  config.startsWith("freedom-guard") ? "fgAuto" : "sub");
+                      config.replaceAll("freedom-guard://", ""),
+                      config.startsWith("freedom-guard") ? "fgAuto" : "sub")
+                  .timeout(Duration(seconds: 20), onTimeout: () {
+                return false;
+              });
               if (connStat == true) break;
             } else {
               if (await testConfig(config) != -1) {

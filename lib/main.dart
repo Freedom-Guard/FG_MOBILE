@@ -110,7 +110,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   bool isConnected = false;
-  String backgroundPath = "";
+  String backgroundPath = BackgroundService.getRandomBackground();
   bool isPressed = false;
   bool isConnecting = false;
   Connect connect = new Connect();
@@ -146,9 +146,6 @@ class _HomePageState extends State<HomePage>
         isConnected = await checker.checkVPN();
       });
       await checkForUpdate(context);
-      setState(() async {
-        backgroundPath = BackgroundService.getRandomBackground();
-      });
     });
   }
 
