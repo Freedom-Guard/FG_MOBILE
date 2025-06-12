@@ -242,6 +242,7 @@ class Connect extends Tools {
     configs.shuffle();
 
     for (String cfg in configs) {
+      cfg = cfg.replaceAll("vibe,;,", "");
       if (cfg.startsWith("warp")) {
         continue;
       } else if (cfg.startsWith("http")) {
@@ -249,7 +250,7 @@ class Connect extends Tools {
             onTimeout: () {
           return false;
         });
-      } else if (await testConfig(cfg.replaceAll("vibe,;,", "")) != -1) {
+      } else if (await testConfig(cfg) != -1) {
         if (await ConnectVibe(cfg, [])) {
           return true;
         }
