@@ -17,6 +17,7 @@ import 'package:Freedom_Guard/pages/speedtest.dart';
 import 'package:Freedom_Guard/pages/child.dart';
 import 'package:Freedom_Guard/widgets/fragment.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'pages/logs.dart';
 import 'components/LOGLOG.dart';
@@ -29,6 +30,17 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initTranslations();
+  MethodChannel _channel = const MethodChannel('vpn_quick_tile');
+  _channel.setMethodCallHandler((call) async {
+    if (call.method == "onTileClicked") {
+      bool isOn = call.arguments == true;
+      if (isOn) {
+        LogOverlay.addLog("🟢 VPN روشن شد از Tile");
+      } else {
+        LogOverlay.addLog("🔴 VPN خاموش شد از Tile");
+      }
+    }
+  });
   try {} catch (e) {}
   try {
     await Firebase.initializeApp();
@@ -226,7 +238,6 @@ class _HomePageState extends State<HomePage>
               "isp": await settings.getValue("user_isp"),
             },
           );
-
           if ((await settings.getValue("f_link").toString()) == "true") {
             donateCONFIG(selectedServer.split("#")[0]);
           }
