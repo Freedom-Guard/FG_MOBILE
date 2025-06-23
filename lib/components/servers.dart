@@ -58,7 +58,9 @@ class ServersM extends ChangeNotifier {
           "ping: " + (await connect.testConfig(server)).toString());
     } catch (e) {}
   }
-
+  Future<int> pingC(config) async {
+    return await connect.testConfig(config);
+  }
   Future<bool> addServerFromUrl(String url) async {
     try {
       final response = await HttpClient()

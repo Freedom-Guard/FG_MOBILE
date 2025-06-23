@@ -12,110 +12,120 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:http/http.dart' as http;
 
 class ServersPage extends StatefulWidget {
+
   @override
   State<ServersPage> createState() => _ServersPageState();
 }
 
 class _ServersPageState extends State<ServersPage> {
   bool isLoading = true;
-
   List<String> servers = [];
   late ServersM serversManage;
-  Settings settings = new Settings();
+  late Settings settings;
   final TextEditingController serverController = TextEditingController();
+  final Map<String, int?> serverPingTimes = {};
+  bool isPingingAll = false;
+  bool sortByPing = false;
 
   @override
   void initState() {
     super.initState();
+    settings = Settings();
     serversManage = Provider.of<ServersM>(context, listen: false);
-    Future.microtask(() async {
-      await serversManage.getSelectedServer();
-      await _loadServersAndInit();
-    });
+    Future.microtask(_loadServersAndInit);
+  }
+
+  @override
+  void dispose() {
+    serverController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadServersAndInit() async {
-    await _restoreServers();
-    await _restoreSelectedServer();
+    try {
+      await serversManage.getSelectedServer();
+      await _restoreServers();
+      await _restoreSelectedServer();
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
   }
 
   Future<void> _restoreServers() async {
     final prefs = await SharedPreferences.getInstance();
-    if (!prefs.containsKey('servers') ||
-        (prefs.getStringList('servers') ?? []).isEmpty) {
-      await _setOldServers();
+    final serverList = prefs.getStringList('servers') ?? [];
+    if (serverList.isEmpty) {
+
+      await _setDefaultServers();
     } else {
-      await _loadServers();
+      if (mounted) setState(() => servers = serverList);
+
     }
   }
 
-  Future<void> _setOldServers() async {
+  Future<void> _setDefaultServers() async {
     final prefs = await SharedPreferences.getInstance();
     try {
-      List<String> oldServersMap = await serversManage.oldServers();
-      final oldServers = oldServersMap.toList();
+      final oldServers = await serversManage.oldServers();
       await prefs.setStringList('servers', oldServers);
+      if (mounted) setState(() => servers = oldServers);
     } catch (_) {
-    } finally {
-      await _loadServers();
+      if (mounted) setState(() => servers = []);
     }
   }
 
   Future<void> _restoreSelectedServer() async {
     final prefs = await SharedPreferences.getInstance();
-    String? selectedServer = prefs.getString('selectedServer');
-    await serversManage.selectServer(selectedServer!);
-  }
-
-  Future<void> _loadServers() async {
-    final prefs = await SharedPreferences.getInstance();
-    final serverList = prefs.getStringList('servers') ?? [];
-    if (mounted) setState(() => servers = serverList);
-  }
-
-  String getNameByConfig(String config) {
-    try {
-      try {
-        config = Uri.decodeFull(config);
-      } catch (_) {}
-      final decoded = jsonDecode(config);
-      final remarks = decoded["remarks"];
-      if (remarks != null) {
-        return remarks.toString();
-      }
-    } catch (_) {}
-    return config.contains("#") ? config.split("#")[1] : config;
+    final selectedServer = prefs.getString('selectedServer');
+    if (selectedServer != null && servers.contains(selectedServer)) {
+      await serversManage.selectServer(selectedServer);
+    }
   }
 
   Future<void> _saveServers() async {
     final prefs = await SharedPreferences.getInstance();
-    if (servers.isEmpty) {
-      await prefs.remove('servers');
-    } else {
-      await prefs.setStringList('servers', servers);
+    await prefs.setStringList('servers', servers);
+  }
+
+  String getNameByConfig(String config) {
+    try {
+      final decodedConfig = Uri.decodeFull(config);
+      final decoded = jsonDecode(decodedConfig);
+      return decoded['remarks']?.toString() ?? _extractNameFromConfig(config);
+    } catch (_) {
+      return _extractNameFromConfig(config);
     }
+  }
+
+  String _extractNameFromConfig(String config) {
+    return config.contains('#') ? config.split('#').last : config;
   }
 
   void _addServer(String serverName) {
     if (serverName.isNotEmpty && !servers.contains(serverName)) {
       setState(() {
         servers.insert(0, serverName);
-        serversManage.selectServer(serverName);
-        _saveServers();
       });
+      serversManage.selectServer(serverName);
+      _saveServers();
       serverController.clear();
     }
   }
 
   void _removeServer(int index) {
-    if (mounted) {
-      serversManage.selectServer("");
+    if (index >= 0 && index < servers.length) {
+      final removedServer = servers[index];
       setState(() {
         servers.removeAt(index);
-        _saveServers();
+        serverPingTimes.remove(removedServer);
       });
+      if (serversManage.selectedServer == removedServer) {
+        serversManage.selectServer('');
+      }
+      _saveServers();
     }
   }
 
@@ -124,460 +134,406 @@ class _ServersPageState extends State<ServersPage> {
   }
 
   void _editServer(int index) {
-    TextEditingController controller = TextEditingController(
-      text: servers[index],
-    );
+    if (index < 0 || index >= servers.length) return;
+    final controller = TextEditingController(text: servers[index]);
 
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Edit Server"),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(hintText: "New server name"),
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Server'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'New server name'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
-                if (controller.text.isNotEmpty) {
-                  setState(() {
-                    servers[index] = controller.text;
-                    _saveServers();
-                  });
-                }
-                Navigator.pop(context);
-              },
-              child: const Text("Save"),
-            ),
-          ],
-        );
-      },
+          TextButton(
+            onPressed: () {
+              if (controller.text.isNotEmpty) {
+                setState(() {
+                  servers[index] = controller.text;
+                });
+                _saveServers();
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _pingServer(String server) async {
+    setState(() async => serverPingTimes[server] = await serversManage.pingC(server));
+  }
+
+  Future<void> _pingAllServers() async {
+    setState(() => isPingingAll = true);
+    for (final server in servers) {
+      await _pingServer(server);
+    }
+    setState(() => isPingingAll = false);
+  }
+
+  void _toggleSortByPing() {
+    setState(() {
+      sortByPing = !sortByPing;
+      if (sortByPing) {
+        servers.sort((a, b) {
+          final pingA = serverPingTimes[a] ?? 9999;
+          final pingB = serverPingTimes[b] ?? 9999;
+          return pingA.compareTo(pingB);
+        });
+      } else {
+        _restoreServers();
+      }
+    });
   }
 
   void _showAddServerDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            tr('add-server'),
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.text_fields, color: Colors.blue),
-                title: Text(tr('add-server-text')),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showAddServerFromTextDialog(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.paste_outlined, color: Colors.green),
-                title: Text(tr('add-server-clipboard')),
-                onTap: () {
-                  Navigator.pop(context);
-                  _addFromClipboard();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.folder_open, color: Colors.orange),
-                title: Text(tr('add-server-file')),
-                onTap: () {
-                  Navigator.pop(context);
-                  _importConfigFromFile();
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showAddServerFromTextDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(tr("add-server-text")),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: TextField(
+      builder: (context) => AlertDialog(
+        title: const Text('Add Server'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
               controller: serverController,
-              maxLines: 10,
-              decoration: const InputDecoration(hintText: "Config"),
+              decoration: const InputDecoration(hintText: 'Enter server config'),
             ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("Add"),
-              onPressed: () {
-                if (serverController.text.startsWith("vless") ||
-                    serverController.text.startsWith("vmess") ||
-                    serverController.text.startsWith("ss") ||
-                    serverController.text.startsWith("trojan")) {
-                  for (var server in serverController.text.split("\n")) {
-                    _addServer(server);
-                  }
-                } else {
-                  _addServer(serverController.text);
-                }
-                Navigator.of(context).pop();
-              },
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _addFromClipboard();
+                  },
+                  child: const Text('From Clipboard'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _importConfigFromFile();
+                  },
+                  child: const Text('From File'),
+                ),
+              ],
             ),
           ],
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              _addServer(serverController.text);
+              Navigator.pop(context);
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
     );
-  }
-
-  String safeDecode(String text) {
-    try {
-      return Uri.decodeFull(text);
-    } catch (e) {
-      return text;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Directionality(
-        textDirection:
-            getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(tr("manage-servers-page")),
-            backgroundColor: Colors.black,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
-                onPressed: () => _removeAllServers(),
-              ),
-              IconButton(
-                icon: const Icon(Icons.refresh_rounded),
-                onPressed: () async {
-                  await serversManage.loadServers();
-                  await _loadServers();
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () => _showAddServerDialog(context),
-              ),
-            ],
-          ),
-          body: Column(
-            children: [
-              Expanded(
-                child: servers.isEmpty
-                    ? const Center(
-                        child: Text(
-                          "No servers added yet!",
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: servers.length,
-                        itemBuilder: (context, index) {
-                          String server = servers[index];
-                          bool isSelected =
-                              serversManage.selectedServer == server;
-                          return Card(
-                            elevation: 2,
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 16),
-                            color: const Color(0xFF121212),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: isSelected
-                                    ? const Color(0xFF40C4FF)
-                                    : Colors.transparent,
-                                width: 1.5,
-                              ),
-                            ),
-                            child: InkWell(
-                              onTap: () async {
-                                await serversManage.selectServer(server);
-                                setState(() {});
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              splashColor: isSelected
-                                  ? Colors.blueAccent.withOpacity(0.3)
-                                  : Colors.grey.withOpacity(0.2),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  color: isSelected
-                                      ? const Color(0xFF1E1E1E)
-                                      : const Color(0xFF121212),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 12),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          getNameByConfig(server),
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: isSelected
-                                                ? FontWeight.w600
-                                                : FontWeight.w400,
-                                            color: isSelected
-                                                ? const Color(0xFFE1F5FE)
-                                                : Colors.grey.shade300,
-                                            letterSpacing: 0.4,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
-                                      PopupMenuButton<String>(
-                                        onSelected: (String result) {
-                                          switch (result) {
-                                            case 'edit':
-                                              _editServer(index);
-                                              break;
-                                            case 'share':
-                                              _shareServer(server);
-                                              break;
-                                            case 'delete':
-                                              _removeServer(index);
-                                              break;
-                                            case 'qr':
-                                              _showQRCodeDialog(server);
-                                              break;
-                                          }
-                                        },
-                                        itemBuilder: (BuildContext context) =>
-                                            <PopupMenuEntry<String>>[
-                                          PopupMenuItem<String>(
-                                            value: 'edit',
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.edit,
-                                                    size: 18,
-                                                    color:
-                                                        Colors.grey.shade400),
-                                                const SizedBox(width: 10),
-                                                Text(
-                                                  'ویرایش',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.grey.shade200,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem<String>(
-                                            value: 'share',
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.share_outlined,
-                                                    size: 18,
-                                                    color:
-                                                        Colors.grey.shade400),
-                                                const SizedBox(width: 10),
-                                                Text(
-                                                  'اشتراک',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.grey.shade200,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem<String>(
-                                            value: 'qr',
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.qr_code_2_outlined,
-                                                    size: 18,
-                                                    color:
-                                                        Colors.grey.shade400),
-                                                const SizedBox(width: 10),
-                                                Text(
-                                                  'کد QR',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.grey.shade200,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          PopupMenuItem<String>(
-                                            value: 'delete',
-                                            child: Row(
-                                              children: [
-                                                const Icon(Icons.delete,
-                                                    size: 18,
-                                                    color: Color(0xFFEF5350)),
-                                                const SizedBox(width: 10),
-                                                Text(
-                                                  'حذف',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.grey.shade200,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                        icon: Icon(
-                                          Icons.more_vert,
-                                          size: 20,
-                                          color: isSelected
-                                              ? const Color(0xFFE1F5FE)
-                                              : Colors.grey.shade400,
-                                        ),
-                                        color: const Color(0xFF1E1E1E),
-                                        elevation: 4,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                        offset: const Offset(0, 36),
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 6),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
-        ));
   }
 
   void _importConfigFromFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    try {
+      final result = await FilePicker.platform.pickFiles();
+      if (result == null || result.files.single.path == null) return;
 
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      if (path.extension(file.path) == '.txt') {
-        String fileContent = await file.readAsString();
-        List<String> serversFromFile = fileContent.split('\n');
-        serversFromFile.forEach((server) {
-          if (server.trim().isNotEmpty) {
-            _addServer(server.trim());
-          }
-        });
-        LogOverlay.showLog('file imported successfully.');
-      } else if (path.extension(file.path) == '.conf') {
-        String fileContent = await file.readAsString();
-        _addServer("wire:::\n" + fileContent);
-        LogOverlay.showLog('فایل با موفقیت وارد شد.');
+      final file = File(result.files.single.path!);
+      final extension = path.extension(file.path).toLowerCase();
+
+      if (extension == '.txt') {
+        final content = await file.readAsString();
+        final serversFromFile = content.split('\n').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+        for (final server in serversFromFile) {
+          _addServer(server);
+        }
+        LogOverlay.showLog('File imported successfully.');
+      } else if (extension == '.conf') {
+        final content = await file.readAsString();
+        _addServer('wire:::\n$content');
+        LogOverlay.showLog('File imported successfully.');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('فایل انتخاب شده معتبر نمی باشد.')),
-        );
+        _showSnackBar('Invalid file format.');
       }
+    } catch (_) {
+      _showSnackBar('Error importing file.');
     }
   }
 
   void _addFromClipboard() async {
-    final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-    if (clipboardData == null || clipboardData.text == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'clipboard is empty.',
-            style: TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.lightBlueAccent,
-        ),
-      );
-      return;
-    }
-    if (clipboardData.text!.startsWith("[Interface]")) {
-      _addServer("wire:::\n" + clipboardData.text!);
-    } else if (clipboardData.text!.startsWith("vless") ||
-        clipboardData.text!.startsWith("vmess") ||
-        clipboardData.text!.startsWith("ss") ||
-        clipboardData.text!.startsWith("trojan")) {
-      for (var server in clipboardData.text!.split("\n")) {
-        _addServer(server);
+    try {
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      if (clipboardData == null || clipboardData.text == null || clipboardData.text!.isEmpty) {
+        _showSnackBar('Clipboard is empty.');
+        return;
       }
-    } else {
-      _addServer(clipboardData.text!);
+
+      final text = clipboardData.text!.trim();
+      if (text.startsWith('[Interface]')) {
+        _addServer('wire:::\n$text');
+      } else if (['vless', 'vmess', 'ss', 'trojan'].any(text.startsWith)) {
+        final serverList = text.split('\n').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+        for (final server in serverList) {
+          _addServer(server);
+        }
+      } else {
+        _addServer(text);
+      }
+    } catch (_) {
+      _showSnackBar('Error reading clipboard.');
     }
   }
 
   void _removeAllServers() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Remove all servers'),
-          content: const Text('Are you sure you want to delete all servers?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            TextButton(
-              child: const Text('Delete'),
-              onPressed: () {
-                setState(() {
-                  servers.clear();
-                  _saveServers();
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+      builder: (context) => AlertDialog(
+        title: const Text('Remove All Servers'),
+        content: const Text('Are you sure you want to delete all servers?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                servers.clear();
+                serverPingTimes.clear();
+              });
+              serversManage.selectServer('');
+              _saveServers();
+              Navigator.pop(context);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
     );
   }
 
-  void _showQRCodeDialog(String text) {
+  void _showQRCode(String text) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          alignment: Alignment.center,
-          title: const Text('QR Code'),
-          content: QrImageView(
-            data: text.toString(),
-            version: QrVersions.auto,
-            size: 200.0,
+      builder: (context) => AlertDialog(
+        title: const Text('QR Code'),
+        content: QrImageView(
+          data: text,
+          version: QrVersions.auto,
+          size: 200,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop();
+        ],
+      ),
+    );
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.lightBlueAccent,
+      ),
+    );
+  }
+
+  void _showServerOptions(String server, int index) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Edit'),
+              onTap: () {
+                Navigator.pop(context);
+                _editServer(index);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('Share'),
+              onTap: () {
+                Navigator.pop(context);
+                _shareServer(server);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.qr_code),
+              title: const Text('Show QR Code'),
+              onTap: () {
+                Navigator.pop(context);
+                _showQRCode(server);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(context);
+                _removeServer(index);
               },
             ),
           ],
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(tr('manage-servers-page')),
+          backgroundColor: Colors.black,
+          actions: [
+            IconButton(
+              icon: isPingingAll
+                  ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                  : const Icon(Icons.network_check),
+              onPressed: isPingingAll ? null : _pingAllServers,
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.sort,
+                color: sortByPing ? Colors.blueAccent : Colors.white,
+              ),
+              onPressed: _toggleSortByPing,
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
+              onPressed: _removeAllServers,
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh_rounded),
+              onPressed: () async {
+                await serversManage.loadServers();
+                await _restoreServers();
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () => _showAddServerDialog(context),
+            ),
+          ],
+        ),
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : servers.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No servers added yet!',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: servers.length,
+                    itemBuilder: (context, index) {
+                      final server = servers[index];
+                      final isSelected = serversManage.selectedServer == server;
+                      final ping = serverPingTimes[server];
+                      return Card(
+                        elevation: 4,
+                        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        color: const Color(0xFF1C1C1E),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: isSelected ? Colors.blueAccent : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: InkWell(
+                          onTap: () async {
+                            await serversManage.selectServer(server);
+                            if (mounted) setState(() {});
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          splashColor: Colors.blueAccent.withOpacity(0.3),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        getNameByConfig(server),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: isSelected ? Colors.blueAccent : Colors.white,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.signal_cellular_alt,
+                                            size: 16,
+                                            color: ping == null
+                                                ? Colors.grey
+                                                : ping == -1
+                                                    ? Colors.red
+                                                    : ping < 100
+                                                        ? Colors.green
+                                                        : Colors.orange,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            ping == null
+                                                ? 'Not tested'
+                                                : ping == -1
+                                                    ? 'Unreachable'
+                                                    : '${ping}ms',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.network_check, color: Colors.green),
+                                  onPressed: () => _pingServer(server),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.more_vert, color: Colors.white),
+                                  onPressed: () => _showServerOptions(server, index),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+      ),
     );
   }
 }
