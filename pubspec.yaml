@@ -2,7 +2,7 @@ name: Freedom_Guard
 description: "Freedom Guard +x Freedom Vibe +x Freedom Warp +x Freedom Link"
 publish_to: 'none' 
 
-version: 7.4.0+1 
+version: 7.5.0+1 
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
