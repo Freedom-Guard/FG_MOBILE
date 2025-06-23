@@ -63,21 +63,25 @@ void showEncryptDecryptDialog(BuildContext context) {
                 controller: configController,
                 decoration: InputDecoration(
                   hintText: 'Enter config text',
-                  hintStyle: const TextStyle(color: Colors.white54, fontSize: 14),
+                  hintStyle:
+                      const TextStyle(color: Colors.white54, fontSize: 14),
                   filled: true,
                   fillColor: Colors.black26,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.paste, color: Colors.white54, size: 20),
+                        icon: const Icon(Icons.paste,
+                            color: Colors.white54, size: 20),
                         onPressed: () async {
-                          final clipboardData = await Clipboard.getData('text/plain');
+                          final clipboardData =
+                              await Clipboard.getData('text/plain');
                           if (clipboardData?.text != null) {
                             configController.text = clipboardData!.text!;
                             setState(() {});
@@ -85,7 +89,8 @@ void showEncryptDecryptDialog(BuildContext context) {
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white54, size: 20),
+                        icon: const Icon(Icons.clear,
+                            color: Colors.white54, size: 20),
                         onPressed: () {
                           configController.clear();
                           setState(() {});
@@ -104,14 +109,16 @@ void showEncryptDecryptDialog(BuildContext context) {
                 obscureText: obscureKey,
                 decoration: InputDecoration(
                   hintText: 'Encryption key (32 characters)',
-                  hintStyle: const TextStyle(color: Colors.white54, fontSize: 14),
+                  hintStyle:
+                      const TextStyle(color: Colors.white54, fontSize: 14),
                   filled: true,
                   fillColor: Colors.black26,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -121,10 +128,12 @@ void showEncryptDecryptDialog(BuildContext context) {
                           color: Colors.white54,
                           size: 20,
                         ),
-                        onPressed: () => setState(() => obscureKey = !obscureKey),
+                        onPressed: () =>
+                            setState(() => obscureKey = !obscureKey),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.autorenew, color: Colors.white54, size: 20),
+                        icon: const Icon(Icons.autorenew,
+                            color: Colors.white54, size: 20),
                         onPressed: () {
                           keyController.text = _generateRandomKey();
                           setState(() {});
@@ -162,7 +171,8 @@ void showEncryptDecryptDialog(BuildContext context) {
                     decoration: BoxDecoration(
                       color: Colors.black26,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+                      border:
+                          Border.all(color: Colors.blueAccent.withOpacity(0.3)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,18 +182,24 @@ void showEncryptDecryptDialog(BuildContext context) {
                           children: [
                             const Text(
                               'Result:',
-                              style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.copy, color: Colors.white54, size: 20),
-                              onPressed: () => Clipboard.setData(ClipboardData(text: resultText ?? '')),
+                              icon: const Icon(Icons.copy,
+                                  color: Colors.white54, size: 20),
+                              onPressed: () => Clipboard.setData(
+                                  ClipboardData(text: resultText ?? '')),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Text(
                           resultText ?? '',
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 12),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -209,20 +225,28 @@ void showEncryptDecryptDialog(BuildContext context) {
             onPressed: isProcessing
                 ? null
                 : () async {
-                    if (configController.text.isEmpty || keyController.text.isEmpty) {
-                      _showSnackBar(context, 'Please fill both fields', Colors.redAccent);
+                    if (configController.text.isEmpty ||
+                        keyController.text.isEmpty) {
+                      _showSnackBar(
+                          context, 'Please fill both fields', Colors.redAccent);
                       return;
                     }
                     if (keyController.text.length < 8) {
-                      _showSnackBar(context, 'Key must be at least 8 characters', Colors.redAccent);
+                      _showSnackBar(
+                          context,
+                          'Key must be at least 8 characters',
+                          Colors.redAccent);
                       return;
                     }
                     setState(() => isProcessing = true);
-                    await Future.delayed(const Duration(milliseconds: 300)); // Simulate processing
+                    await Future.delayed(const Duration(
+                        milliseconds: 300)); // Simulate processing
                     try {
                       final result = isEncryptMode
-                          ? _encryptConfig(configController.text, keyController.text)
-                          : _decryptConfig(configController.text, keyController.text);
+                          ? encryptConfig(
+                              configController.text, keyController.text)
+                          : decryptConfig(
+                              configController.text, keyController.text);
                       Clipboard.setData(ClipboardData(text: result));
                       setState(() {
                         resultText = result;
@@ -231,18 +255,22 @@ void showEncryptDecryptDialog(BuildContext context) {
                       });
                       _showSnackBar(
                         context,
-                        isEncryptMode ? 'Encrypted and copied to clipboard' : 'Decrypted and copied to clipboard',
+                        isEncryptMode
+                            ? 'Encrypted and copied to clipboard'
+                            : 'Decrypted and copied to clipboard',
                         Colors.blueAccent,
                       );
                     } catch (e) {
                       setState(() => isProcessing = false);
-                      _showSnackBar(context, 'Error: ${e.toString()}', Colors.redAccent);
+                      _showSnackBar(
+                          context, 'Error: ${e.toString()}', Colors.redAccent);
                     }
                   },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               elevation: 3,
             ),
@@ -275,7 +303,8 @@ Widget _buildModeChip({
       decoration: BoxDecoration(
         color: isSelected ? Colors.blueAccent : Colors.black26,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isSelected ? Colors.blueAccent : Colors.white12),
+        border:
+            Border.all(color: isSelected ? Colors.blueAccent : Colors.white12),
       ),
       child: Text(
         label,
@@ -302,27 +331,31 @@ void _showSnackBar(BuildContext context, String message, Color color) {
   );
 }
 
-String _encryptConfig(String plainText, String key) {
+String encryptConfig(String plainText, String key) {
   final keyBytes = encrypt.Key.fromUtf8(key.padRight(32, '0').substring(0, 32));
   final iv = encrypt.IV.fromSecureRandom(16);
-  final encrypter = encrypt.Encrypter(encrypt.AES(keyBytes, mode: encrypt.AESMode.cbc));
+  final encrypter =
+      encrypt.Encrypter(encrypt.AES(keyBytes, mode: encrypt.AESMode.cbc));
   final encrypted = encrypter.encrypt(plainText, iv: iv);
   return '${encrypted.base64}:${iv.base64}';
 }
 
-String _decryptConfig(String encryptedText, String key) {
+String decryptConfig(String encryptedText, String key) {
   final parts = encryptedText.split(':');
   if (parts.length != 2) throw Exception('Invalid encrypted format');
   final keyBytes = encrypt.Key.fromUtf8(key.padRight(32, '0').substring(0, 32));
   final iv = encrypt.IV.fromBase64(parts[1]);
-  final encrypter = encrypt.Encrypter(encrypt.AES(keyBytes, mode: encrypt.AESMode.cbc));
+  final encrypter =
+      encrypt.Encrypter(encrypt.AES(keyBytes, mode: encrypt.AESMode.cbc));
   final decrypted = encrypter.decrypt64(parts[0], iv: iv);
   return decrypted;
 }
 
 String _generateRandomKey() {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%^&*()';
+  const chars =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#\$%^&*()';
   return String.fromCharCodes(
-    Iterable.generate(32, (_) => chars.codeUnitAt(Random().nextInt(chars.length))),
+    Iterable.generate(
+        32, (_) => chars.codeUnitAt(Random().nextInt(chars.length))),
   );
 }
