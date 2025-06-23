@@ -15,7 +15,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:http/http.dart' as http;
 
 class ServersPage extends StatefulWidget {
-
   @override
   State<ServersPage> createState() => _ServersPageState();
 }
@@ -58,11 +57,9 @@ class _ServersPageState extends State<ServersPage> {
     final prefs = await SharedPreferences.getInstance();
     final serverList = prefs.getStringList('servers') ?? [];
     if (serverList.isEmpty) {
-
       await _setDefaultServers();
     } else {
       if (mounted) setState(() => servers = serverList);
-
     }
   }
 
@@ -168,7 +165,20 @@ class _ServersPageState extends State<ServersPage> {
   }
 
   Future<void> _pingServer(String server) async {
-    setState(() async => serverPingTimes[server] = await serversManage.pingC(server));
+    try {
+      final pingResult = await serversManage.pingC(server);
+      if (mounted) {
+        setState(() {
+          serverPingTimes[server] = pingResult;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          serverPingTimes[server] = -1;
+        });
+      }
+    }
   }
 
   Future<void> _pingAllServers() async {
@@ -176,7 +186,9 @@ class _ServersPageState extends State<ServersPage> {
     for (final server in servers) {
       await _pingServer(server);
     }
-    setState(() => isPingingAll = false);
+    if (mounted) {
+      setState(() => isPingingAll = false);
+    }
   }
 
   void _toggleSortByPing() {
@@ -184,8 +196,10 @@ class _ServersPageState extends State<ServersPage> {
       sortByPing = !sortByPing;
       if (sortByPing) {
         servers.sort((a, b) {
-          final pingA = serverPingTimes[a] ?? 9999;
-          final pingB = serverPingTimes[b] ?? 9999;
+          final pingA =
+              serverPingTimes[a] == -1 ? 9999 : serverPingTimes[a] ?? 9999;
+          final pingB =
+              serverPingTimes[b] == -1 ? 9999 : serverPingTimes[b] ?? 9999;
           return pingA.compareTo(pingB);
         });
       } else {
@@ -204,7 +218,8 @@ class _ServersPageState extends State<ServersPage> {
           children: [
             TextField(
               controller: serverController,
-              decoration: const InputDecoration(hintText: 'Enter server config'),
+              decoration:
+                  const InputDecoration(hintText: 'Enter server config'),
             ),
             const SizedBox(height: 16),
             Row(
@@ -255,7 +270,11 @@ class _ServersPageState extends State<ServersPage> {
 
       if (extension == '.txt') {
         final content = await file.readAsString();
-        final serversFromFile = content.split('\n').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+        final serversFromFile = content
+            .split('\n')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
         for (final server in serversFromFile) {
           _addServer(server);
         }
@@ -275,7 +294,9 @@ class _ServersPageState extends State<ServersPage> {
   void _addFromClipboard() async {
     try {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-      if (clipboardData == null || clipboardData.text == null || clipboardData.text!.isEmpty) {
+      if (clipboardData == null ||
+          clipboardData.text == null ||
+          clipboardData.text!.isEmpty) {
         _showSnackBar('Clipboard is empty.');
         return;
       }
@@ -284,7 +305,11 @@ class _ServersPageState extends State<ServersPage> {
       if (text.startsWith('[Interface]')) {
         _addServer('wire:::\n$text');
       } else if (['vless', 'vmess', 'ss', 'trojan'].any(text.startsWith)) {
-        final serverList = text.split('\n').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+        final serverList = text
+            .split('\n')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
         for (final server in serverList) {
           _addServer(server);
         }
@@ -409,7 +434,8 @@ class _ServersPageState extends State<ServersPage> {
           actions: [
             IconButton(
               icon: isPingingAll
-                  ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                  ? const CircularProgressIndicator(
+                      color: Colors.white, strokeWidth: 2)
                   : const Icon(Icons.network_check),
               onPressed: isPingingAll ? null : _pingAllServers,
             ),
@@ -454,12 +480,15 @@ class _ServersPageState extends State<ServersPage> {
                       final ping = serverPingTimes[server];
                       return Card(
                         elevation: 4,
-                        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 16),
                         color: const Color(0xFF1C1C1E),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                           side: BorderSide(
-                            color: isSelected ? Colors.blueAccent : Colors.transparent,
+                            color: isSelected
+                                ? Colors.blueAccent
+                                : Colors.transparent,
                             width: 2,
                           ),
                         ),
@@ -476,14 +505,17 @@ class _ServersPageState extends State<ServersPage> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         getNameByConfig(server),
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
-                                          color: isSelected ? Colors.blueAccent : Colors.white,
+                                          color: isSelected
+                                              ? Colors.blueAccent
+                                              : Colors.white,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
@@ -519,12 +551,15 @@ class _ServersPageState extends State<ServersPage> {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.network_check, color: Colors.green),
+                                  icon: const Icon(Icons.network_check,
+                                      color: Colors.green),
                                   onPressed: () => _pingServer(server),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.more_vert, color: Colors.white),
-                                  onPressed: () => _showServerOptions(server, index),
+                                  icon: const Icon(Icons.more_vert,
+                                      color: Colors.white),
+                                  onPressed: () =>
+                                      _showServerOptions(server, index),
                                 ),
                               ],
                             ),
