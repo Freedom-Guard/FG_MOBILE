@@ -38,6 +38,7 @@ dependencies:
   webview_flutter: ^4.11.0
   cloud_firestore: ^5.6.7
   uuid: ^4.5.1
+  encrypt: ^5.0.3
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1

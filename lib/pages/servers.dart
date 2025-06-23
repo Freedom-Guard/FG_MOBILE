@@ -4,6 +4,7 @@ import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:Freedom_Guard/widgets/encrypt.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -109,6 +110,8 @@ class _ServersPageState extends State<ServersPage> {
       serversManage.selectServer(serverName);
       _saveServers();
       serverController.clear();
+      if (mounted) setState(() {});
+      LogOverlay.showLog('Server added successfully.');
     }
   }
 
@@ -223,21 +226,46 @@ class _ServersPageState extends State<ServersPage> {
             ),
             const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
                     _addFromClipboard();
                   },
-                  child: const Text('From Clipboard'),
+                  icon: const Icon(
+                    Icons.content_paste,
+                    size: 32,
+                  ),
+                  label: const Text(''),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    iconColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
                     _importConfigFromFile();
                   },
-                  child: const Text('From File'),
+                  icon: const Icon(
+                    Icons.folder_open,
+                    size: 32,
+                  ),
+                  label: const Text(''),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    iconColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -429,13 +457,27 @@ class _ServersPageState extends State<ServersPage> {
       textDirection: getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(tr('manage-servers-page')),
+          title: Text(tr("")),
           backgroundColor: Colors.black,
           actions: [
             IconButton(
+              icon: Icon(
+                Icons.vpn_key_rounded,
+                color: Colors.redAccent,
+              ),
+              onPressed: () => {showEncryptDecryptDialog(context)},
+            ),
+            IconButton(
               icon: isPingingAll
-                  ? const CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2)
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white70,
+                        strokeWidth: 1.5,
+                        strokeCap: StrokeCap.round,
+                      ),
+                    )
                   : const Icon(Icons.network_check),
               onPressed: isPingingAll ? null : _pingAllServers,
             ),
