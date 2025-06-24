@@ -8,7 +8,6 @@ import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:Freedom_Guard/components/fsecure.dart';
-import 'package:crypto/crypto.dart';
 
 Future<String> getDeviceId() async {
   final prefs = await SharedPreferences.getInstance();

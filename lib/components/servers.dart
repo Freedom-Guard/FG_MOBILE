@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:flutter/material.dart';
@@ -44,23 +43,16 @@ class ServersM extends ChangeNotifier {
         settings.setValue("core_vpn", "vibe");
       }
       notifyListeners();
-      showPing(server);
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  Future<void> showPing(server) async {
-    try {
-      if (server.split("#")[0] == "") return;
-      LogOverlay.showLog(
-          "ping: " + (await connect.testConfig(server)).toString());
-    } catch (e) {}
-  }
   Future<int> pingC(config) async {
     return await connect.testConfig(config);
   }
+
   Future<bool> addServerFromUrl(String url) async {
     try {
       final response = await HttpClient()

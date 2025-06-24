@@ -13,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:http/http.dart' as http;
 
 class ServersPage extends StatefulWidget {
   @override
@@ -48,9 +47,28 @@ class _ServersPageState extends State<ServersPage> {
     try {
       await serversManage.getSelectedServer();
       await _restoreServers();
+      await _restorePingTimes();
       await _restoreSelectedServer();
     } finally {
       if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _savePingTimes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final pingMap = serverPingTimes
+        .map((key, value) => MapEntry(key, value?.toString() ?? 'null'));
+    await prefs.setString('pingTimes', jsonEncode(pingMap));
+  }
+
+  Future<void> _restorePingTimes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final pingData = prefs.getString('pingTimes');
+    if (pingData != null) {
+      final pingMap = jsonDecode(pingData) as Map<String, dynamic>;
+      pingMap.forEach((key, value) {
+        serverPingTimes[key] = value == 'null' ? null : int.tryParse(value);
+      });
     }
   }
 
@@ -91,7 +109,8 @@ class _ServersPageState extends State<ServersPage> {
   String getNameByConfig(String config) {
     try {
       final decodedConfig = Uri.decodeFull(config);
-      final decoded = jsonDecode(decodedConfig);
+      final utf8Decoded = utf8.decode(decodedConfig.runes.toList());
+      final decoded = jsonDecode(utf8Decoded);
       return decoded['remarks']?.toString() ?? _extractNameFromConfig(config);
     } catch (_) {
       return _extractNameFromConfig(config);
@@ -99,7 +118,8 @@ class _ServersPageState extends State<ServersPage> {
   }
 
   String _extractNameFromConfig(String config) {
-    return config.contains('#') ? config.split('#').last : config;
+    final decoded = utf8.decode(Uri.decodeFull(config).runes.toList());
+    return decoded.contains('#') ? decoded.split('#').last : decoded;
   }
 
   void _addServer(String serverName) {
@@ -168,26 +188,40 @@ class _ServersPageState extends State<ServersPage> {
   }
 
   Future<void> _pingServer(String server) async {
+    if (server.startsWith('http')) {
+      if (mounted) {
+        setState(() {
+          serverPingTimes[server] = null;
+        });
+        await _savePingTimes();
+      }
+      return;
+    }
     try {
       final pingResult = await serversManage.pingC(server);
       if (mounted) {
         setState(() {
           serverPingTimes[server] = pingResult;
         });
+        await _savePingTimes();
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           serverPingTimes[server] = -1;
         });
+        await _savePingTimes();
       }
     }
   }
 
   Future<void> _pingAllServers() async {
     setState(() => isPingingAll = true);
-    for (final server in servers) {
-      await _pingServer(server);
+    final batchSize = 3;
+    for (var i = 0; i < servers.length; i += batchSize) {
+      final batch =
+          servers.sublist(i, (i + batchSize).clamp(0, servers.length));
+      await Future.wait(batch.map((server) => _pingServer(server)));
     }
     if (mounted) {
       setState(() => isPingingAll = false);
@@ -578,7 +612,10 @@ class _ServersPageState extends State<ServersPage> {
                                           const SizedBox(width: 4),
                                           Text(
                                             ping == null
-                                                ? 'Not tested'
+                                                ? servers[index]
+                                                        .startsWith('http')
+                                                    ? 'SUB'
+                                                    : 'Not tested'
                                                 : ping == -1
                                                     ? 'Unreachable'
                                                     : '${ping}ms',
