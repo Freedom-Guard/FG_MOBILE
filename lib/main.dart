@@ -234,7 +234,7 @@ class _HomePageState extends State<HomePage>
               "isp": await settings.getValue("user_isp"),
             },
           );
-          if ((await settings.getValue("f_link").toString()) == "true") {
+          if ((await settings.getValue("f_link")) == "true") {
             donateCONFIG(selectedServer.split("#")[0]);
           }
           LogOverlay.showLog(
