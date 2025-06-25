@@ -181,6 +181,7 @@ class Connect extends Tools {
         if (!(args["type"] is String && args["type"] == "f_link")) {
           LogOverlay.addLog(parsedJson);
         }
+        settings.setValue("config_backup", config);
         flutterV2ray.startV2Ray(
           remark: "Freedom Guard",
           config: parsedJson,

@@ -182,6 +182,15 @@ class _HomePageState extends State<HomePage>
         var connStat = false;
         var selectedServer =
             (await serverM.getSelectedServer() as String).trim();
+        final isQuick = (await settings.getValue("fast_connect")).isNotEmpty &&
+            bool.tryParse(await settings.getValue("fast_connect")) == true;
+        if (isQuick && ((await settings.getValue("config_backup")) != "")) {
+          if ((await connect
+                  .testConfig(await settings.getValue("config_backup"))) !=
+              -1) {
+            selectedServer = (await settings.getValue("config_backup"));
+          }
+        }
         if (selectedServer.split("#")[0].isEmpty) {
           LogOverlay.showLog("connecting to FL mode...");
           connStat =
@@ -211,7 +220,7 @@ class _HomePageState extends State<HomePage>
             );
           }
         } else {
-          LogOverlay.showLog(
+          LogOverlay.addLog(
             "connecting to config:\n${selectedServer.split("#")[0]}",
           );
           if (selectedServer.startsWith("http") ||
