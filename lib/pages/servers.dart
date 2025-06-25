@@ -223,11 +223,13 @@ class _ServersPageState extends State<ServersPage> {
   Future<void> _pingAllServers() async {
     setState(() => isPingingAll = true);
     final batchSize = 3;
-    for (var i = 0; i < servers.length; i += batchSize) {
-      final batch =
-          servers.sublist(i, (i + batchSize).clamp(0, servers.length));
-      await Future.wait(batch.map((server) => _pingServer(server)));
-    }
+    try {
+      for (var i = 0; i < servers.length; i += batchSize) {
+        final batch =
+            servers.sublist(i, (i + batchSize).clamp(0, servers.length));
+        await Future.wait(batch.map((server) => _pingServer(server)));
+      }
+    } catch (e) {}
     if (mounted) {
       setState(() => isPingingAll = false);
     }

@@ -178,7 +178,9 @@ class Connect extends Tools {
           LogOverlay.addLog('Ping connecting $ping ms');
         }
         String parsedJson = await addOptionsToVibe(jsonDecode(parser));
-        LogOverlay.addLog(parsedJson);
+        if (!(args["type"] is String && args["type"] == "f_link")) {
+          LogOverlay.addLog(parsedJson);
+        }
         flutterV2ray.startV2Ray(
           remark: "Freedom Guard",
           config: parsedJson,
@@ -219,24 +221,51 @@ class Connect extends Tools {
   Future<bool> ConnectSub(String config, String type) async {
     await disConnect();
     List configs = [];
+    const int maxRetries = 6;
+    int attempt = 1;
 
-    try {
-      final response = await http.get(Uri.parse(config));
-      if (response.statusCode == 200) {
-        String raw = response.body.trim();
-        String decoded;
-        try {
-          decoded = utf8.decode(base64Decode(raw));
-          LogOverlay.addLog("Base64 decoded successfully");
-        } catch (e) {
-          decoded = raw;
-          LogOverlay.addLog("Base64 decode failed, using raw text");
+    while (attempt <= maxRetries) {
+      try {
+        final response = await http.get(Uri.parse(config));
+        if (response.statusCode == 200) {
+          String raw = response.body.trim();
+          String decoded;
+          try {
+            decoded = utf8.decode(base64Decode(raw));
+            LogOverlay.addLog("Base64 decoded successfully, Attempt: $attempt");
+          } catch (e) {
+            decoded = raw;
+            LogOverlay.addLog(
+                "Base64 decode failed, using raw text, Attempt: $attempt");
+          }
+          configs = type == "sub"
+              ? decoded.split('\n')
+              : jsonDecode(decoded)["MOBILE"];
+          break;
+        } else {
+          LogOverlay.addLog(
+              "Request failed with status ${response.statusCode}, Attempt: $attempt");
+          if (attempt == maxRetries) {
+            LogOverlay.addLog("Max retries reached, giving up");
+            return false;
+          }
         }
-        configs =
-            type == "sub" ? decoded.split('\n') : jsonDecode(decoded)["MOBILE"];
+      } catch (e) {
+        LogOverlay.addLog("Config error on attempt $attempt: $e");
+        if (attempt == maxRetries) {
+          LogOverlay.addLog("Max retries reached, giving up");
+          return false;
+        }
       }
-    } catch (e) {
-      LogOverlay.showLog("config error \n $e", type: "error");
+      int delaySeconds = 1 << (attempt - 1);
+      LogOverlay.addLog("Retrying after $delaySeconds seconds...");
+      await Future.delayed(Duration(seconds: delaySeconds));
+      attempt++;
+    }
+
+    if (configs.isEmpty) {
+      LogOverlay.addLog("No valid configs retrieved after retries");
+      return false;
     }
 
     configs.shuffle();
@@ -251,7 +280,7 @@ class Connect extends Tools {
           return false;
         });
       } else if (await testConfig(cfg) != -1) {
-        if (await ConnectVibe(cfg, [])) {
+        if (await ConnectVibe(cfg, {})) {
           return true;
         }
       }
@@ -295,7 +324,7 @@ class Connect extends Tools {
             } else {
               if (await testConfig(config) != -1) {
                 connStat = true;
-                await ConnectVibe(config, []);
+                await ConnectVibe(config, {});
                 if (connStat == true) break;
               }
             }

@@ -220,7 +220,7 @@ class _HomePageState extends State<HomePage>
                 selectedServer.replaceAll("freedom-guard://", ""),
                 selectedServer.startsWith("freedom-guard") ? "fgAuto" : "sub");
           } else {
-            connStat = await connect.ConnectVibe(selectedServer, "args");
+            connStat = await connect.ConnectVibe(selectedServer, {});
           }
         }
         setState(() {

@@ -267,7 +267,7 @@ Future<bool> tryConnect(String config, String docId, String message_old,
   String message = message_old;
 
   if (resPing > 1) {
-    final success = await conn.ConnectVibe(config, []);
+    final success = await conn.ConnectVibe(config, {"type": "f_link"});
     if (success) {
       try {
         await docRef.update({'connected': FieldValue.increment(1)}).timeout(
