@@ -184,11 +184,15 @@ class _HomePageState extends State<HomePage>
             (await serverM.getSelectedServer() as String).trim();
         final isQuick = (await settings.getValue("fast_connect")).isNotEmpty &&
             bool.tryParse(await settings.getValue("fast_connect")) == true;
-        if (isQuick && ((await settings.getValue("config_backup")) != "") && (selectedServer.split("#")[0].isEmpty || selectedServer.split("#")[0].startsWith("http"))) {
+        if (isQuick &&
+            ((await settings.getValue("config_backup")) != "") &&
+            (selectedServer.split("#")[0].isEmpty ||
+                selectedServer.split("#")[0].startsWith("http"))) {
           if ((await connect
                   .testConfig(await settings.getValue("config_backup"))) !=
               -1) {
             selectedServer = (await settings.getValue("config_backup"));
+            LogOverlay.addLog("Conneting to QUICK mode...");
           }
         }
         if (selectedServer.split("#")[0].isEmpty) {
