@@ -118,7 +118,12 @@ class _ServersPageState extends State<ServersPage> {
   }
 
   String _extractNameFromConfig(String config) {
-    final decoded = utf8.decode(Uri.decodeFull(config).runes.toList());
+    var decoded = "";
+    try {
+      decoded = utf8.decode(Uri.decodeFull(config).runes.toList());
+    } catch (_) {
+      decoded = config;
+    }
     return decoded.contains('#') ? decoded.split('#').last : decoded;
   }
 

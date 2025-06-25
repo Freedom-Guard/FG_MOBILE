@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -141,6 +142,7 @@ class _HomePageState extends State<HomePage>
           isConnected = await checker.checkVPN();
         });
       });
+      sleep(Duration(seconds: 3));
       setState(() async {
         isConnected = await checker.checkVPN();
       });
@@ -368,33 +370,28 @@ class _HomePageState extends State<HomePage>
                   onTapDown: (_) => setState(() => isPressed = true),
                   onTapUp: (_) => setState(() => isPressed = false),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 400),
-                    width: isPressed ? 130 : 150,
-                    height: isPressed ? 130 : 150,
+                    duration: const Duration(milliseconds: 300),
+                    width: isPressed ? 110 : 130,
+                    height: isPressed ? 110 : 130,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
+                      gradient: RadialGradient(
                         colors: isConnected
-                            ? [Colors.green.shade400, Colors.teal.shade900]
+                            ? [Colors.green.shade400, Colors.teal.shade700]
                             : isConnecting
-                                ? [Colors.blue.shade300, Colors.indigo.shade800]
-                                : [
-                                    const Color(0xFF1F2525),
-                                    const Color(0xFF0D1117),
-                                  ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
+                                ? [Colors.blue.shade300, Colors.teal.shade800]
+                                : [Colors.blueGrey.shade900, Colors.black],
+                        radius: 0.75,
+                        center: Alignment.center,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: isConnected
-                              ? Colors.green.shade700.withOpacity(0.6)
-                              : isConnecting
-                                  ? Colors.blue.shade700.withOpacity(0.5)
-                                  : Colors.black.withOpacity(0.3),
-                          blurRadius: isPressed ? 30 : 20,
-                          spreadRadius: isPressed ? 6 : 2,
-                          offset: const Offset(0, 4),
+                              ? Colors.green.shade500.withOpacity(0.4)
+                              : Colors.blue.shade500.withOpacity(0.4),
+                          blurRadius: isPressed ? 20 : 12,
+                          spreadRadius: isPressed ? 4 : 1,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
@@ -405,21 +402,20 @@ class _HomePageState extends State<HomePage>
                         alignment: Alignment.center,
                         children: [
                           AnimatedOpacity(
-                            opacity: isConnecting ? 1.0 : 0.0,
-                            duration: const Duration(milliseconds: 800),
-                            curve: Curves.easeInOutCubic,
+                            opacity: isConnecting ? 0.7 : 0.0,
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
                             child: Container(
-                              width: 150,
-                              height: 150,
+                              width: 130,
+                              height: 130,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(
                                   colors: [
-                                    Colors.white.withOpacity(0.15),
+                                    Colors.white.withOpacity(0.25),
                                     Colors.transparent,
                                   ],
-                                  radius: 0.7,
-                                  stops: const [0.0, 1.0],
+                                  radius: 0.65,
                                 ),
                               ),
                             ),
@@ -429,8 +425,8 @@ class _HomePageState extends State<HomePage>
                               animation: _pulseAnimation,
                               builder: (context, child) {
                                 return Container(
-                                  width: 150,
-                                  height: 150,
+                                  width: 130,
+                                  height: 130,
                                   child: CustomPaint(
                                     painter: ConnectPainter(
                                       isConnecting,
@@ -441,34 +437,41 @@ class _HomePageState extends State<HomePage>
                               },
                             ),
                           AnimatedScale(
-                            scale: isPressed ? 0.85 : 1.0,
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.elasticOut,
+                            scale: isPressed ? 0.92 : 1.0,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOutCubic,
                             child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
+                              duration: const Duration(milliseconds: 200),
                               transitionBuilder: (child, animation) {
-                                return ScaleTransition(
-                                  scale: animation,
-                                  child: child,
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: ScaleTransition(
+                                    scale: animation,
+                                    child: child,
+                                  ),
                                 );
                               },
-                              child: Icon(
-                                isConnected
-                                    ? Icons.lock_rounded
-                                    : Icons.power_settings_new_rounded,
-                                key: ValueKey(isConnected),
-                                size: 80,
-                                color: Colors.white.withOpacity(0.95),
-                                shadows: [
-                                  Shadow(
-                                    color: isConnected
-                                        ? Colors.green.shade900.withOpacity(0.7)
-                                        : Colors.blueGrey.shade900
-                                            .withOpacity(0.5),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                              child: Tooltip(
+                                message: isConnected ? 'قطع اتصال' : 'اتصال',
+                                child: Icon(
+                                  isConnected
+                                      ? Icons.vpn_key_off
+                                      : Icons.vpn_key,
+                                  key: ValueKey(isConnected),
+                                  size: 50,
+                                  color: Colors.white.withOpacity(0.9),
+                                  shadows: [
+                                    Shadow(
+                                      color: isConnected
+                                          ? Colors.blue.shade700
+                                              .withOpacity(0.6)
+                                          : Colors.grey.shade800
+                                              .withOpacity(0.4),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -608,81 +611,30 @@ class ConnectPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final t = animationValue;
 
     if (!isConnecting) {
       final paint = Paint()
         ..shader = RadialGradient(
-          colors: [Colors.grey.shade400, Colors.grey.shade600],
-          stops: const [0.3, 1.0],
+          colors: [Colors.teal.shade100.withOpacity(0.1), Colors.transparent],
+          stops: const [0.7, 1.0],
         ).createShader(Rect.fromCircle(center: center, radius: 20));
       canvas.drawCircle(center, 20, paint);
-      _drawIcon(canvas, center, 6, Colors.grey.shade800, Colors.grey.shade700);
       return;
     }
 
-    final pulse = math.pow(math.sin(t * math.pi * 2), 8).toDouble();
-    final outerRadius = 20.0 + pulse * 30;
-    final outerOpacity = (0.2 + 0.3 * pulse).clamp(0.0, 1.0);
-    final outerPaint = Paint()
-      ..color = Colors.cyanAccent.withOpacity(outerOpacity)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.5 - pulse * 2;
+    final t = animationValue;
+    for (int i = 0; i < 3; i++) {
+      final progress = (t + i * 0.3) % 1.0;
+      final radius = 15.0 + progress * 30;
+      final opacity = (0.6 - progress * 0.5).clamp(0.0, 1.0);
 
-    canvas.drawCircle(center, outerRadius, outerPaint);
+      final ripplePaint = Paint()
+        ..color = Colors.cyan.shade100.withOpacity(opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2;
 
-    final coreRadius = 12.0 + pulse * 6.0;
-    final corePaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          Colors.white.withOpacity(0.9),
-          Colors.blue.shade400.withOpacity(0.8),
-          Colors.blue.shade900.withOpacity(0.5)
-        ],
-        stops: [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: coreRadius));
-
-    canvas.drawCircle(center, coreRadius, corePaint);
-
-    final brightSpotPaint = Paint()
-      ..color = Colors.white.withOpacity(0.7 + pulse * 0.3);
-    canvas.drawCircle(center, coreRadius * 0.35, brightSpotPaint);
-
-    _drawIcon(
-        canvas,
-        center,
-        6.0 + pulse * 1.5,
-        Colors.white.withOpacity(0.8 + pulse * 0.2),
-        Colors.cyanAccent.withOpacity(0.7 + pulse * 0.3));
-  }
-
-  void _drawIcon(Canvas canvas, Offset center, double size, Color lineColor,
-      Color arcColor) {
-    final linePaint = Paint()
-      ..color = lineColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-
-    final arcPaint = Paint()
-      ..color = arcColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawLine(
-      Offset(center.dx, center.dy - size),
-      Offset(center.dx, center.dy + size),
-      linePaint,
-    );
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: size),
-      math.pi / 2 + 0.3,
-      math.pi * 1.55,
-      false,
-      arcPaint,
-    );
+      canvas.drawCircle(center, radius, ripplePaint);
+    }
   }
 
   @override
