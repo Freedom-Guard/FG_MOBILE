@@ -87,7 +87,7 @@ class FreedomGuardApp extends StatelessWidget {
           secondary: Color(0xFF8A2BE2),
           surface: Color(0xFF1A1B26),
           error: Color(0xFFFF1744),
-          onPrimary: Colors.black,
+          onPrimary: Colors.white,
           onSecondary: Colors.white,
           onSurface: Color(0xFFB0BEC5),
           onError: Colors.white,
@@ -333,7 +333,8 @@ class _HomePageState extends State<HomePage>
                   ),
                   actions: [
                     IconButton(
-                      icon: const Icon(Icons.rocket_launch, color: Colors.amberAccent),
+                      icon: const Icon(Icons.rocket_launch,
+                          color: Colors.amberAccent),
                       onPressed: () {
                         Navigator.push(
                           context,

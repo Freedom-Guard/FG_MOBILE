@@ -182,6 +182,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
       );
       return;
     }
+
     setState(() {
       isTesting = true;
       testedConfigs.clear();
@@ -190,13 +191,23 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
         _configLoading[config] = false;
       }
     });
-    List<Map<String, dynamic>> results = [];
-    List<String> sortedConfigs = [];
-    final batchSize = 3;
 
-    for (var i = 0; i < configs.length; i += batchSize) {
-      final batch =
-          configs.sublist(i, (i + batchSize).clamp(i, configs.length));
+    final List<Map<String, dynamic>> results = [];
+    final List<String> pendingConfigs = List.from(configs)..shuffle();
+    final Set<String> testedSet = {};
+    const batchSize = 3;
+
+    while (pendingConfigs.isNotEmpty) {
+      final batch = <String>[];
+
+      while (batch.length < batchSize && pendingConfigs.isNotEmpty) {
+        final config = pendingConfigs.removeLast();
+        if (!testedSet.contains(config)) {
+          batch.add(config);
+          testedSet.add(config);
+        }
+      }
+
       try {
         final batchResults = await Future.wait(batch.map((server) async {
           if (server.trim().isEmpty) {
@@ -207,45 +218,75 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
               'ping': null,
             };
           }
-          setState(() => _configLoading[server] = true);
-          int ping;
-          bool success = false;
 
-          ping = await _pingServer(server);
-          success = ping != -1;
+          setState(() => _configLoading[server] = true);
+
+          final ping = await _pingServer(server);
+          final success = ping != -1;
 
           setState(() => _configLoading[server] = false);
+
           return {
             'config': server,
             'success': success,
-            'ping': ping == -1 ? null : ping,
+            'ping': success ? ping : null,
           };
         }).toList());
+
         results.addAll(batchResults);
-        setState(() {
-          testedConfigs = List.from(results);
+
+        final sortedResults = List<Map<String, dynamic>>.from(results);
+        sortedResults.sort((a, b) {
+          final aSuccess = a['success'] == true;
+          final bSuccess = b['success'] == true;
+          if (aSuccess && bSuccess) {
+            return (a['ping'] as int).compareTo(b['ping'] as int);
+          }
+          if (aSuccess) return -1;
+          if (bSuccess) return 1;
+          return 0;
         });
-        await settings.setValue('testedConfigs', jsonEncode(results));
+
+        final sortedConfigs = configs.toList()
+          ..sort((a, b) {
+            final aResult = sortedResults.firstWhere(
+              (e) => e['config'] == a,
+              orElse: () => {'config': a, 'success': false, 'ping': 999999},
+            );
+            final bResult = sortedResults.firstWhere(
+              (e) => e['config'] == b,
+              orElse: () => {'config': b, 'success': false, 'ping': 999999},
+            );
+
+            final aSuccess = aResult['success'] == true;
+            final bSuccess = bResult['success'] == true;
+
+            if (aSuccess && bSuccess) {
+              return (aResult['ping'] ?? 999999)
+                  .compareTo(bResult['ping'] ?? 999999);
+            }
+            if (aSuccess) return -1;
+            if (bSuccess) return 1;
+            return 0;
+          });
+
+        setState(() {
+          testedConfigs = List.from(sortedResults);
+          configs = List.from(sortedConfigs);
+        });
+
+        await settings.setValue('testedConfigs', jsonEncode(sortedResults));
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Batch test failed: $e')),
         );
       }
+
       await Future.delayed(const Duration(milliseconds: 500));
     }
-    results.sort((a, b) {
-      if (a['success'] && b['success']) {
-        return (a['ping'] as int? ?? 999999)
-            .compareTo(b['ping'] as int? ?? 999999);
-      }
-      return a['success'] ? -1 : 1;
-    });
-    sortedConfigs = results.map((e) => e['config'] as String).toList();
-    setState(() {
-      testedConfigs = results;
-      configs = sortedConfigs;
-    });
+
     setState(() => isTesting = false);
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Config testing completed')),
     );
