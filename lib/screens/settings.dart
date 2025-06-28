@@ -1,8 +1,8 @@
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
-import 'package:Freedom_Guard/pages/f-link.dart';
-import 'package:Freedom_Guard/pages/split.dart';
+import 'package:Freedom_Guard/screens/f-link.dart';
+import 'package:Freedom_Guard/screens/split.dart';
 import 'package:Freedom_Guard/widgets/about.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';

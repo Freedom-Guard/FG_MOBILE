@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connect.dart';
@@ -10,16 +8,18 @@ import 'package:Freedom_Guard/components/services.dart';
 import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
-import 'package:Freedom_Guard/pages/browser.dart';
-import 'package:Freedom_Guard/pages/f-link.dart';
-import 'package:Freedom_Guard/pages/servers.dart';
-import 'package:Freedom_Guard/pages/settings.dart';
-import 'package:Freedom_Guard/pages/speedtest.dart';
+import 'package:Freedom_Guard/screens/browser.dart';
+import 'package:Freedom_Guard/screens/cfg.dart';
+import 'package:Freedom_Guard/screens/f-link.dart';
+import 'package:Freedom_Guard/screens/servers.dart';
+import 'package:Freedom_Guard/screens/settings.dart';
+import 'package:Freedom_Guard/screens/speedtest.dart';
+import 'package:Freedom_Guard/ui/animations/connect.dart';
 import 'package:Freedom_Guard/widgets/fragment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'pages/logs.dart';
+import 'screens/logs.dart';
 import 'components/LOGLOG.dart';
 import 'widgets/network.dart';
 
@@ -57,7 +57,11 @@ void main() async {
 
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (context) => ServersM())],
+      providers: [
+        ChangeNotifierProvider(create: (context) => ServersM()),
+        Provider(create: (context) => Connect()),
+        Provider(create: (context) => Settings()),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         initialRoute: '/',
@@ -113,11 +117,9 @@ class _HomePageState extends State<HomePage>
   String backgroundPath = BackgroundService.getRandomBackground();
   bool isPressed = false;
   bool isConnecting = false;
-  Connect connect = new Connect();
-  ServersM serverM = new ServersM();
-  Settings settings = new Settings();
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
+  late Timer _timer;
   Map<String, String> defSet = {
     "fgconfig":
         "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
@@ -129,7 +131,6 @@ class _HomePageState extends State<HomePage>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat();
-
     _pulseAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
@@ -137,12 +138,12 @@ class _HomePageState extends State<HomePage>
       ),
     );
     Future.microtask(() async {
-      Timer.periodic(Duration(seconds: 45), (timer) {
-        setState(() async {
-          isConnected = await checker.checkVPN();
+      Timer.periodic(Duration(seconds: 45), (timer) async {
+        final connected = await checker.checkVPN();
+        setState(() {
+          isConnected = connected;
         });
       });
-      sleep(Duration(seconds: 3));
       setState(() async {
         isConnected = await checker.checkVPN();
       });
@@ -151,12 +152,27 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
+  void didUpdateWidget(HomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (isConnecting && !_animationController.isAnimating) {
+      _animationController.repeat();
+    } else if (!isConnecting && _animationController.isAnimating) {
+      _animationController.stop();
+    }
+  }
+
+  @override
   void dispose() {
+    _timer.cancel();
+
     _animationController.dispose();
     super.dispose();
   }
 
   Future<void> toggleConnection() async {
+    final connect = Provider.of<Connect>(context, listen: false);
+    final serverM = Provider.of<ServersM>(context, listen: false);
+    final settings = Provider.of<Settings>(context, listen: false);
     if (isConnecting) {
       await connect.disConnect();
       setState(() {
@@ -300,10 +316,10 @@ class _HomePageState extends State<HomePage>
           backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,
           appBar: PreferredSize(
-            preferredSize: Size.fromHeight(kToolbarHeight),
+            preferredSize: const Size.fromHeight(kToolbarHeight),
             child: ClipRRect(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                 child: AppBar(
                   backgroundColor: Colors.black.withOpacity(0.7),
                   elevation: 0,
@@ -316,6 +332,17 @@ class _HomePageState extends State<HomePage>
                     },
                   ),
                   actions: [
+                    IconButton(
+                      icon: const Icon(Icons.rocket_launch, color: Colors.amberAccent),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CFGPage(),
+                          ),
+                        );
+                      },
+                    ),
                     IconButton(
                       icon: const Icon(Icons.volunteer_activism,
                           color: Colors.red),
@@ -522,7 +549,7 @@ class _HomePageState extends State<HomePage>
             child: ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                 child: BottomNavigationBar(
                   backgroundColor: Colors.transparent,
                   selectedItemColor: Colors.white,
@@ -613,48 +640,4 @@ class _HomePageState extends State<HomePage>
       tooltip: label,
     );
   }
-}
-
-class ConnectPainter extends CustomPainter {
-  final bool isConnecting;
-  final double animationValue;
-
-  ConnectPainter(this.isConnecting, {required this.animationValue});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-
-    if (!isConnecting) {
-      final paint = Paint()
-        ..shader = RadialGradient(
-          colors: [Colors.teal.shade100.withOpacity(0.1), Colors.transparent],
-          stops: const [0.7, 1.0],
-        ).createShader(Rect.fromCircle(center: center, radius: 20));
-      canvas.drawCircle(center, 20, paint);
-      return;
-    }
-
-    final t = animationValue;
-    for (int i = 0; i < 3; i++) {
-      final progress = (t + i * 0.3) % 1.0;
-      final radius = 15.0 + progress * 30;
-      final opacity = (0.6 - progress * 0.5).clamp(0.0, 1.0);
-
-      final ripplePaint = Paint()
-        ..color = Colors.cyan.shade100.withOpacity(opacity)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2;
-
-      canvas.drawCircle(center, radius, ripplePaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant ConnectPainter oldDelegate) =>
-      isConnecting != oldDelegate.isConnecting ||
-      animationValue != oldDelegate.animationValue;
-
-  @override
-  bool shouldRebuildSemantics(covariant ConnectPainter oldDelegate) => false;
 }
