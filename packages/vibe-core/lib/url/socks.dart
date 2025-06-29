@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter_v2ray/url/url.dart';
+import 'package:vibe_core/url/url.dart';
 
 class SocksURL extends V2RayURL {
   SocksURL({required super.url}) {

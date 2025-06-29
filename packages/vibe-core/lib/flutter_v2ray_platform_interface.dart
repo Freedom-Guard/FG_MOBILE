@@ -1,4 +1,4 @@
-import 'package:flutter_v2ray/model/v2ray_status.dart';
+import 'package:vibe_core/model/v2ray_status.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'flutter_v2ray_method_channel.dart';

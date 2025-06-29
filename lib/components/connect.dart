@@ -378,6 +378,10 @@ class Tools {
     LogOverlay.addLog(message);
   }
 
+  Future<int> getConnectedDelay() async {
+    return await flutterV2ray.getConnectedServerDelay();
+  }
+
   Future<int> testConfig(String config) async {
     try {
       final parser = FlutterV2ray.parseFromURL(config);

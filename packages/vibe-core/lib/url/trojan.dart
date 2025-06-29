@@ -1,4 +1,4 @@
-import 'package:flutter_v2ray/url/url.dart';
+import 'package:vibe_core/url/url.dart';
 
 class TrojanURL extends V2RayURL {
   TrojanURL({required super.url}) {

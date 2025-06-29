@@ -66,7 +66,7 @@ dependencies {
 rootProject.allprojects {
     repositories {
         flatDir {
-            dirs project(':flutter_v2ray').file('libs')
+            dirs project(':vibe_core').file('libs')
         }
     }
 }
