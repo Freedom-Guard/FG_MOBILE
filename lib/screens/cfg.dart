@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
@@ -36,8 +37,8 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
       curve: Curves.easeInOut,
     );
     _fadeController.forward();
-    loadSubLinks();
     loadSelectedSubLink();
+    loadSubLinks();
   }
 
   @override
@@ -63,9 +64,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
       }
     } catch (e) {
       setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load sub-links: $e')),
-      );
+      LogOverlay.showLog('Failed to load sub-links: $e');
     }
   }
 
@@ -79,9 +78,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
         fetchConfigs(savedLink);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load saved sub-link: $e')),
-      );
+      LogOverlay.showLog('Failed to load saved sub-link: $e');
     }
   }
 
@@ -144,9 +141,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
       } catch (e) {
         retryCount++;
         if (retryCount == maxRetries) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to fetch configs: $e')),
-          );
+          LogOverlay.showLog('Failed to fetch configs: $e');
         }
         await Future.delayed(const Duration(seconds: 2));
       }
@@ -164,9 +159,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load tested configs: $e')),
-      );
+      LogOverlay.showLog('Failed to load tested configs: $e');
     }
   }
 
@@ -177,9 +170,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
 
   Future<void> testConfigs() async {
     if (configs.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No configs to test')),
-      );
+      LogOverlay.showLog('No configs to test');
       return;
     }
 
@@ -277,9 +268,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
 
         await settings.setValue('testedConfigs', jsonEncode(sortedResults));
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Batch test failed: $e')),
-        );
+        LogOverlay.showLog('Batch test failed: $e');
       }
 
       await Future.delayed(const Duration(milliseconds: 500));
@@ -287,9 +276,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
 
     setState(() => isTesting = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Config testing completed')),
-    );
+    LogOverlay.showLog('Config testing completed');
   }
 
   Future<void> selectConfig(String config) async {
@@ -299,13 +286,9 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
       setState(() {
         selectedConfig = config;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Selected: ${getConfigName(config)}')),
-      );
+      LogOverlay.showLog('Selected: ${getConfigName(config)}');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to select config: $e')),
-      );
+      LogOverlay.showLog('Failed to select config: $e');
     }
   }
 
