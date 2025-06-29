@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_v2ray/flutter_v2ray.dart';
+import 'package:vibe_core/flutter_v2ray.dart';
 
 class NetworkStatusWidget extends StatefulWidget {
   const NetworkStatusWidget({Key? key}) : super(key: key);

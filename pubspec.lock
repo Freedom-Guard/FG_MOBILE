@@ -355,13 +355,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_v2ray:
-    dependency: "direct main"
-    description:
-      path: "packages/flutter_v2ray"
-      relative: true
-    source: path
-    version: "1.0.10"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -868,6 +861,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  vibe_core:
+    dependency: "direct main"
+    description:
+      path: "packages/vibe-core"
+      relative: true
+    source: path
+    version: "1.1.10"
   vm_service:
     dependency: transitive
     description:

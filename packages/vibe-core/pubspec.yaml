@@ -1,8 +1,8 @@
-name: flutter_v2ray
+name: vibe_core
 description: A plugin that allow you to making v2ray connection (VPN Mode & Proxy Only)
 
 version: 1.1.10
-# old version from blueboytm: https://github.com/blueboy-tm/flutter_v2ray/
+
 environment:
   sdk: '>=3.1.0 <4.0.0'
   flutter: '>=3.3.0'

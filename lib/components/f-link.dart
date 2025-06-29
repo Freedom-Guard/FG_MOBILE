@@ -1,7 +1,7 @@
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_v2ray/flutter_v2ray.dart';
+import 'package:vibe_core/flutter_v2ray.dart';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
