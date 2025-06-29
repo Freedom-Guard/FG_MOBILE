@@ -329,40 +329,12 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
                                 core: selectedCore!,
                                 message: messageController.text,
                                 telegramLink: telegramLinkController.text,
-                              ).timeout(Duration(seconds: 10), onTimeout: () {
+                              ).timeout(Duration(seconds: 14), onTimeout: () {
                                 LogOverlay.showLog("Connection timed out",
                                     type: "error");
                                 return false;
                               });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    success
-                                        ? 'کانفیگ شما اهدا شد!'
-                                        : 'خطا در اهدای کانفیگ',
-                                    style: GoogleFonts.vazirmatn(fontSize: 16),
-                                  ),
-                                  backgroundColor: success
-                                      ? Colors.teal.shade400
-                                      : Colors.red.shade400,
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('لطفاً همه فیلدها را پر کنید.',
-                                      style:
-                                          GoogleFonts.vazirmatn(fontSize: 16)),
-                                  backgroundColor: Colors.red.shade400,
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                ),
-                              );
-                            }
+                            } else {}
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 300),

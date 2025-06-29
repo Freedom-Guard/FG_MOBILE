@@ -314,8 +314,6 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
               'CFG',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
             ),
-            foregroundColor: Colors.white,
-            backgroundColor: theme.colorScheme.primaryContainer,
             elevation: 0,
             actions: [
               IconButton(

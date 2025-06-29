@@ -499,7 +499,6 @@ class _ServersPageState extends State<ServersPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(tr("")),
-          backgroundColor: Colors.black,
           actions: [
             IconButton(
               icon: Icon(

@@ -126,7 +126,6 @@ class _SplitPageState extends State<SplitPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: const Text(
           "Split Tunneling",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),

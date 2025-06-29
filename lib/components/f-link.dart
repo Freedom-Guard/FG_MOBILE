@@ -164,7 +164,7 @@ Future<bool> donateCONFIG(String config,
         .collection('configs')
         .doc(docId)
         .update({'secretKey': ""});
-
+    LogOverlay.showLog("Config submitted successfully", type: "success");
     return true;
   } catch (e) {
     LogOverlay.showLog("Error saving config: $e please turn on vpn",

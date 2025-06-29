@@ -71,7 +71,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.merge_type_sharp, color: Colors.white),
+                icon: const Icon(Icons.merge_type_sharp),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -177,11 +177,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           title: "Auto Mode Timeout",
                           prefKey: "timeout_auto",
                           hintText: "110000",
-                        ),
-                        const SettingInput(
-                          title: "تعداد درخواست\u200cهای هم\u200cزمان",
-                          prefKey: "batch_size",
-                          hintText: "15",
                         ),
                         SettingSelector(
                           title: "CORE VPN",
