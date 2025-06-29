@@ -198,9 +198,10 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
           testedSet.add(config);
         }
       }
-
+      if (!mounted) break;
       try {
         final batchResults = await Future.wait(batch.map((server) async {
+          if (!mounted) return {"":""};
           if (server.trim().isEmpty) {
             setState(() => _configLoading[server] = false);
             return {
@@ -209,7 +210,6 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
               'ping': null,
             };
           }
-
           setState(() => _configLoading[server] = true);
 
           final ping = await _pingServer(server);
@@ -273,7 +273,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
 
       await Future.delayed(const Duration(milliseconds: 500));
     }
-
+    if (!mounted) return;
     setState(() => isTesting = false);
 
     LogOverlay.showLog('Config testing completed');

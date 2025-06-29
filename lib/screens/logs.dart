@@ -57,37 +57,17 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
 
   void _copyLogs() {
     LogOverlay.copyLogs().then((success) {
-      _showSnackBar(
-        success ? 'Logs copied to clipboard!' : 'No logs to copy!',
-        success ? Colors.green : Colors.red,
-      );
+      LogOverlay.showLog(
+          (success ? 'Logs copied to clipboard!' : 'No logs to copy!'),
+          type: (success ? "success" : "error"));
     });
   }
 
   Future<void> _clearLogs() async {
     LogOverlay.clearLogs();
     setState(() => logs = []);
-    _showSnackBar('Logs cleared successfully!', Colors.green);
-  }
 
-  void _showSnackBar(String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: GoogleFonts.inter(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-        ),
-        backgroundColor: color.withOpacity(0.95),
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    LogOverlay.showLog('Logs cleared successfully!', type: "success");
   }
 
   @override
@@ -97,6 +77,12 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
             getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
         child: Scaffold(
           backgroundColor: Colors.transparent,
+          appBar: AppBar(
+              title: const Text(
+                'CFG',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+              ),
+              elevation: 0),
           body: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -108,7 +94,6 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
             child: SafeArea(
               child: Column(
                 children: [
-                  _buildAppBar(),
                   Directionality(
                       textDirection: TextDirection.ltr,
                       child: Expanded(
@@ -121,39 +106,6 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
             ),
           ),
         ));
-  }
-
-  Widget _buildAppBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.4),
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[800]!, width: 0.5),
-        ),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios_new,
-              color: Colors.white70,
-              size: 22,
-            ),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            tr('logs'),
-            style: GoogleFonts.inter(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 22,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildEmptyState() {

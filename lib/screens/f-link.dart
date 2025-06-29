@@ -12,7 +12,7 @@ class PremiumDonateConfigPage extends StatefulWidget {
 
 class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
     with SingleTickerProviderStateMixin {
-  String? selectedCore = "Mobile Vibe Core";
+  String? selectedCore = "VIBE";
   final TextEditingController configController = TextEditingController();
   final TextEditingController messageController = TextEditingController();
   final TextEditingController telegramLinkController = TextEditingController();

@@ -101,7 +101,7 @@ Future<bool> donateCONFIG(String config,
     final text = config.trim();
     LogOverlay.showLog("Donating...");
     if (text.isEmpty) {
-      LogOverlay.showLog("Invalid config", type: 'error');
+      LogOverlay.addLog("Invalid config | Empty config");
       return false;
     }
 
