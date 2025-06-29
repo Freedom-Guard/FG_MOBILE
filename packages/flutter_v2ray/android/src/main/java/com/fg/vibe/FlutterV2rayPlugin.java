@@ -1,4 +1,4 @@
-package com.github.blueboytm.flutter_v2ray;
+package com.fg.vibe;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -15,9 +15,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 
-import com.github.blueboytm.flutter_v2ray.v2ray.V2rayController;
-import com.github.blueboytm.flutter_v2ray.v2ray.V2rayReceiver;
-import com.github.blueboytm.flutter_v2ray.v2ray.utils.AppConfigs;
+import com.fg.vibe.v2ray.V2rayController;
+import com.fg.vibe.v2ray.V2rayReceiver;
+import com.fg.vibe.v2ray.utils.AppConfigs;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

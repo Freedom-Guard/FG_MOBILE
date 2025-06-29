@@ -1,4 +1,4 @@
-package com.github.blueboytm.flutter_v2ray.v2ray.interfaces;
+package com.fg.vibe.v2ray.interfaces;
 
 import android.app.Service;
 

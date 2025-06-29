@@ -1,4 +1,4 @@
-package com.github.blueboytm.flutter_v2ray.v2ray;
+package com.fg.vibe.v2ray;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,11 +6,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 
-import com.github.blueboytm.flutter_v2ray.v2ray.core.V2rayCoreManager;
-import com.github.blueboytm.flutter_v2ray.v2ray.services.V2rayProxyOnlyService;
-import com.github.blueboytm.flutter_v2ray.v2ray.services.V2rayVPNService;
-import com.github.blueboytm.flutter_v2ray.v2ray.utils.AppConfigs;
-import com.github.blueboytm.flutter_v2ray.v2ray.utils.Utilities;
+import com.fg.vibe.v2ray.core.V2rayCoreManager;
+import com.fg.vibe.v2ray.services.V2rayProxyOnlyService;
+import com.fg.vibe.v2ray.services.V2rayVPNService;
+import com.fg.vibe.v2ray.utils.AppConfigs;
+import com.fg.vibe.v2ray.utils.Utilities;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;

@@ -1,6 +1,6 @@
-package com.github.blueboytm.flutter_v2ray.v2ray.core;
+package com.fg.vibe.v2ray.core;
 
-import static com.github.blueboytm.flutter_v2ray.v2ray.utils.Utilities.getUserAssetsPath;
+import static com.fg.vibe.v2ray.utils.Utilities.getUserAssetsPath;
 
 import android.Manifest;
 import android.app.Notification;
@@ -20,12 +20,12 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
-import com.github.blueboytm.flutter_v2ray.v2ray.interfaces.V2rayServicesListener;
-import com.github.blueboytm.flutter_v2ray.v2ray.services.V2rayProxyOnlyService;
-import com.github.blueboytm.flutter_v2ray.v2ray.services.V2rayVPNService;
-import com.github.blueboytm.flutter_v2ray.v2ray.utils.AppConfigs;
-import com.github.blueboytm.flutter_v2ray.v2ray.utils.Utilities;
-import com.github.blueboytm.flutter_v2ray.v2ray.utils.V2rayConfig;
+import com.fg.vibe.v2ray.interfaces.V2rayServicesListener;
+import com.fg.vibe.v2ray.services.V2rayProxyOnlyService;
+import com.fg.vibe.v2ray.services.V2rayVPNService;
+import com.fg.vibe.v2ray.utils.AppConfigs;
+import com.fg.vibe.v2ray.utils.Utilities;
+import com.fg.vibe.v2ray.utils.V2rayConfig;
 
 import org.json.JSONObject;
 

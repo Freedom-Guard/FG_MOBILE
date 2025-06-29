@@ -1,4 +1,4 @@
-package com.github.blueboytm.flutter_v2ray.v2ray.services;
+package com.fg.vibe.v2ray.services;
 
 import android.app.Service;
 import android.content.Intent;
@@ -7,10 +7,10 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import com.github.blueboytm.flutter_v2ray.v2ray.core.V2rayCoreManager;
-import com.github.blueboytm.flutter_v2ray.v2ray.interfaces.V2rayServicesListener;
-import com.github.blueboytm.flutter_v2ray.v2ray.utils.AppConfigs;
-import com.github.blueboytm.flutter_v2ray.v2ray.utils.V2rayConfig;
+import com.fg.vibe.v2ray.core.V2rayCoreManager;
+import com.fg.vibe.v2ray.interfaces.V2rayServicesListener;
+import com.fg.vibe.v2ray.utils.AppConfigs;
+import com.fg.vibe.v2ray.utils.V2rayConfig;
 
 
 public class V2rayProxyOnlyService extends Service implements V2rayServicesListener {

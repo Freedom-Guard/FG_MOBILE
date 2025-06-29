@@ -1,4 +1,4 @@
-package com.github.blueboytm.flutter_v2ray.v2ray.utils;
+package com.fg.vibe.v2ray.utils;
 
 import java.io.Serializable;
 import java.util.ArrayList;

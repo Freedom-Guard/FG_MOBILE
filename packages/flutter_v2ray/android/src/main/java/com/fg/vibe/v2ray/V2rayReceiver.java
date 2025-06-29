@@ -1,4 +1,4 @@
-package com.github.blueboytm.flutter_v2ray.v2ray;
+package com.fg.vibe.v2ray;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

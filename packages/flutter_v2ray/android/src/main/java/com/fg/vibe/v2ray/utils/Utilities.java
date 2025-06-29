@@ -1,9 +1,9 @@
-package com.github.blueboytm.flutter_v2ray.v2ray.utils;
+package com.fg.vibe.v2ray.utils;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.github.blueboytm.flutter_v2ray.v2ray.core.V2rayCoreManager;
+import com.fg.vibe.v2ray.core.V2rayCoreManager;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
