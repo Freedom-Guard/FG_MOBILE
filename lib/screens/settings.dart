@@ -25,7 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
       "block_ads_trackers",
     );
     settingsJson["bypass_lan"] = await settings.getValue("bypass_lan");
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   @override
@@ -105,9 +105,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     value: bool.tryParse(settingsJson["f_link"].toString()) ??
                         false,
                     onChanged: (bool value) {
-                      setState(() {
-                        settingsJson["f_link"] = value.toString();
-                      });
+                      if (mounted)
+                        setState(() {
+                          settingsJson["f_link"] = value.toString();
+                        });
                       settings.setValue("f_link", value.toString());
                     },
                     icon: Icons.link,
@@ -119,9 +120,10 @@ class _SettingsPageState extends State<SettingsPage> {
                         ) ??
                         false,
                     onChanged: (bool value) {
-                      setState(() {
-                        settingsJson["block_ads_trackers"] = value.toString();
-                      });
+                      if (mounted)
+                        setState(() {
+                          settingsJson["block_ads_trackers"] = value.toString();
+                        });
                       settings.setValue("block_ads_trackers", value.toString());
                     },
                     icon: Icons.block,
@@ -132,6 +134,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         bool.tryParse(settingsJson["bypass_lan"].toString()) ??
                             false,
                     onChanged: (bool value) {
+                      if (!mounted) return;
                       setState(() {
                         settingsJson["bypass_lan"] = value.toString();
                       });
@@ -145,6 +148,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             settingsJson["fast_connect"].toString()) ??
                         false,
                     onChanged: (bool value) {
+                      if (!mounted) return;
                       setState(() {
                         settingsJson["fast_connect"] = value.toString();
                       });
@@ -161,6 +165,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     title: "Manual mode",
                     value: _isSettingEnabled,
                     onChanged: (bool value) {
+                      if (!mounted) return;
                       setState(() => _isSettingEnabled = value);
                       _saveSetting("setting_key", value);
                     },
@@ -294,9 +299,11 @@ class _SettingSelectorState extends State<SettingSelector> {
 
   Future<void> _loadValue() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _selectedValue = prefs.getString(widget.prefKey) ?? widget.options[0];
-    });
+    if (mounted) {
+      setState(() {
+        _selectedValue = prefs.getString(widget.prefKey) ?? widget.options[0];
+      });
+    }
   }
 
   Future<void> _saveValue(String value) async {
@@ -375,9 +382,10 @@ class _SettingInputState extends State<SettingInput> {
 
   Future<void> _loadValue() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _controller.text = prefs.getString(widget.prefKey) ?? "";
-    });
+    if (mounted)
+      setState(() {
+        _controller.text = prefs.getString(widget.prefKey) ?? "";
+      });
   }
 
   Future<void> _saveValue(String value) async {

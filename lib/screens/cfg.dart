@@ -268,7 +268,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
 
         await settings.setValue('testedConfigs', jsonEncode(sortedResults));
       } catch (e) {
-        LogOverlay.showLog('Batch test failed: $e');
+        LogOverlay.addLog('Batch test failed: $e');
       }
 
       await Future.delayed(const Duration(milliseconds: 500));
