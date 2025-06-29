@@ -37,8 +37,8 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
       curve: Curves.easeInOut,
     );
     _fadeController.forward();
-    loadSelectedSubLink();
     loadSubLinks();
+    loadSelectedSubLink();
   }
 
   @override
@@ -55,13 +55,6 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
         subLinks = links.where((link) => link.startsWith('http')).toList();
         isLoading = false;
       });
-      if (subLinks.isNotEmpty && selectedSubLink == null) {
-        setState(() {
-          selectedSubLink = subLinks[0];
-        });
-        await settings.setValue('selectedSubLink', subLinks[0]);
-        fetchConfigs(subLinks[0]);
-      }
     } catch (e) {
       setState(() => isLoading = false);
       LogOverlay.showLog('Failed to load sub-links: $e');
@@ -76,6 +69,14 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
           selectedSubLink = savedLink;
         });
         fetchConfigs(savedLink);
+        return;
+      }
+      if (subLinks.isNotEmpty && selectedSubLink == null) {
+        setState(() {
+          selectedSubLink = subLinks[0];
+        });
+        await settings.setValue('selectedSubLink', subLinks[0]);
+        fetchConfigs(subLinks[0]);
       }
     } catch (e) {
       LogOverlay.showLog('Failed to load saved sub-link: $e');
@@ -159,7 +160,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
         });
       }
     } catch (e) {
-      LogOverlay.showLog('Failed to load tested configs: $e');
+      LogOverlay.addLog('Failed to load tested configs: $e');
     }
   }
 
@@ -201,7 +202,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
       if (!mounted) break;
       try {
         final batchResults = await Future.wait(batch.map((server) async {
-          if (!mounted) return {"":""};
+          if (!mounted) return {"": ""};
           if (server.trim().isEmpty) {
             setState(() => _configLoading[server] = false);
             return {

@@ -79,7 +79,7 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
           backgroundColor: Colors.transparent,
           appBar: AppBar(
               title: const Text(
-                'CFG',
+                'Logs',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
               ),
               elevation: 0),
