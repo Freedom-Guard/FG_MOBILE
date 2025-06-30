@@ -25,6 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
       "block_ads_trackers",
     );
     settingsJson["bypass_lan"] = await settings.getValue("bypass_lan");
+    settingsJson["proxy_mode"] = await settings.getBool("proxy_mode");
     if (mounted) setState(() {});
   }
 
@@ -127,6 +128,18 @@ class _SettingsPageState extends State<SettingsPage> {
                       settings.setValue("block_ads_trackers", value.toString());
                     },
                     icon: Icons.block,
+                  ),
+                  SettingSwitch(
+                    title: tr("proxy-mode"),
+                    value: settingsJson["proxy_mode"],
+                    onChanged: (bool value) {
+                      if (mounted)
+                        setState(() {
+                          settingsJson["proxy_mode"] = value.toString();
+                        });
+                      settings.setBool("proxy_mode", value);
+                    },
+                    icon: Icons.swap_horiz,
                   ),
                   SettingSwitch(
                     title: tr("bypass-lan"),

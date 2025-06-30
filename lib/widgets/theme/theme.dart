@@ -45,8 +45,8 @@ final hackerTheme = ThemeData(
   ),
   scaffoldBackgroundColor: Color(0xFF0A0A0A),
   appBarTheme: const AppBarTheme(
-    backgroundColor: Color(0xFF00FF88),
-    foregroundColor: Colors.black,
+    backgroundColor: Colors.black,
+    foregroundColor: Color(0xFF00FF88),
     elevation: 0,
   ),
   cardColor: Color(0xFF1A1A1A),
@@ -73,8 +73,8 @@ final matrixTheme = ThemeData(
   ),
   scaffoldBackgroundColor: Color(0xFF000000),
   appBarTheme: const AppBarTheme(
-    backgroundColor: Color(0xFF00FF00),
-    foregroundColor: Colors.black,
+    backgroundColor: Colors.black,
+    foregroundColor: Color(0xFF00FF00),
     elevation: 0,
   ),
   cardColor: Color(0xFF121212),
@@ -113,28 +113,28 @@ final neonDevTheme = ThemeData(
   hoverColor: Colors.transparent,
 );
 final blackAndWhiteTheme = ThemeData(
-  brightness: Brightness.light,
-  colorScheme: const ColorScheme.light(
-    primary: Color(0xFF000000), 
-    secondary: Color(0xFF666666),
-    surface: Color(0xFFFFFFFF),
-    background: Color(0xFFF5F5F5),
+  brightness: Brightness.dark,
+  colorScheme: const ColorScheme.dark(
+    primary: Color(0xFFFFFFFF),
+    secondary: Color(0xFF999999),
+    surface: Color(0xFF000000),
+    background: Color(0xFF1A1A1A),
     error: Color(0xFFFF4C5B),
-    onPrimary: Color(0xFFFFFFFF),
-    onSecondary: Color(0xFFFFFFFF),
-    onSurface: Color(0xFF000000), 
-    onBackground: Color(0xFF000000), 
-    onError: Color(0xFFFFFFFF), 
+    onPrimary: Color(0xFF000000),
+    onSecondary: Color(0xFF000000),
+    onSurface: Color(0xFFFFFFFF),
+    onBackground: Color(0xFFFFFFFF),
+    onError: Color(0xFF000000),
   ),
-  scaffoldBackgroundColor: Color(0xFFF5F5F5),
+  scaffoldBackgroundColor: Color(0xFF1A1A1A),
   appBarTheme: const AppBarTheme(
     backgroundColor: Color(0xFF000000),
     foregroundColor: Color(0xFFFFFFFF),
     elevation: 0,
   ),
-  cardColor: Color(0xFFE0E0E0),
-  dividerColor: Color(0xFF999999),
-  dialogBackgroundColor: Color(0xFFFFFFFF),
+  cardColor: Color(0xFF2A2A2A),
+  dividerColor: Color(0xFF666666),
+  dialogBackgroundColor: Color(0xFF000000),
   splashColor: Colors.transparent,
   highlightColor: Colors.transparent,
   hoverColor: Colors.transparent,
@@ -417,14 +417,14 @@ class ThemeNotifier extends ChangeNotifier {
             end: Alignment.bottomCenter,
           ),
         );
-        case 'Black and White':
-  return const BoxDecoration(
-    gradient: LinearGradient(
-      colors: [Color(0xFF000000), Color(0xFF666666)],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    ),
-  );
+      case 'Black and White':
+        return const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF000000), Color(0xFF666666)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        );
       default:
         return null;
     }

@@ -183,10 +183,13 @@ class Connect extends Tools {
               .where((e) => e.isNotEmpty)
               .toList(),
           bypassSubnets: await getSubNetforBypassVibe(),
-          proxyOnly: false,
+          proxyOnly: await settings.getBool("proxy_mode"),
           notificationDisconnectButtonName: "قطع اتصال",
         );
-
+        int? proxyPort = jsonDecode(parsedJson)["inbounds"][0]['port'] as int?;
+        await settings.getBool("proxy_mode") == true
+            ? LogOverlay.showLog("Proxy mode enabled on port $proxyPort")
+            : null;
         return true;
       } else {
         LogOverlay.showLog(

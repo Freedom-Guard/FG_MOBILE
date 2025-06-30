@@ -257,14 +257,14 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Server'),
+        title:  Text(tr('add-server')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: serverController,
               decoration:
-                  const InputDecoration(hintText: 'Enter server config'),
+                   InputDecoration(hintText: tr('enter-server-config')),
             ),
             const SizedBox(height: 16),
             Row(
@@ -395,12 +395,12 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove All Servers'),
-        content: const Text('Are you sure you want to delete all servers?'),
+        title: Text(tr('remove-all-servers')),
+        content: Text(tr('are-you-sure-you-want-to-delete-all-servers')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(tr('cancel')),
           ),
           TextButton(
             onPressed: () {
@@ -412,7 +412,7 @@ class _ServersPageState extends State<ServersPage> {
               _saveServers();
               Navigator.pop(context);
             },
-            child: const Text('Delete'),
+            child: Text(tr('delete')),
           ),
         ],
       ),

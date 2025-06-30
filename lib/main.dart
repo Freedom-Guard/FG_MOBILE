@@ -307,12 +307,9 @@ class _HomePageState extends State<HomePage>
                 filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                 child: AppBar(
                   backgroundColor: Colors.black.withOpacity(0.7),
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                  elevation: 0,
                   centerTitle: true,
                   leading: IconButton(
                     icon: const Icon(Icons.cable),
-                    color: Theme.of(context).colorScheme.onSurface,
                     onPressed: () {
                       openXraySettings(context);
                     },

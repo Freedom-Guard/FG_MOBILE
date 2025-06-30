@@ -163,7 +163,6 @@ class _SpeedTestPageState extends State<SpeedTestPage>
           backgroundColor: Colors.transparent,
           appBar: AppBar(
             title: Text(tr('speed-test')),
-            backgroundColor: Colors.transparent,
             elevation: 0,
           ),
           body: SizedBox(

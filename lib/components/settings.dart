@@ -11,6 +11,11 @@ class Settings {
     return prefs.getBool(key) ?? false;
   }
 
+  Future<void> setBool(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+  }
+
   Future<List> getList(String key) async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getStringList(key) ?? [];
