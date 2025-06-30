@@ -112,7 +112,33 @@ final neonDevTheme = ThemeData(
   highlightColor: Colors.transparent,
   hoverColor: Colors.transparent,
 );
-
+final blackAndWhiteTheme = ThemeData(
+  brightness: Brightness.light,
+  colorScheme: const ColorScheme.light(
+    primary: Color(0xFF000000), 
+    secondary: Color(0xFF666666),
+    surface: Color(0xFFFFFFFF),
+    background: Color(0xFFF5F5F5),
+    error: Color(0xFFFF4C5B),
+    onPrimary: Color(0xFFFFFFFF),
+    onSecondary: Color(0xFFFFFFFF),
+    onSurface: Color(0xFF000000), 
+    onBackground: Color(0xFF000000), 
+    onError: Color(0xFFFFFFFF), 
+  ),
+  scaffoldBackgroundColor: Color(0xFFF5F5F5),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF000000),
+    foregroundColor: Color(0xFFFFFFFF),
+    elevation: 0,
+  ),
+  cardColor: Color(0xFFE0E0E0),
+  dividerColor: Color(0xFF999999),
+  dialogBackgroundColor: Color(0xFFFFFFFF),
+  splashColor: Colors.transparent,
+  highlightColor: Colors.transparent,
+  hoverColor: Colors.transparent,
+);
 final cyberPulseTheme = ThemeData(
   brightness: Brightness.dark,
   colorScheme: const ColorScheme.dark(
@@ -272,6 +298,7 @@ class ThemeNotifier extends ChangeNotifier {
     'Neon Abyss': neonAbyssTheme,
     'Galactic Glow': galacticGlowTheme,
     'Quantum Spark': quantumSparkTheme,
+    'Black and White': blackAndWhiteTheme,
     'Reset': defaultDarkTheme
   };
 
@@ -390,6 +417,14 @@ class ThemeNotifier extends ChangeNotifier {
             end: Alignment.bottomCenter,
           ),
         );
+        case 'Black and White':
+  return const BoxDecoration(
+    gradient: LinearGradient(
+      colors: [Color(0xFF000000), Color(0xFF666666)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+  );
       default:
         return null;
     }

@@ -47,6 +47,18 @@ class ThemeDialog extends StatelessWidget {
         ),
       },
       {
+  'name': '⚪⚫ Black and White',
+  'theme': blackAndWhiteTheme,
+  'nameB': 'Black and White',
+  'color': const Color(0xFF000000),
+  'gradient': const LinearGradient(
+    colors: [Color(0xFF000000), Color(0xFF666666), Color(0xFFF5F5F5)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    stops: [0.0, 0.5, 1.0],
+  ),
+},
+      {
         'name': '⚡ Neon Dev',
         'theme': neonDevTheme,
         'nameB': 'Neon Dev',
