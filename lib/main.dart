@@ -299,6 +299,7 @@ class _HomePageState extends State<HomePage>
         Scaffold(
           backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,
+          extendBody: true,
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(kToolbarHeight),
             child: ClipRRect(
@@ -515,13 +516,8 @@ class _HomePageState extends State<HomePage>
                     ),
                   ),
                 ),
-                SizedBox(height: 25),
                 if (isConnected) NetworkStatusWidget(),
-                isConnected
-                    ? SizedBox(
-                        height: 25,
-                      )
-                    : Spacer(flex: 1),
+                Spacer(flex: 1),
               ],
             ),
           ),
