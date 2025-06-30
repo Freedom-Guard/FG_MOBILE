@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
@@ -460,6 +461,14 @@ class _ServersPageState extends State<ServersPage> {
               onTap: () {
                 Navigator.pop(context);
                 _editServer(index);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.volunteer_activism),
+              title: const Text('Donate'),
+              onTap: () {
+                Navigator.pop(context);
+                donateCONFIG(server);
               },
             ),
             ListTile(

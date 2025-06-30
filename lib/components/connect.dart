@@ -379,7 +379,11 @@ class Tools {
   }
 
   Future<int> getConnectedDelay() async {
-    return await flutterV2ray.getConnectedServerDelay();
+    return await flutterV2ray
+        .getConnectedServerDelay()
+        .timeout(Duration(seconds: 7), onTimeout: () {
+      return -1;
+    });
   }
 
   Future<int> testConfig(String config) async {
