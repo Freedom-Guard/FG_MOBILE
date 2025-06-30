@@ -1,5 +1,7 @@
+import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final defaultDarkTheme = ThemeData(
   brightness: Brightness.dark,
@@ -262,12 +264,32 @@ class ThemeNotifier extends ChangeNotifier {
   ThemeData get currentTheme => _currentTheme;
   String get currentThemeName => _currentThemeName;
 
+  static final Map<String, ThemeData> _themes = {
+    'Default Dark': defaultDarkTheme,
+    'Programmer': hackerTheme,
+    'Matrix': matrixTheme,
+    'Neon Dev': neonDevTheme,
+    'Cyber Pulse': cyberPulseTheme,
+    'Cosmic Void': cosmicVoidTheme,
+    'Neon Abyss': neonAbyssTheme,
+    'Galactic Glow': galacticGlowTheme,
+    'Quantum Spark': quantumSparkTheme,
+    'Reset': defaultDarkTheme
+  };
+
+  static Future<ThemeNotifier> init() async {
+    final themeName = await Settings().getValue("theme");
+    final themeData = _themes[themeName] ?? defaultDarkTheme;
+    return ThemeNotifier(themeData, themeName);
+  }
+
   BoxDecoration? getGradientBackground() =>
       _getGradientBackground(_currentThemeName);
 
   Future<void> setTheme(ThemeData theme, String name) async {
     _currentTheme = theme;
     _currentThemeName = name;
+    await Settings().setValue('theme', name);
     notifyListeners();
   }
 
