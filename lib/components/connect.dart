@@ -182,8 +182,8 @@ class Connect extends Tools {
               .map((e) => e.trim())
               .where((e) => e.isNotEmpty)
               .toList(),
-          bypassSubnets: await getSubNetforBypassVibe(),
-          proxyOnly: await settings.getBool("proxy_mode"),
+          bypassSubnets: (await getSubNetforBypassVibe()),
+          proxyOnly: (await settings.getBool("proxy_mode")),
           notificationDisconnectButtonName: "قطع اتصال",
         );
         int? proxyPort = jsonDecode(parsedJson)["inbounds"][0]['port'] as int?;
