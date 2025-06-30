@@ -274,7 +274,7 @@ class _ModalContentState extends State<_ModalContent> {
                     TextButton(
                       onPressed: () => openTelegram(widget.telegramLink),
                       style: TextButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 10),
@@ -354,7 +354,7 @@ class _RatingModalContentState extends State<_RatingModalContent> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() => _isExitEnabled = true);
       }
@@ -414,7 +414,7 @@ class _RatingModalContentState extends State<_RatingModalContent> {
                         : null,
                     style: TextButton.styleFrom(
                       backgroundColor: _isExitEnabled && _rating > 0
-                          ? Colors.blueAccent
+                          ? Theme.of(context).colorScheme.primary
                           : Colors.grey.shade800,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(

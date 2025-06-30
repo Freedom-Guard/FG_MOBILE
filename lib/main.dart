@@ -57,12 +57,12 @@ void main() async {
     name: "app_opened",
     parameters: {"time": DateTime.now().toString()},
   );
+  final themeNotifier = await ThemeNotifier.init();
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-            create: (_) => ThemeNotifier(defaultDarkTheme, "default")),
+        ChangeNotifierProvider.value(value: themeNotifier),
         ChangeNotifierProvider(create: (context) => ServersM()),
         Provider(create: (context) => Connect()),
         Provider(create: (context) => Settings()),
@@ -414,7 +414,8 @@ class _HomePageState extends State<HomePage>
                             ? [Colors.green.shade400, Colors.teal.shade700]
                             : isConnecting
                                 ? [Colors.blue.shade300, Colors.teal.shade800]
-                                : [Colors.blueGrey.shade900, Colors.black],
+                                : themeNotifier.getDisconnectedGradient() ??
+                                    [Colors.blueGrey.shade900, Colors.black],
                         radius: 0.75,
                         center: Alignment.center,
                       ),
@@ -422,7 +423,7 @@ class _HomePageState extends State<HomePage>
                         BoxShadow(
                           color: isConnected
                               ? Colors.green.shade500.withOpacity(0.4)
-                              : Colors.blue.shade500.withOpacity(0.4),
+                              : Colors.transparent,
                           blurRadius: isPressed ? 20 : 12,
                           spreadRadius: isPressed ? 4 : 1,
                           offset: const Offset(0, 2),

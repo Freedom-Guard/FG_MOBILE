@@ -1,7 +1,5 @@
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 final defaultDarkTheme = ThemeData(
   brightness: Brightness.dark,
@@ -291,6 +289,31 @@ class ThemeNotifier extends ChangeNotifier {
     _currentThemeName = name;
     await Settings().setValue('theme', name);
     notifyListeners();
+  }
+
+  List<Color>? getDisconnectedGradient() {
+    switch (_currentThemeName) {
+      case 'Default Dark':
+        return [Color(0xFF6B4AB8), Color(0xFF0090B8)];
+      case 'Programmer':
+        return [Color(0xFF009966), Color(0xFF1A2B2A)];
+      case 'Matrix':
+        return [Color(0xFF007744), Color(0xFF1A2B2A)];
+      case 'Neon Dev':
+        return [Color(0xFFAA00AA), Color(0xFF009999)];
+      case 'Cyber Pulse':
+        return [Color(0xFFAA2244), Color(0xFF00AABB)];
+      case 'Cosmic Void':
+        return [Color(0xFF3B2A9C), Color(0xFF1C1C3A)];
+      case 'Neon Abyss':
+        return [Color(0xFFAA0055), Color(0xFF009999)];
+      case 'Galactic Glow':
+        return [Color(0xFFAA4444), Color(0xFF3B8B88)];
+      case 'Quantum Spark':
+        return [Color(0xFF5C2A8C), Color(0xFF3B9BAA)];
+      default:
+        return null;
+    }
   }
 
   BoxDecoration? _getGradientBackground(String themeName) {
