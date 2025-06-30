@@ -5,6 +5,8 @@ import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/services.dart';
+import 'package:Freedom_Guard/widgets/theme/dialog.dart';
+import 'package:Freedom_Guard/widgets/theme/theme.dart';
 import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
@@ -59,16 +61,24 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+            create: (_) => ThemeNotifier(defaultDarkTheme, "default")),
         ChangeNotifierProvider(create: (context) => ServersM()),
         Provider(create: (context) => Connect()),
         Provider(create: (context) => Settings()),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        initialRoute: '/',
-        routes: {
-          '/': (context) => FreedomGuardApp(),
-          '/home': (context) => FreedomGuardApp(),
+      child: Consumer<ThemeNotifier>(
+        builder: (context, themeNotifier, _) {
+          return MaterialApp(
+            navigatorKey: LogOverlay.navigatorKey,
+            debugShowCheckedModeBanner: false,
+            theme: themeNotifier.currentTheme,
+            initialRoute: '/',
+            routes: {
+              '/': (context) => FreedomGuardApp(),
+              '/home': (context) => FreedomGuardApp(),
+            },
+          );
         },
       ),
     ),
@@ -78,41 +88,9 @@ void main() async {
 class FreedomGuardApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: LogOverlay.navigatorKey,
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF9A66FF),
-          secondary: Color(0xFF00C2FF),
-          surface: Color(0xFF1C1C2D),
-          background: Color(0xFF12121A),
-          error: Color(0xFFFF4C5B),
-          onPrimary: Color(0xFFFFFFFF),
-          onSecondary: Color(0xFF001F2F),
-          onSurface: Color(0xFFD0D2E0),
-          onBackground: Color(0xFFE0E0F0),
-          onError: Color(0xFFFFFFFF),
-        ),
-        scaffoldBackgroundColor: Color(0xFF12121A),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF9A66FF),
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        cardColor: Color(0xFF2A2B3A),
-        dividerColor: Color(0xFF3A3B4D),
-        dialogBackgroundColor: Color(0xFF1C1C2D),
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-      ),
-      home: Directionality(
-        textDirection:
-            getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
-        child: HomePage(),
-      ),
+    return Directionality(
+      textDirection: getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
+      child: HomePage(),
     );
   }
 }
@@ -313,16 +291,11 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+
     return Stack(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage(backgroundPath),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
+        Container(),
         Scaffold(
           backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,
@@ -333,6 +306,7 @@ class _HomePageState extends State<HomePage>
                 filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                 child: AppBar(
                   backgroundColor: Colors.black.withOpacity(0.7),
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
                   elevation: 0,
                   centerTitle: true,
                   leading: IconButton(
@@ -343,6 +317,16 @@ class _HomePageState extends State<HomePage>
                     },
                   ),
                   actions: [
+                    IconButton(
+                      icon: const Icon(Icons.color_lens,
+                          color: Colors.deepPurpleAccent),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => ThemeDialog(),
+                        );
+                      },
+                    ),
                     IconButton(
                       icon: const Icon(Icons.rocket_launch,
                           color: Colors.amberAccent),
@@ -369,7 +353,6 @@ class _HomePageState extends State<HomePage>
                     ),
                     IconButton(
                       icon: const Icon(Icons.public),
-                      color: Colors.grey,
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -381,7 +364,6 @@ class _HomePageState extends State<HomePage>
                     ),
                     IconButton(
                       icon: const Icon(Icons.network_check),
-                      color: Colors.grey,
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -393,7 +375,6 @@ class _HomePageState extends State<HomePage>
                     ),
                     IconButton(
                       icon: const Icon(Icons.bug_report_sharp),
-                      color: Colors.grey,
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -408,12 +389,13 @@ class _HomePageState extends State<HomePage>
           ),
           body: Container(
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(backgroundPath),
-                fit: BoxFit.cover,
-              ),
-            ),
+            decoration: themeNotifier.getGradientBackground() ??
+                BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(backgroundPath),
+                    fit: BoxFit.cover,
+                  ),
+                ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -534,7 +516,11 @@ class _HomePageState extends State<HomePage>
                 ),
                 SizedBox(height: 25),
                 if (isConnected) NetworkStatusWidget(),
-                if (!isConnected) Spacer(flex: 1),
+                isConnected
+                    ? SizedBox(
+                        height: 25,
+                      )
+                    : Spacer(flex: 1),
               ],
             ),
           ),

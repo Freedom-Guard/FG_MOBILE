@@ -45,6 +45,7 @@ Map<String, String> AllTr_fa = {
   'copy': "کپی",
   'clear': 'پاک کردن',
   'logs': 'لاگ',
+  'choose-theme': "انتخاب قالب",
   'show-system-apps': 'نمایش برنامه های سیستمی',
   'about-app': 'گارد آزادی ابزاری متن باز برای عبور از فیلترینگ اینترنت است'
 };
@@ -71,6 +72,7 @@ Map<String, String> AllTr_en = {
   'copy': "Copy",
   'clear': 'Clear',
   'logs': 'Logs',
+  'choose-theme': "Choose theme",
   'show-system-apps': 'Show system Apps',
   'about-app':
       'Freedom Guard is an open-source tool to bypass internet censorship.'
