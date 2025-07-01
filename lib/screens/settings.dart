@@ -175,7 +175,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     options: ["en", "fa"],
                   ),
                   SettingSwitch(
-                    title: "Manual mode",
+                    title: tr("manual-mode"),
                     value: _isSettingEnabled,
                     onChanged: (bool value) {
                       if (!mounted) return;

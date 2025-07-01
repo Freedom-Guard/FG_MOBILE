@@ -1,4 +1,5 @@
 import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
@@ -210,11 +211,11 @@ class XraySettingsDialog {
                               onConfigChanged(newConfig);
                               Navigator.pop(context);
                             },
-                            child: const Text(
-                              'Save',
+                            child: Text(
+                              tr('save'),
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.onPrimary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),

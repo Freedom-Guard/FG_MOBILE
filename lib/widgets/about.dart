@@ -77,7 +77,9 @@ class AboutDialogWidget extends StatelessWidget {
               ),
               child: Text(
                 tr("close"),
-                style: TextStyle(fontSize: 16, color: Colors.white),
+                style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).colorScheme.onPrimary),
               ),
             ),
           ],
