@@ -68,9 +68,7 @@ class Connect extends Tools {
 
       if (dnsServers.isNotEmpty) {
         if (dnsServers != []) {
-          parsedJson["dns"] = {
-            "servers": dnsServers,
-          };
+          parsedJson["dns"]["servers"] = dnsServers;
         }
       }
 

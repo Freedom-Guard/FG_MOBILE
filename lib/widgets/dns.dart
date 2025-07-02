@@ -141,6 +141,7 @@ class _DnsSelectionDialogState extends State<DnsSelectionDialog> {
     await Settings().setList('preferred_dns', []);
     if (mounted) {
       setState(() => _selectedDnsAddresses = null);
+      Navigator.pop(context);
       LogOverlay.showLog('تنظیمات DNS پاک شد.');
     }
   }

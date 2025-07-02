@@ -133,8 +133,9 @@ class _HomePageState extends State<HomePage>
           isConnected = connected;
         });
       });
-      setState(() async {
-        isConnected = await checker.checkVPN();
+      final connected = await checker.checkVPN();
+      setState(() {
+        isConnected = connected;
       });
       await checkForUpdate(context);
     });
