@@ -1,8 +1,7 @@
 import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/components/global.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:vibe_core/flutter_v2ray.dart';
-import 'package:Freedom_Guard/components/connect.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,15 +22,6 @@ Future<String> getDeviceId() async {
   await prefs.setString(key, newId);
   return newId;
 }
-
-final FlutterV2ray flutterV2ray = FlutterV2ray(
-  onStatusChanged: (status) async {
-    if (status.toString() == "V2RayStatusState.connected") {
-      LogOverlay.showLog("Connected To VIBE",
-          backgroundColor: Colors.greenAccent);
-    }
-  },
-);
 
 String hashConfig(String config) {
   final trimmed = config.trim();
@@ -145,7 +135,7 @@ Future<bool> donateCONFIG(String config,
       LogOverlay.showLog("The config is too large", type: "error");
       return false;
     }
-    final ping = await testConfig(text);
+    final ping = await connect.testConfig(text, type: "f_link");
 
     await FirebaseFirestore.instance.collection('configs').doc(docId).set({
       'config': text,
@@ -240,34 +230,15 @@ Future<List> restoreConfigs() async {
   return [];
 }
 
-Future<int> testConfig(String config) async {
-  try {
-    await flutterV2ray.initializeV2Ray();
-    dynamic parser;
-    try {
-      parser = FlutterV2ray.parseFromURL(config).getFullConfiguration();
-    } catch (_) {
-      parser = (config);
-    }
-    final ping = await flutterV2ray
-        .getServerDelay(config: parser)
-        .timeout(const Duration(seconds: 3), onTimeout: () => -1);
-    return ping > 0 ? ping : -1;
-  } catch (e) {
-    return -1;
-  }
-}
-
 Future<bool> tryConnect(String config, String docId, String message_old,
     String telegramLink) async {
-  final resPing = await testConfig(config);
-  final conn = Connect();
+  final resPing = await connect.testConfig(config, type: "f_link");
   final docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
 
   String message = message_old;
 
   if (resPing > 1) {
-    final success = await conn.ConnectVibe(config, {"type": "f_link"});
+    final success = await connect.ConnectVibe(config, {"type": "f_link"});
     if (success) {
       try {
         await docRef.update({'connected': FieldValue.increment(1)}).timeout(

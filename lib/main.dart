@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
+import 'package:Freedom_Guard/components/global.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/services.dart';
 import 'package:Freedom_Guard/widgets/dns.dart';
-import 'package:Freedom_Guard/widgets/theme/dialog.dart';
 import 'package:Freedom_Guard/widgets/theme/theme.dart';
 import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
@@ -64,7 +63,6 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: themeNotifier),
         ChangeNotifierProvider(create: (context) => ServersM()),
-        Provider(create: (context) => Connect()),
         Provider(create: (context) => Settings()),
       ],
       child: Consumer<ThemeNotifier>(
@@ -160,7 +158,6 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> toggleConnection() async {
-    final connect = Provider.of<Connect>(context, listen: false);
     final serverM = Provider.of<ServersM>(context, listen: false);
     final settings = Provider.of<Settings>(context, listen: false);
     if (isConnecting) {

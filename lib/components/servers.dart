@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:Freedom_Guard/components/global.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ServersM extends ChangeNotifier {
   String? selectedServer;
   Settings settings = new Settings();
-  Connect connect = new Connect();
   ServersM() {
     _loadSelectedServer();
     loadServers();

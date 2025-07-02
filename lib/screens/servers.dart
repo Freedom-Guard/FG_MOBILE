@@ -563,10 +563,10 @@ class _ServersPageState extends State<ServersPage> {
     );
   }
 
-  Widget _buildPingIndicator(int? ping, BuildContext context) {
+  Widget _buildPingIndicator(int? ping, BuildContext context, String Server) {
     final theme = Theme.of(context);
     if (ping == null)
-      return Text('Not tested',
+      return Text(Server.startsWith("http") ? 'SUB' : 'Not tested',
           style: TextStyle(
               color: theme.textTheme.bodySmall?.color?.withOpacity(0.7)));
     if (ping == -1)
@@ -625,7 +625,7 @@ class _ServersPageState extends State<ServersPage> {
             IconButton(
               icon: Icon(Icons.sort,
                   color: sortByPing
-                      ? theme.colorScheme.primary
+                      ? theme.colorScheme.onPrimary
                       : theme.colorScheme.secondary),
               tooltip: 'Sort by Ping',
               onPressed: _toggleSortByPing,
@@ -722,7 +722,7 @@ class _ServersPageState extends State<ServersPage> {
                                               ),
                                               const SizedBox(height: 4),
                                               _buildPingIndicator(
-                                                  ping, context),
+                                                  ping, context, server),
                                             ],
                                           ),
                                         ),

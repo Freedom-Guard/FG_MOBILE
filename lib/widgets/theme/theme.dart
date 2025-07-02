@@ -335,7 +335,7 @@ class ThemeNotifier extends ChangeNotifier {
       case 'Neon Abyss':
         return [Color(0xFFAA0055), Color.fromARGB(255, 255, 0, 128)];
       case 'Galactic Glow':
-        return [Color(0xFFAA4444), Color.fromARGB(255, 0, 255, 247)];
+        return [Color(0xFFAA4444), Color.fromARGB(255, 170, 57, 23)];
       case 'Quantum Spark':
         return [Color(0xFF5C2A8C), Color.fromARGB(255, 132, 0, 255)];
       default:

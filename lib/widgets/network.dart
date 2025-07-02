@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:Freedom_Guard/components/connect.dart';
+import 'package:Freedom_Guard/components/global.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vibe_core/flutter_v2ray.dart';
@@ -44,7 +45,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
 
     while (attempts < maxAttempts) {
       try {
-        var pingConnected = await Connect().getConnectedDelay();
+        var pingConnected = await connect.getConnectedDelay();
         final countryResponse = await http
             .get(Uri.parse('http://ip-api.com/json'))
             .timeout(const Duration(seconds: 5));

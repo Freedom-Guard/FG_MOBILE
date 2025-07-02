@@ -145,11 +145,6 @@ class Connect extends Tools {
       backgroundColor: Colors.blueAccent,
     );
 
-    try {} catch (_) {
-      LogOverlay.showLog("Failed to initialize VIBE", type: "error");
-      return false;
-    }
-
     try {
       String parser = "";
       if (await flutterV2ray.requestPermission()) {
@@ -397,7 +392,7 @@ class Tools {
     });
   }
 
-  Future<int> testConfig(String config) async {
+  Future<int> testConfig(String config, {String type = "normal"}) async {
     try {
       final parser = FlutterV2ray.parseFromURL(config);
 
@@ -406,20 +401,26 @@ class Tools {
           .timeout(
         const Duration(seconds: 6),
         onTimeout: () {
-          debugPrint('Ping timeout for config: $config');
+          type != "f_link"
+              ? debugPrint('Ping timeout for config: $config')
+              : null;
           return -1;
         },
       );
       if (ping > 0) {
         return ping;
       } else {
-        debugPrint('Invalid ping ($ping) for config: $config');
+        type != "f_link"
+            ? debugPrint('Invalid ping ($ping) for config: $config')
+            : null;
         return -1;
       }
     } catch (e) {
-      debugPrint(
-        'Error for config: $config\nError: $e\nStackTrace: in parse config',
-      );
+      type != "f_link"
+          ? debugPrint(
+              'Error for config: $config\nError: $e\nStackTrace: in parse config',
+            )
+          : null;
       return -1;
     }
   }
