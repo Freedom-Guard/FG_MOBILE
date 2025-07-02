@@ -5,6 +5,7 @@ import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/services.dart';
+import 'package:Freedom_Guard/widgets/dns.dart';
 import 'package:Freedom_Guard/widgets/theme/dialog.dart';
 import 'package:Freedom_Guard/widgets/theme/theme.dart';
 import 'package:Freedom_Guard/components/update.dart';
@@ -17,7 +18,6 @@ import 'package:Freedom_Guard/screens/servers.dart';
 import 'package:Freedom_Guard/screens/settings.dart';
 import 'package:Freedom_Guard/screens/speedtest.dart';
 import 'package:Freedom_Guard/ui/animations/connect.dart';
-import 'package:Freedom_Guard/widgets/CBar.dart';
 import 'package:Freedom_Guard/widgets/fragment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -316,13 +316,10 @@ class _HomePageState extends State<HomePage>
                   ),
                   actions: [
                     IconButton(
-                      icon: const Icon(Icons.color_lens,
-                          color: Colors.deepPurpleAccent),
+                      icon:
+                          const Icon(Icons.dns, color: Colors.deepPurpleAccent),
                       onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => ThemeDialog(),
-                        );
+                        showDnsSelectionPopup(context);
                       },
                     ),
                     IconButton(

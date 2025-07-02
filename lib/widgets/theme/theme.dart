@@ -321,23 +321,23 @@ class ThemeNotifier extends ChangeNotifier {
   List<Color>? getDisconnectedGradient() {
     switch (_currentThemeName) {
       case 'Default Dark':
-        return [Color(0xFF6B4AB8), Color(0xFF0090B8)];
+        return [Color(0xFF6B4AB8), Color.fromARGB(255, 74, 13, 218)];
       case 'Programmer':
-        return [Color(0xFF009966), Color(0xFF1A2B2A)];
+        return [Color(0xFF009966), Color.fromARGB(255, 0, 238, 159)];
       case 'Matrix':
-        return [Color(0xFF007744), Color(0xFF1A2B2A)];
+        return [Color(0xFF007744), Color.fromARGB(255, 0, 248, 232)];
       case 'Neon Dev':
         return [Color(0xFFAA00AA), Color.fromARGB(255, 156, 0, 170)];
       case 'Cyber Pulse':
-        return [Color(0xFFAA2244), Color(0xFF00AABB)];
+        return [Color(0xFFAA2244), Color.fromARGB(255, 250, 0, 62)];
       case 'Cosmic Void':
-        return [Color(0xFF3B2A9C), Color(0xFF1C1C3A)];
+        return [Color(0xFF3B2A9C), Color.fromARGB(255, 0, 0, 233)];
       case 'Neon Abyss':
-        return [Color(0xFFAA0055), Color(0xFF009999)];
+        return [Color(0xFFAA0055), Color.fromARGB(255, 255, 0, 128)];
       case 'Galactic Glow':
-        return [Color(0xFFAA4444), Color(0xFF3B8B88)];
+        return [Color(0xFFAA4444), Color.fromARGB(255, 0, 255, 247)];
       case 'Quantum Spark':
-        return [Color(0xFF5C2A8C), Color(0xFF3B9BAA)];
+        return [Color(0xFF5C2A8C), Color.fromARGB(255, 132, 0, 255)];
       default:
         return null;
     }

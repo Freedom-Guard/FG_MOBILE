@@ -21,6 +21,11 @@ class Settings {
     return prefs.getStringList(key) ?? [];
   }
 
+  Future<void> setList(String key, List<String> value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(key, value);
+  }
+
   Future<bool> setValue(String key, String value) async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.setString(key, value);

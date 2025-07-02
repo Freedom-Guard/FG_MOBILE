@@ -35,19 +35,29 @@ class Connect extends Tools {
   }
 
   // Add Fragment, Mux, ...
+
   Future<String> addOptionsToVibe(dynamic parsedJson) async {
-    String mux = await settings.getValue("mux");
-    String fragment = await settings.getValue("fragment");
-    String BypassIran = await settings.getValue("bypass_iran");
-    bool childLock = await settings.getBool("child_lock_enabled");
-    String blockTADS = await settings.getValue("block_ads_trackers");
-    LogOverlay.addLog("fragment: " + jsonEncode(fragment).toString());
-    LogOverlay.addLog("mux: " + mux.toString());
+    final settingsValues = await Future.wait([
+      settings.getValue("mux"),
+      settings.getValue("fragment"),
+      settings.getValue("bypass_iran"),
+      settings.getBool("child_lock_enabled"),
+      settings.getValue("block_ads_trackers"),
+      settings.getList("preferred_dns"),
+    ]);
+
+    String mux = settingsValues[0] as String;
+    String fragment = settingsValues[1] as String;
+    String bypassIran = settingsValues[2] as String;
+    bool childLock = settingsValues[3] as bool;
+    String blockTADS = settingsValues[4] as String;
+    List dnsServers = settingsValues[5] as List;
 
     if (parsedJson is Map<String, dynamic>) {
       parsedJson["outbounds"] ??= [];
       parsedJson["routing"] ??= {};
       parsedJson["routing"]["rules"] ??= [];
+
       parsedJson["outbounds"].add({
         "protocol": "blackhole",
         "tag": "blockedrule",
@@ -55,77 +65,77 @@ class Connect extends Tools {
           "response": {"type": "http"},
         },
       });
-      if (BypassIran == "true") {
-        parsedJson["routing"] ??= {};
-        parsedJson["routing"]["rules"] ??= [];
+
+      if (dnsServers.isNotEmpty) {
+        if (dnsServers != []) {
+          parsedJson["dns"] = {
+            "servers": dnsServers,
+          };
+        }
+      }
+
+      if (bypassIran == "true") {
         (parsedJson["routing"]["rules"] as List).add({
           "type": "field",
           "ip": ["geoip:ir"],
           "outboundTag": "direct",
         });
       }
+
       if (childLock) {
         parsedJson["routing"]["rules"].add({
           "type": "field",
-          "domain": [""],
+          "domain": ["geosite:category-adult"],
           "outboundTag": "blockedrule",
         });
       }
-      if (blockTADS == "true") {
-        parsedJson["routing"] ??= {};
-        parsedJson["routing"]["rules"] ??= [];
 
-        (parsedJson["routing"]["rules"] as List).addAll([
-          {
-            "outboundTag": "blockedrule",
-            "domain": [
-              "geosite:category-ads-all",
-              "geosite:category-public-tracker",
-            ],
-            "type": "field",
-          },
-        ]);
+      if (blockTADS == "true") {
+        (parsedJson["routing"]["rules"] as List).add({
+          "type": "field",
+          "domain": [
+            "geosite:category-ads-all",
+            "geosite:category-public-tracker",
+          ],
+          "outboundTag": "blockedrule",
+        });
       }
+
       if (mux.trim().isNotEmpty) {
-        final muxJson = json.decode(mux);
-        if (muxJson is Map && muxJson["enabled"] == true) {
-          bool updated = false;
-          if (parsedJson["outbounds"] is List) {
+        try {
+          final muxJson = json.decode(mux);
+          if (muxJson is Map && muxJson["enabled"] == true) {
             for (var outbound in parsedJson["outbounds"]) {
-              if (outbound is Map && outbound.containsKey("mux")) {
-                outbound["mux"] = muxJson;
-                updated = true;
-                break;
-              }
-            }
-            if (!updated &&
-                parsedJson["outbounds"].isNotEmpty &&
-                parsedJson["outbounds"][0] is Map) {
-              var counter = 0;
-              for (var i in parsedJson["outbounds"]) {
-                parsedJson["outbounds"][counter]["mux"] = muxJson;
-                counter++;
+              if (outbound is Map<String, dynamic>) {
+                final protocol = outbound["protocol"];
+                if (protocol != 'freedom' &&
+                    protocol != 'blackhole' &&
+                    protocol != 'direct') {
+                  outbound["mux"] = muxJson;
+                }
               }
             }
           }
-        }
+        } catch (e) {}
       }
 
       if (fragment.trim().isNotEmpty) {
-        final fragJson = json.decode(fragment);
-        if (fragJson is Map && fragJson["enabled"] == true) {
-          var counter = 0;
-          for (var i in parsedJson["outbounds"]) {
-            if (parsedJson["outbounds"][counter]["protocol"] == 'freedom') {
-              parsedJson["outbounds"][counter]["settings"]["fragment"] =
-                  fragJson;
+        try {
+          final fragJson = json.decode(fragment);
+          if (fragJson is Map && fragJson["enabled"] == true) {
+            for (var outbound in parsedJson["outbounds"]) {
+              if (outbound is Map<String, dynamic> &&
+                  outbound["protocol"] == 'freedom') {
+                outbound["settings"] ??= {};
+                (outbound["settings"] as Map<String, dynamic>)["fragment"] =
+                    fragJson;
+              }
             }
-            counter++;
           }
-        }
+        } catch (e) {}
       }
     }
-    return jsonEncode(parsedJson).toString();
+    return jsonEncode(parsedJson);
   }
 
   // Connects to a single V2Ray config

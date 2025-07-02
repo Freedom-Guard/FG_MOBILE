@@ -4,6 +4,7 @@ import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/screens/f-link.dart';
 import 'package:Freedom_Guard/screens/split.dart';
 import 'package:Freedom_Guard/widgets/about.dart';
+import 'package:Freedom_Guard/widgets/theme/dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -60,6 +61,15 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.color_lens_sharp),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => ThemeDialog(),
+                  );
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.volunteer_activism, color: Colors.red),
                 onPressed: () {
