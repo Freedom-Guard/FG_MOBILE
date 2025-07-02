@@ -56,6 +56,20 @@ Map<String, String> AllTr_fa = {
       'آیا مطمئن هستید که می‌خواهید همه سرورها را حذف کنید؟',
   'remove-all-servers': 'حذف همه کانفیگ ها',
   'choose-theme': 'انتخاب قالب',
+  'servers': 'سرورها',
+  'edit': 'ویرایش',
+  'share': 'اشتراک‌گذاری',
+  'qr-code': 'کد QR',
+  'donate': 'حمایت',
+  'edit-server': 'ویرایش سرور',
+  'search-servers': 'جستجوی سرورها...',
+  'delete-server': 'حذف سرور',
+  'are-you-sure-you-want-to-delete-this-server':
+      'آیا از حذف این سرور مطمئن هستید؟',
+  'more-options': 'گزینه‌های بیشتر',
+  'refresh-subscription': 'به‌روزرسانی اشتراک',
+  'encrypt-decrypt': 'رمزگذاری/رمزگشایی',
+  'delete-all-servers': 'حذف همه سرورها',
   'show-system-apps': 'نمایش برنامه های سیستمی',
   'about-app': 'گارد آزادی ابزاری متن باز برای عبور از فیلترینگ اینترنت است'
 };
@@ -93,6 +107,20 @@ Map<String, String> AllTr_en = {
       'Are you sure you want to delete all servers?',
   'remove-all-servers': 'Remove all servers',
   'choose-theme': 'Choose theme',
+  'servers': 'Servers',
+  'edit': 'Edit',
+  'share': 'Share',
+  'qr-code': 'QR Code',
+  'donate': 'Donate',
+  'edit-server': 'Edit Server',
+  'delete-server': 'Delete Server',
+  'search-servers': 'Search servers...',
+  'are-you-sure-you-want-to-delete-this-server':
+      'Are you sure you want to delete this server?',
+  'more-options': 'More Options',
+  'refresh-subscription': 'Refresh Subscription',
+  'encrypt-decrypt': 'Encrypt/Decrypt',
+  'delete-all-servers': 'Delete All Servers',
   'show-system-apps': 'Show system Apps',
   'about-app':
       'Freedom Guard is an open-source tool to bypass internet censorship.'

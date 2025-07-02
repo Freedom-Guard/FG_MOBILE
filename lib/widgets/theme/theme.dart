@@ -327,7 +327,7 @@ class ThemeNotifier extends ChangeNotifier {
       case 'Matrix':
         return [Color(0xFF007744), Color(0xFF1A2B2A)];
       case 'Neon Dev':
-        return [Color(0xFFAA00AA), Color(0xFF009999)];
+        return [Color(0xFFAA00AA), Color.fromARGB(255, 156, 0, 170)];
       case 'Cyber Pulse':
         return [Color(0xFFAA2244), Color(0xFF00AABB)];
       case 'Cosmic Void':
