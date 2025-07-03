@@ -145,7 +145,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     onChanged: (bool value) {
                       if (mounted)
                         setState(() {
-                          settingsJson["proxy_mode"] = value.toString();
+                          settingsJson["proxy_mode"] = value;
                         });
                       settings.setBool("proxy_mode", value);
                     },

@@ -174,6 +174,7 @@ class Connect extends Tools {
           LogOverlay.addLog(parsedJson);
         }
         settings.setValue("config_backup", config);
+        
         flutterV2ray.startV2Ray(
           remark: "Freedom Guard",
           config: parsedJson,

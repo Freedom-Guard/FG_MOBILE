@@ -78,8 +78,8 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: AppBar(
-              title: const Text(
-                'Logs',
+              title: Text(
+                tr('logs'),
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
               ),
               elevation: 0),
