@@ -77,8 +77,10 @@ class _ServersPageState extends State<ServersPage> {
 
     if (sortByPing) {
       tempFilteredServers.sort((a, b) {
-        final pingA = serverPingTimes[a] ?? 9999;
-        final pingB = serverPingTimes[b] ?? 9999;
+        final pingA =
+            serverPingTimes[a] == -1 ? 9999 : serverPingTimes[a] ?? 9999;
+        final pingB =
+            serverPingTimes[b] == -1 ? 9999 : serverPingTimes[b] ?? 9999;
         return pingA.compareTo(pingB);
       });
     }
@@ -628,8 +630,8 @@ class _ServersPageState extends State<ServersPage> {
             IconButton(
               icon: Icon(Icons.sort,
                   color: sortByPing
-                      ? theme.colorScheme.onPrimary
-                      : theme.colorScheme.secondary),
+                      ? theme.colorScheme.secondary
+                      : theme.colorScheme.onPrimary),
               tooltip: 'Sort by Ping',
               onPressed: _toggleSortByPing,
             ),
