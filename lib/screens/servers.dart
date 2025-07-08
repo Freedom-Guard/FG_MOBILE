@@ -476,7 +476,7 @@ class _ServersPageState extends State<ServersPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.refresh),
-              title: const Text('Refresh'),
+              title: Text(tr('refresh')),
               onTap: () {
                 Navigator.pop(context);
                 _refreshSubscriptions();

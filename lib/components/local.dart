@@ -65,6 +65,7 @@ Map<String, String> AllTr_fa = {
   'edit-server': 'ویرایش سرور',
   'search-servers': 'جستجوی سرورها...',
   'delete-server': 'حذف سرور',
+  'refresh': "تازه سازی",
   'are-you-sure-you-want-to-delete-this-server':
       'آیا از حذف این سرور مطمئن هستید؟',
   'more-options': 'گزینه‌های بیشتر',
@@ -116,6 +117,7 @@ Map<String, String> AllTr_en = {
   'donate': 'Donate',
   'edit-server': 'Edit Server',
   'delete-server': 'Delete Server',
+  'refresh': 'Refresh',
   'search-servers': 'Search servers...',
   'are-you-sure-you-want-to-delete-this-server':
       'Are you sure you want to delete this server?',
