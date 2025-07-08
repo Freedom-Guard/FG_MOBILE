@@ -174,7 +174,7 @@ class Connect extends Tools {
           LogOverlay.addLog(parsedJson);
         }
         settings.setValue("config_backup", config);
-        
+
         flutterV2ray.startV2Ray(
           remark: "Freedom Guard",
           config: parsedJson,
@@ -284,16 +284,35 @@ class Connect extends Tools {
     return false;
   }
 
-  // Fetches and processes configs from a URL
+  // Fetches configuration list from FG repo and initiates connection setup
   Future<bool> ConnectFG(String fgconfig, int timeout) async {
     try {
       final uri = Uri.parse(fgconfig);
-      final response = await http.get(uri).timeout(
-            Duration(milliseconds: timeout),
-            onTimeout: () => throw TimeoutException(
-              'Request timed out after $timeout ms',
-            ),
-          );
+      http.Response response;
+      int attempt = 0;
+      int delayMs = 1000;
+
+      while (true) {
+        try {
+          response = await http.get(uri).timeout(
+                Duration(milliseconds: timeout),
+                onTimeout: () => throw TimeoutException(
+                  'Request timed out after $timeout ms',
+                ),
+              );
+          break;
+        } catch (e) {
+          attempt++;
+          if (attempt >= 3) {
+            LogOverlay.addLog('Failed to fetch config after 3 attempts: $e');
+            rethrow;
+          }
+          LogOverlay.addLog(
+              'Fetch attempt $attempt failed, retrying in ${delayMs}ms...');
+          await Future.delayed(Duration(milliseconds: delayMs));
+          delayMs *= 2;
+        }
+      }
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

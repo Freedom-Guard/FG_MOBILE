@@ -37,8 +37,6 @@ class ServersM extends ChangeNotifier {
       selectedServer = server;
       if (selectedServer!.split("#")[0] == "") {
         settings.setValue("core_vpn", "auto");
-      } else if (selectedServer!.startsWith("wireguard")) {
-        settings.setValue("core_vpn", "warp");
       } else {
         settings.setValue("core_vpn", "vibe");
       }

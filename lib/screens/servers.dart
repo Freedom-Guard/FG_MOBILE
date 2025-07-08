@@ -154,14 +154,17 @@ class _ServersPageState extends State<ServersPage> {
   }
 
   String _extractNameFromConfig(String config) {
-    var decoded = "";
     try {
-      decoded = utf8.decode(Uri.decodeFull(config).runes.toList());
+      final uriDecoded = Uri.decodeFull(config);
+      final hashIndex = uriDecoded.lastIndexOf('#');
+      if (hashIndex != -1 && hashIndex < uriDecoded.length - 1) {
+        final name = uriDecoded.substring(hashIndex + 1);
+        return name.trim().isNotEmpty ? name.trim() : 'Unnamed Server';
+      }
+      return 'Unnamed Server';
     } catch (_) {
-      decoded = config;
+      return 'Unnamed Server';
     }
-    final remark = decoded.contains('#') ? decoded.split('#').last.trim() : '';
-    return remark.isNotEmpty ? remark : 'Unnamed Server';
   }
 
   void _addServer(String serverName) {

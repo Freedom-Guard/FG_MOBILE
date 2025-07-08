@@ -154,8 +154,8 @@ class XraySettingsDialog {
                         children: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text(
-                              'Cancel',
+                            child: Text(
+                              tr('cancel'),
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Color(0xFFB0B0B0),

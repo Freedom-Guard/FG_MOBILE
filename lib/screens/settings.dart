@@ -204,7 +204,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         SettingSelector(
                           title: "CORE VPN",
                           prefKey: "core_vpn",
-                          options: ["auto", "vibe", "warp"],
+                          options: ["auto", "vibe"],
                         ),
                       ],
                     ),
