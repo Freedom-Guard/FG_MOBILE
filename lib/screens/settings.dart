@@ -57,6 +57,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Directionality(
       textDirection: getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
+        extendBody: true,
         appBar: AppBar(
           title: Text(
             tr("settings"),
@@ -234,48 +235,34 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         ],
                       ),
+                    SizedBox(height: 80),
                   ],
                 ),
               ),
             ),
           ],
         ),
-        bottomNavigationBar: ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Theme.of(context).colorScheme.primary.withOpacity(0.15),
-                    Theme.of(context).colorScheme.secondary.withOpacity(0.15),
-                  ],
-                ),
-              ),
-              child: BottomNavBar(
-                currentIndex: 0,
-                onTap: (index) {
-                  if (index == 0) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => SettingsPage()),
-                    );
-                  } else if (index == 1) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => HomePage()),
-                    );
-                  } else if (index == 2) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => ServersPage()),
-                    );
-                  }
-                },
-              ),
-            ),
+        bottomNavigationBar: Container(
+          child: BottomNavBar(
+            currentIndex: 0,
+            onTap: (index) {
+              if (index == 0) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => SettingsPage()),
+                );
+              } else if (index == 1) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => HomePage()),
+                );
+              } else if (index == 2) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => ServersPage()),
+                );
+              }
+            },
           ),
         ),
       ),

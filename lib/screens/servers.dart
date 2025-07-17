@@ -892,6 +892,7 @@ class _ServersPageState extends State<ServersPage> {
     return Directionality(
       textDirection: getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
+        extendBody: true,
         appBar: AppBar(
           title: Text(tr('manage-servers-page')),
           actions: [
@@ -1155,45 +1156,31 @@ class _ServersPageState extends State<ServersPage> {
                               },
                             ),
                     ),
+                    SizedBox(height: 10),
                   ],
                 ),
               ),
-        bottomNavigationBar: ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Theme.of(context).colorScheme.primary.withOpacity(0.15),
-                    Theme.of(context).colorScheme.secondary.withOpacity(0.15),
-                  ],
-                ),
-              ),
-              child: BottomNavBar(
-                currentIndex: 2,
-                onTap: (index) {
-                  if (index == 0) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => SettingsPage()),
-                    );
-                  } else if (index == 1) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => HomePage()),
-                    );
-                  } else if (index == 2) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => ServersPage()),
-                    );
-                  }
-                },
-              ),
-            ),
+        bottomNavigationBar: Container(
+          child: BottomNavBar(
+            currentIndex: 2,
+            onTap: (index) {
+              if (index == 0) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => SettingsPage()),
+                );
+              } else if (index == 1) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => HomePage()),
+                );
+              } else if (index == 2) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => ServersPage()),
+                );
+              }
+            },
           ),
         ),
       ),
