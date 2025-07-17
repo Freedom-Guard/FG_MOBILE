@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:Freedom_Guard/components/connect.dart';
-import 'package:Freedom_Guard/components/global.dart';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vibe_core/flutter_v2ray.dart';
+import 'package:Freedom_Guard/components/connect.dart';
+import 'package:Freedom_Guard/components/global.dart';
 
 class NetworkStatusWidget extends StatefulWidget {
   const NetworkStatusWidget({Key? key}) : super(key: key);
@@ -13,21 +14,28 @@ class NetworkStatusWidget extends StatefulWidget {
   State<NetworkStatusWidget> createState() => _NetworkStatusWidgetState();
 }
 
-class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
+class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
+    with TickerProviderStateMixin {
   bool isPinging = false;
   int? ping;
   String? country;
   Timer? _autoRefreshTimer;
+  late AnimationController _refreshController;
 
   @override
   void initState() {
     super.initState();
+    _refreshController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
     _startAutoRefresh();
   }
 
   @override
   void dispose() {
     _autoRefreshTimer?.cancel();
+    _refreshController.dispose();
     super.dispose();
   }
 
@@ -40,6 +48,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
 
   Future<void> _fetchPingAndCountry() async {
     setState(() => isPinging = true);
+    _refreshController.repeat();
     int attempts = 0;
     const maxAttempts = 2;
 
@@ -56,6 +65,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
           country = countryData['country'] ?? 'Unknown';
           isPinging = false;
         });
+        _refreshController.reset();
         return;
       } catch (_) {
         attempts++;
@@ -65,6 +75,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
             country = 'Unknown';
             isPinging = false;
           });
+          _refreshController.reset();
         }
       }
     }
@@ -91,6 +102,9 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final double containerWidth = MediaQuery.of(context).size.width * 0.85;
+    final double tileWidth = (containerWidth - 20) / 2;
+
     return Directionality(
       textDirection: TextDirection.ltr,
       child: ValueListenableBuilder<V2RayStatus>(
@@ -98,55 +112,98 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
         builder: (context, status, _) {
           return Center(
             child: Container(
-              width: MediaQuery.of(context).size.width * 0.75,
-              padding: const EdgeInsets.all(14),
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                color: Color(0xFF1C1C1C),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              width: containerWidth,
+              margin: const EdgeInsets.symmetric(vertical: 14),
+              child: Stack(
                 children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.circle,
-                          color: Colors.greenAccent, size: 10),
-                      const SizedBox(width: 6),
-                      Text(
-                        country ?? "Connecting...",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.05),
+                          Colors.white.withOpacity(0.02)
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        )
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.07),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                                color: Colors.white.withOpacity(0.2)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.circle,
+                                      size: 10, color: Colors.greenAccent),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    country ?? "Connecting...",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  _buildRefreshButton(),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Wrap(
+                                spacing: 10,
+                                alignment: WrapAlignment.center,
+                                runSpacing: 10,
+                                children: [
+                                  _animatedTile(
+                                      _buildTile(
+                                          'Ping',
+                                          Icons.wifi,
+                                          ping == null ? '—' : '$ping ms',
+                                          Colors.greenAccent,
+                                          tileWidth),
+                                      0),
+                                  _animatedTile(
+                                      _buildTile(
+                                          'Uptime',
+                                          Icons.timer,
+                                          _formatDuration(status.duration),
+                                          Colors.purpleAccent,
+                                          tileWidth),
+                                      1),
+                                  _animatedTile(
+                                      _buildNetworkTile(
+                                          status, "speed", tileWidth),
+                                      2),
+                                  _animatedTile(
+                                      _buildNetworkTile(
+                                          status, "network", tileWidth),
+                                      3),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const Spacer(),
-                      _buildRefreshButton(),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: [
-                      _buildTile('Ping', Icons.wifi,
-                          ping == null ? '—' : '$ping ms', Colors.greenAccent),
-                      _buildTile(
-                          'Uptime',
-                          Icons.timer,
-                          _formatDuration(status.duration),
-                          Colors.purpleAccent),
-                      _buildNetworkTile(status, "speed"),
-                      _buildNetworkTile(status, "network"),
-                    ],
+                    ),
                   ),
                 ],
               ),
@@ -157,18 +214,19 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
     );
   }
 
-  Widget _buildTile(String label, IconData icon, String value, Color color) {
+  Widget _buildTile(
+      String label, IconData icon, String value, Color color, double width) {
     return Container(
-      width: (MediaQuery.of(context).size.width * 0.75 - 38) / 2,
-      padding: const EdgeInsets.all(10),
+      width: (MediaQuery.of(context).size.width * 0.75 - 10) / 2,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(width: 6),
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +244,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
                   value,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -198,19 +256,22 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
     );
   }
 
-  Widget _buildNetworkTile(V2RayStatus status, String type) {
+  Widget _buildNetworkTile(V2RayStatus status, String type, double width) {
     return Container(
-      width: (MediaQuery.of(context).size.width * 0.75 - 38) / 2,
-      padding: const EdgeInsets.all(10),
+      width: (MediaQuery.of(context).size.width * 0.75 - 10) / 2,
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
-          Icon(type == "speed" ? Icons.speed : Icons.data_usage_sharp,
-              color: Colors.blueAccent, size: 16),
-          const SizedBox(width: 6),
+          Icon(
+            type == "speed" ? Icons.speed : Icons.data_usage,
+            color: Colors.blueAccent,
+            size: 18,
+          ),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,7 +293,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
                             '↓ ${_formatSpeed(status.downloadSpeed)}',
                             style: const TextStyle(
                               color: Colors.blueAccent,
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -240,7 +301,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
                             '↑ ${_formatSpeed(status.uploadSpeed)}',
                             style: const TextStyle(
                               color: Colors.orangeAccent,
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -252,17 +313,17 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
                           Text(
                             '↓ ${_formatSize(status.download)}',
                             style: TextStyle(
-                              color: Colors.blueAccent.withOpacity(0.8),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
+                              color: Colors.blueAccent.withOpacity(0.85),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           Text(
                             '↑ ${_formatSize(status.upload)}',
                             style: TextStyle(
-                              color: Colors.orangeAccent.withOpacity(0.8),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
+                              color: Colors.orangeAccent.withOpacity(0.85),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
@@ -276,21 +337,41 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget> {
   }
 
   Widget _buildRefreshButton() {
-    return GestureDetector(
-      onTap: isPinging ? null : _fetchPingAndCountry,
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isPinging ? Colors.grey[700] : Color(0xFF2A3A4A),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
-        ),
-        child: Icon(
-          Icons.refresh,
-          size: 16,
-          color: Colors.white.withOpacity(isPinging ? 0.4 : 0.9),
-        ),
-      ),
+    return AnimatedBuilder(
+      animation: _refreshController,
+      builder: (context, child) {
+        return Transform.rotate(
+          angle: _refreshController.value * 6.3,
+          child: GestureDetector(
+            onTap: isPinging ? null : _fetchPingAndCountry,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.1),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: const Icon(Icons.refresh, size: 16, color: Colors.white),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _animatedTile(Widget child, int index) {
+    return TweenAnimationBuilder(
+      duration: Duration(milliseconds: 500 + index * 100),
+      tween: Tween<double>(begin: 0, end: 1),
+      builder: (context, value, _) {
+        return Opacity(
+          opacity: value as double,
+          child: Transform.translate(
+            offset: Offset(0, 20 * (1 - (value))),
+            child: child,
+          ),
+        );
+      },
     );
   }
 }
