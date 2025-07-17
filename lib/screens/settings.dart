@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
@@ -19,15 +20,14 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _isSettingEnabled = false;
   bool isLoading = false;
-  Settings settings = new Settings();
+  Settings settings = Settings();
   Map settingsJson = {};
 
   _initSettingJson() async {
     settingsJson["f_link"] = await settings.getValue("f_link");
     settingsJson["fast_connect"] = await settings.getValue("fast_connect");
-    settingsJson["block_ads_trackers"] = await settings.getValue(
-      "block_ads_trackers",
-    );
+    settingsJson["block_ads_trackers"] =
+        await settings.getValue("block_ads_trackers");
     settingsJson["bypass_lan"] = await settings.getValue("bypass_lan");
     settingsJson["proxy_mode"] = await settings.getBool("proxy_mode");
     if (mounted) setState(() {});
@@ -55,182 +55,231 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-        textDirection:
-            getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(
-              tr("settings"),
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.color_lens_sharp),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => ThemeDialog(),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.volunteer_activism, color: Colors.red),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PremiumDonateConfigPage(),
-                    ),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.merge_type_sharp),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => SplitPage()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.info_outline),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AboutDialogWidget();
-                    },
-                  );
-                },
-              ),
-            ],
+      textDirection: getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            tr("settings"),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Row(
-                    children: [],
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.color_lens_sharp),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => ThemeDialog(),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.volunteer_activism, color: Colors.red),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PremiumDonateConfigPage(),
                   ),
-                  SettingSwitch(
-                    title: tr("freedom-link"),
-                    value: bool.tryParse(settingsJson["f_link"].toString()) ??
-                        false,
-                    onChanged: (bool value) {
-                      if (mounted)
-                        setState(() {
-                          settingsJson["f_link"] = value.toString();
-                        });
-                      settings.setValue("f_link", value.toString());
-                    },
-                    icon: Icons.link,
-                  ),
-                  SettingSwitch(
-                    title: tr("block-ads-trackers"),
-                    value: bool.tryParse(
-                          settingsJson["block_ads_trackers"].toString(),
-                        ) ??
-                        false,
-                    onChanged: (bool value) {
-                      if (mounted)
-                        setState(() {
-                          settingsJson["block_ads_trackers"] = value.toString();
-                        });
-                      settings.setValue("block_ads_trackers", value.toString());
-                    },
-                    icon: Icons.block,
-                  ),
-                  SettingSwitch(
-                    title: tr("proxy-mode"),
-                    value: settingsJson["proxy_mode"],
-                    onChanged: (bool value) {
-                      if (mounted)
-                        setState(() {
-                          settingsJson["proxy_mode"] = value;
-                        });
-                      settings.setBool("proxy_mode", value);
-                    },
-                    icon: Icons.swap_horiz,
-                  ),
-                  SettingSwitch(
-                    title: tr("bypass-lan"),
-                    value:
-                        bool.tryParse(settingsJson["bypass_lan"].toString()) ??
-                            false,
-                    onChanged: (bool value) {
-                      if (!mounted) return;
-                      setState(() {
-                        settingsJson["bypass_lan"] = value.toString();
-                      });
-                      settings.setValue("bypass_lan", value.toString());
-                    },
-                    icon: Icons.lan,
-                  ),
-                  SettingSwitch(
-                    title: tr("quick-connect-sub"),
-                    value: bool.tryParse(
-                            settingsJson["fast_connect"].toString()) ??
-                        false,
-                    onChanged: (bool value) {
-                      if (!mounted) return;
-                      setState(() {
-                        settingsJson["fast_connect"] = value.toString();
-                      });
-                      settings.setValue("fast_connect", value.toString());
-                    },
-                    icon: Icons.speed_sharp,
-                  ),
-                  SettingSelector(
-                    title: tr("language"),
-                    prefKey: "lang",
-                    options: ["en", "fa"],
-                  ),
-                  SettingSwitch(
-                    title: tr("manual-mode"),
-                    value: _isSettingEnabled,
-                    onChanged: (bool value) {
-                      if (!mounted) return;
-                      setState(() => _isSettingEnabled = value);
-                      _saveSetting("setting_key", value);
-                    },
-                  ),
-                  if (_isSettingEnabled)
-                    Column(
-                      children: [
-                        const SettingInput(
-                          title: "Auto Mode Timeout",
-                          prefKey: "timeout_auto",
-                          hintText: "110000",
-                        ),
-                        SettingSelector(
-                          title: "CORE VPN",
-                          prefKey: "core_vpn",
-                          options: ["auto", "vibe"],
-                        ),
-                      ],
-                    ),
-                ],
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.merge_type_sharp),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SplitPage()),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.info_outline),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AboutDialogWidget();
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+        body: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                    Theme.of(context).colorScheme.secondary.withOpacity(0.15),
+                  ],
+                ),
               ),
             ),
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: Container(
+                color: Colors.transparent,
+              ),
+            ),
+            SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    SettingSwitch(
+                      title: tr("freedom-link"),
+                      value: bool.tryParse(settingsJson["f_link"].toString()) ??
+                          false,
+                      onChanged: (bool value) {
+                        if (mounted) {
+                          setState(() {
+                            settingsJson["f_link"] = value.toString();
+                          });
+                          settings.setValue("f_link", value.toString());
+                        }
+                      },
+                      icon: Icons.link,
+                    ),
+                    SettingSwitch(
+                      title: tr("block-ads-trackers"),
+                      value: bool.tryParse(
+                              settingsJson["block_ads_trackers"].toString()) ??
+                          false,
+                      onChanged: (bool value) {
+                        if (mounted) {
+                          setState(() {
+                            settingsJson["block_ads_trackers"] =
+                                value.toString();
+                          });
+                          settings.setValue(
+                              "block_ads_trackers", value.toString());
+                        }
+                      },
+                      icon: Icons.block,
+                    ),
+                    SettingSwitch(
+                      title: tr("proxy-mode"),
+                      value: settingsJson["proxy_mode"] ?? false,
+                      onChanged: (bool value) {
+                        if (mounted) {
+                          setState(() {
+                            settingsJson["proxy_mode"] = value;
+                          });
+                          settings.setBool("proxy_mode", value);
+                        }
+                      },
+                      icon: Icons.swap_horiz,
+                    ),
+                    SettingSwitch(
+                      title: tr("bypass-lan"),
+                      value: bool.tryParse(
+                              settingsJson["bypass_lan"].toString()) ??
+                          false,
+                      onChanged: (bool value) {
+                        if (mounted) {
+                          setState(() {
+                            settingsJson["bypass_lan"] = value.toString();
+                          });
+                          settings.setValue("bypass_lan", value.toString());
+                        }
+                      },
+                      icon: Icons.lan,
+                    ),
+                    SettingSwitch(
+                      title: tr("quick-connect-sub"),
+                      value: bool.tryParse(
+                              settingsJson["fast_connect"].toString()) ??
+                          false,
+                      onChanged: (bool value) {
+                        if (mounted) {
+                          setState(() {
+                            settingsJson["fast_connect"] = value.toString();
+                          });
+                          settings.setValue("fast_connect", value.toString());
+                        }
+                      },
+                      icon: Icons.speed_sharp,
+                    ),
+                    SettingSelector(
+                      title: tr("language"),
+                      prefKey: "lang",
+                      options: ["en", "fa"],
+                    ),
+                    SettingSwitch(
+                      title: tr("manual-mode"),
+                      value: _isSettingEnabled,
+                      onChanged: (bool value) {
+                        if (mounted) {
+                          setState(() => _isSettingEnabled = value);
+                          _saveSetting("setting_key", value);
+                        }
+                      },
+                    ),
+                    if (_isSettingEnabled)
+                      Column(
+                        children: [
+                          SettingInput(
+                            title: tr("auto-mode-timeout"),
+                            prefKey: "timeout_auto",
+                            hintText: "110000",
+                          ),
+                          SettingSelector(
+                            title: tr("core-vpn"),
+                            prefKey: "core_vpn",
+                            options: ["auto", "vibe"],
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                    Theme.of(context).colorScheme.secondary.withOpacity(0.15),
+                  ],
+                ),
+              ),
+              child: BottomNavBar(
+                currentIndex: 0,
+                onTap: (index) {
+                  if (index == 0) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => SettingsPage()),
+                    );
+                  } else if (index == 1) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => HomePage()),
+                    );
+                  } else if (index == 2) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => ServersPage()),
+                    );
+                  }
+                },
+              ),
+            ),
           ),
-          bottomNavigationBar: BottomNavBar(
-            currentIndex: 0,
-            onTap: (index) {
-              if (index == 0) {
-                Navigator.pushReplacement(
-                    context, MaterialPageRoute(builder: (_) => SettingsPage()));
-              } else if (index == 1) {
-                Navigator.pushReplacement(
-                    context, MaterialPageRoute(builder: (_) => HomePage()));
-              } else if (index == 2) {
-                Navigator.pushReplacement(
-                    context, MaterialPageRoute(builder: (_) => ServersPage()));
-              }
-            },
-          ),
-        ));
+        ),
+      ),
+    );
   }
 }
 
@@ -249,60 +298,65 @@ class SettingSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.surface,
-              Theme.of(context).colorScheme.surface.withOpacity(0.8),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: SwitchListTile(
-          title: Row(
-            children: [
-              if (icon != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  ),
-                  child: Icon(
-                    icon,
-                    size: 24,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 15,
+                  spreadRadius: 1,
                 ),
-                const SizedBox(width: 12),
               ],
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Roboto',
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+            ),
+            child: SwitchListTile(
+              title: Row(
+                children: [
+                  if (icon != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.15),
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 24,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ],
               ),
-            ],
+              value: value,
+              onChanged: onChanged,
+              inactiveTrackColor: Colors.white.withOpacity(0.01),
+              activeColor: Theme.of(context).colorScheme.primary,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              hoverColor:
+                  Theme.of(context).colorScheme.primary.withOpacity(0.05),
+            ),
           ),
-          value: value,
-          onChanged: onChanged,
-          activeColor: Theme.of(context).colorScheme.primary,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
     );
@@ -355,37 +409,69 @@ class _SettingSelectorState extends State<SettingSelector> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Text(widget.title),
-              ),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 15,
+                  spreadRadius: 1,
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: DropdownButton<String>(
-                isExpanded: true,
-                value: _selectedValue,
-                items: widget.options.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() => _selectedValue = newValue!);
-                  _saveValue(newValue!);
-                },
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: _selectedValue,
+                    items: widget.options.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          value,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setState(() => _selectedValue = newValue);
+                        _saveValue(newValue);
+                      }
+                    },
+                    underline: Container(),
+                    dropdownColor:
+                        Theme.of(context).colorScheme.surface.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -418,10 +504,11 @@ class _SettingInputState extends State<SettingInput> {
 
   Future<void> _loadValue() async {
     final prefs = await SharedPreferences.getInstance();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _controller.text = prefs.getString(widget.prefKey) ?? "";
       });
+    }
   }
 
   Future<void> _saveValue(String value) async {
@@ -432,34 +519,65 @@ class _SettingInputState extends State<SettingInput> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 15,
+                  spreadRadius: 1,
                 ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      hintText: widget.hintText,
+                      hintStyle: TextStyle(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.5),
+                      ),
+                      border: InputBorder.none,
+                    ),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    onChanged: _saveValue,
+                  ),
+                ],
               ),
-              TextField(
-                controller: _controller,
-                decoration: InputDecoration(
-                  hintText: widget.hintText,
-                  border: InputBorder.none,
-                ),
-                onChanged: _saveValue,
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }

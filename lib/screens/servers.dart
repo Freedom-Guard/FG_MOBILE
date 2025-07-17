@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'dart:io';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/local.dart';
@@ -187,20 +188,54 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(tr('delete-server')),
-        content: Text(tr('are-you-sure-you-want-to-delete-this-server')),
+        backgroundColor:
+            Theme.of(context).colorScheme.surface.withOpacity(0.05),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 15,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: Text(
+                tr('are-you-sure-you-want-to-delete-this-server'),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              ),
+            ),
+          ),
+        ),
+        title: Text(
+          tr('delete-server'),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(tr('cancel')),
+            child: Text(
+              tr('cancel'),
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _removeServer(serverToRemove);
             },
-            child: Text(tr('delete'),
-                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            child: Text(
+              tr('delete'),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
@@ -231,20 +266,56 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(tr('edit-server')),
-        content: TextField(
-          controller: controller,
-          maxLines: null,
-          keyboardType: TextInputType.multiline,
-          decoration: const InputDecoration(
-            hintText: 'Enter server configuration',
-            border: OutlineInputBorder(),
+        backgroundColor:
+            Theme.of(context).colorScheme.surface.withOpacity(0.05),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 15,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: controller,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                decoration: InputDecoration(
+                  hintText: 'Enter server configuration',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.5),
+                  ),
+                ),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              ),
+            ),
           ),
+        ),
+        title: Text(
+          tr('edit-server'),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(tr('cancel')),
+            child: Text(
+              tr('cancel'),
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -256,7 +327,10 @@ class _ServersPageState extends State<ServersPage> {
               }
               Navigator.pop(context);
             },
-            child: Text(tr('save')),
+            child: Text(
+              tr('save'),
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
           ),
         ],
       ),
@@ -314,49 +388,97 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(tr('add-server')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: serverController,
-              decoration: InputDecoration(hintText: tr('enter-server-config')),
+        backgroundColor:
+            Theme.of(context).colorScheme.surface.withOpacity(0.05),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 15,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: serverController,
+                    decoration: InputDecoration(
+                      hintText: tr('enter-server-config'),
+                      border: InputBorder.none,
+                      hintStyle: TextStyle(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.5),
+                      ),
+                    ),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.content_paste,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        tooltip: 'Paste from clipboard',
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _addFromClipboard();
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.folder_open,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        tooltip: 'Import from file',
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _importConfigFromFile();
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.content_paste),
-                  tooltip: 'Paste from clipboard',
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _addFromClipboard();
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.folder_open),
-                  tooltip: 'Import from file',
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _importConfigFromFile();
-                  },
-                ),
-              ],
-            ),
-          ],
+          ),
+        ),
+        title: Text(
+          tr('add-server'),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(tr('cancel')),
+            child: Text(
+              tr('cancel'),
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
           ),
           TextButton(
             onPressed: () {
               _addServer(serverController.text);
               Navigator.pop(context);
             },
-            child: Text(tr('add')),
+            child: Text(
+              tr('add'),
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
           ),
         ],
       ),
@@ -420,12 +542,45 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(tr('remove-all-servers')),
-        content: Text(tr('are-you-sure-you-want-to-delete-all-servers')),
+        backgroundColor:
+            Theme.of(context).colorScheme.surface.withOpacity(0.05),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 15,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: Text(
+                tr('are-you-sure-you-want-to-delete-all-servers'),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              ),
+            ),
+          ),
+        ),
+        title: Text(
+          tr('remove-all-servers'),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(tr('cancel'))),
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              tr('cancel'),
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
+          ),
           TextButton(
             onPressed: () {
               setState(() {
@@ -436,8 +591,10 @@ class _ServersPageState extends State<ServersPage> {
               _saveServers();
               Navigator.pop(context);
             },
-            child: Text(tr('delete'),
-                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            child: Text(
+              tr('delete'),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
@@ -448,22 +605,48 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        content: SizedBox(
-          width: 250,
-          height: 250,
-          child: Center(
-            child: QrImageView(
-              data: text,
-              version: QrVersions.auto,
-              size: 200,
-              backgroundColor: Colors.white,
+        backgroundColor:
+            Theme.of(context).colorScheme.surface.withOpacity(0.05),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 15,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: SizedBox(
+                width: 250,
+                height: 250,
+                child: Center(
+                  child: QrImageView(
+                    data: text,
+                    version: QrVersions.auto,
+                    size: 200,
+                    backgroundColor: Colors.white,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'))
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Close',
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
+          ),
         ],
       ),
     );
@@ -473,38 +656,68 @@ class _ServersPageState extends State<ServersPage> {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.refresh),
-              title: Text(tr('refresh')),
-              onTap: () {
-                Navigator.pop(context);
-                _refreshSubscriptions();
-              },
+      backgroundColor: theme.colorScheme.surface.withOpacity(0.05),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      builder: (context) => ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 15,
+                  spreadRadius: 1,
+                ),
+              ],
             ),
-            ListTile(
-              leading: Icon(Icons.vpn_key_rounded,
-                  color: theme.colorScheme.secondary),
-              title: const Text('Encrypt/Decrypt'),
-              onTap: () {
-                Navigator.pop(context);
-                showEncryptDecryptDialog(context);
-              },
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListTile(
+                    leading:
+                        Icon(Icons.refresh, color: theme.colorScheme.primary),
+                    title: Text(
+                      tr('refresh'),
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _refreshSubscriptions();
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.vpn_key_rounded,
+                        color: theme.colorScheme.secondary),
+                    title: Text(
+                      'Encrypt/Decrypt',
+                      style: TextStyle(color: theme.colorScheme.onSurface),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      showEncryptDecryptDialog(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(Icons.delete_forever,
+                        color: theme.colorScheme.error),
+                    title: Text(
+                      'Delete All Servers',
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _removeAllServers();
+                    },
+                  ),
+                ],
+              ),
             ),
-            ListTile(
-              leading:
-                  Icon(Icons.delete_forever, color: theme.colorScheme.error),
-              title: Text('Delete All Servers',
-                  style: TextStyle(color: theme.colorScheme.error)),
-              onTap: () {
-                Navigator.pop(context);
-                _removeAllServers();
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -514,72 +727,133 @@ class _ServersPageState extends State<ServersPage> {
     final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
-          child: Directionality(
-        textDirection:
-            getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-                leading: const Icon(Icons.edit),
-                title: Text(tr('edit')),
-                onTap: () {
-                  Navigator.pop(context);
-                  _editServer(server);
-                }),
-            ListTile(
-                leading: const Icon(Icons.share),
-                title: Text(tr('share')),
-                onTap: () {
-                  Navigator.pop(context);
-                  _shareServer(server);
-                }),
-            ListTile(
-                leading: const Icon(Icons.qr_code),
-                title: Text(tr('qr-code')),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showQRCode(server);
-                }),
-            ListTile(
-                leading: const Icon(Icons.volunteer_activism),
-                title: Text(tr('donate')),
-                onTap: () {
-                  Navigator.pop(context);
-                  donateCONFIG(server);
-                }),
-            ListTile(
-              leading: Icon(Icons.delete, color: theme.colorScheme.error),
-              title: Text(tr('delete'),
-                  style: TextStyle(color: theme.colorScheme.error)),
-              onTap: () {
-                Navigator.pop(context);
-                _confirmRemoveServer(server);
-              },
+      backgroundColor: theme.colorScheme.surface.withOpacity(0.05),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      builder: (context) => ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 15,
+                  spreadRadius: 1,
+                ),
+              ],
             ),
-          ],
+            child: SafeArea(
+              child: Directionality(
+                textDirection:
+                    getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      leading:
+                          Icon(Icons.edit, color: theme.colorScheme.primary),
+                      title: Text(
+                        tr('edit'),
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _editServer(server);
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          Icon(Icons.share, color: theme.colorScheme.primary),
+                      title: Text(
+                        tr('share'),
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _shareServer(server);
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          Icon(Icons.qr_code, color: theme.colorScheme.primary),
+                      title: Text(
+                        tr('qr-code'),
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showQRCode(server);
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.volunteer_activism,
+                          color: theme.colorScheme.primary),
+                      title: Text(
+                        tr('donate'),
+                        style: TextStyle(color: theme.colorScheme.onSurface),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        donateCONFIG(server);
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          Icon(Icons.delete, color: theme.colorScheme.error),
+                      title: Text(
+                        tr('delete'),
+                        style: TextStyle(color: theme.colorScheme.error),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _confirmRemoveServer(server);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-      )),
+      ),
     );
   }
 
   void _showSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        ),
+        backgroundColor:
+            Theme.of(context).colorScheme.surface.withOpacity(0.05),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
     );
   }
 
-  Widget _buildPingIndicator(int? ping, BuildContext context, String Server) {
+  Widget _buildPingIndicator(int? ping, BuildContext context, String server) {
     final theme = Theme.of(context);
-    if (ping == null)
-      return Text(Server.startsWith("http") ? 'SUB' : 'Not tested',
-          style: TextStyle(
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7)));
-    if (ping == -1)
-      return Text('Unreachable',
-          style: TextStyle(color: theme.colorScheme.error));
+    if (ping == null) {
+      return Text(
+        server.startsWith("http") ? 'SUB' : 'Not tested',
+        style: TextStyle(
+          color: theme.colorScheme.onSurface.withOpacity(0.7),
+        ),
+      );
+    }
+    if (ping == -1) {
+      return Text(
+        'Unreachable',
+        style: TextStyle(color: theme.colorScheme.error),
+      );
+    }
 
     Color color;
     if (ping < 200) {
@@ -602,10 +876,12 @@ class _ServersPageState extends State<ServersPage> {
           size: 16,
         ),
         const SizedBox(width: 4),
-        Text('${ping}ms',
-            textDirection:
-                getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
-            style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+        Text(
+          '${ping}ms',
+          textDirection:
+              getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }
@@ -625,16 +901,21 @@ class _ServersPageState extends State<ServersPage> {
                       width: 24,
                       height: 24,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: theme.colorScheme.onPrimary))
+                        strokeWidth: 2,
+                        color: theme.colorScheme.onPrimary,
+                      ),
+                    )
                   : const Icon(Icons.network_check),
               tooltip: 'Ping All',
               onPressed: isPingingAll ? null : _pingAllServers,
             ),
             IconButton(
-              icon: Icon(Icons.sort,
-                  color: sortByPing
-                      ? theme.colorScheme.secondary
-                      : theme.colorScheme.onPrimary),
+              icon: Icon(
+                Icons.sort,
+                color: sortByPing
+                    ? theme.colorScheme.secondary
+                    : theme.colorScheme.onPrimary,
+              ),
               tooltip: 'Sort by Ping',
               onPressed: _toggleSortByPing,
             ),
@@ -651,125 +932,269 @@ class _ServersPageState extends State<ServersPage> {
           ],
         ),
         body: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    child: TextField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        hintText: tr('search-servers'),
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none),
-                        filled: true,
-                        fillColor:
-                            theme.colorScheme.surfaceVariant.withOpacity(0.5),
+            ? Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.03),
+                            blurRadius: 15,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: CircularProgressIndicator(
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: filteredServers.isEmpty
-                        ? Center(
-                            child: Text('No servers found!',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                    color: theme.colorScheme.onSurface
-                                        .withOpacity(0.6))),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.only(bottom: 80),
-                            itemCount: filteredServers.length,
-                            itemBuilder: (context, index) {
-                              final server = filteredServers[index];
-                              final isSelected =
-                                  serversManage.selectedServer == server;
-                              final ping = serverPingTimes[server];
-
-                              return Card(
-                                clipBehavior: Clip.antiAlias,
-                                elevation: isSelected ? 4 : 2,
-                                margin: const EdgeInsets.symmetric(
-                                    vertical: 6, horizontal: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(
-                                      color: isSelected
-                                          ? theme.colorScheme.primary
-                                          : Colors.transparent,
-                                      width: 1.5),
+                ),
+              )
+            : Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                      Theme.of(context).colorScheme.secondary.withOpacity(0.15),
+                    ],
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color:
+                                  theme.colorScheme.surface.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.03),
+                                  blurRadius: 15,
+                                  spreadRadius: 1,
                                 ),
-                                child: InkWell(
-                                  onTap: () async {
-                                    await serversManage.selectServer(server);
-                                    if (mounted) setState(() {});
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 12),
-                                    child: Row(
-                                      children: [
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                getNameByConfig(server),
-                                                style: theme
-                                                    .textTheme.titleMedium
-                                                    ?.copyWith(
-                                                        fontWeight: isSelected
-                                                            ? FontWeight.bold
-                                                            : FontWeight
-                                                                .normal),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              const SizedBox(height: 4),
-                                              _buildPingIndicator(
-                                                  ping, context, server),
-                                            ],
-                                          ),
-                                        ),
-                                        IconButton(
-                                            icon:
-                                                const Icon(Icons.network_check),
-                                            tooltip: 'Ping Server',
-                                            onPressed: () =>
-                                                _pingServer(server)),
-                                        IconButton(
-                                          icon: const Icon(Icons.more_vert),
-                                          tooltip: 'Options',
-                                          onPressed: () => _showServerOptions(
-                                              context, server),
+                              ],
+                            ),
+                            child: TextField(
+                              controller: searchController,
+                              decoration: InputDecoration(
+                                hintText: tr('search-servers'),
+                                prefixIcon: Icon(
+                                  Icons.search,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                border: InputBorder.none,
+                                hintStyle: TextStyle(
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.5),
+                                ),
+                              ),
+                              style:
+                                  TextStyle(color: theme.colorScheme.onSurface),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: filteredServers.isEmpty
+                          ? Center(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: BackdropFilter(
+                                  filter:
+                                      ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.surface
+                                          .withOpacity(0.05),
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.03),
+                                          blurRadius: 15,
+                                          spreadRadius: 1,
                                         ),
                                       ],
                                     ),
+                                    padding: const EdgeInsets.all(16),
+                                    child: Text(
+                                      'No servers found!',
+                                      style:
+                                          theme.textTheme.titleMedium?.copyWith(
+                                        color: theme.colorScheme.onSurface
+                                            .withOpacity(0.6),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.only(bottom: 80),
+                              itemCount: filteredServers.length,
+                              itemBuilder: (context, index) {
+                                final server = filteredServers[index];
+                                final isSelected =
+                                    serversManage.selectedServer == server;
+                                final ping = serverPingTimes[server];
+
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 6, horizontal: 16),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                          sigmaX: 12, sigmaY: 12),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.08),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black
+                                                  .withOpacity(0.03),
+                                              blurRadius: 15,
+                                              spreadRadius: 3,
+                                            ),
+                                          ],
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? theme.colorScheme.primary
+                                                    .withOpacity(0.3)
+                                                : Colors.transparent,
+                                            width: 3.5,
+                                          ),
+                                        ),
+                                        child: InkWell(
+                                          onTap: () async {
+                                            await serversManage
+                                                .selectServer(server);
+                                            if (mounted) setState(() {});
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 12),
+                                            child: Row(
+                                              children: [
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        getNameByConfig(server),
+                                                        style: theme.textTheme
+                                                            .titleMedium
+                                                            ?.copyWith(
+                                                          fontWeight: isSelected
+                                                              ? FontWeight.bold
+                                                              : FontWeight
+                                                                  .normal,
+                                                          color: theme
+                                                              .colorScheme
+                                                              .onSurface,
+                                                        ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      _buildPingIndicator(ping,
+                                                          context, server),
+                                                    ],
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  icon: Icon(
+                                                    Icons.network_check,
+                                                    color: theme
+                                                        .colorScheme.primary,
+                                                  ),
+                                                  tooltip: 'Ping Server',
+                                                  onPressed: () =>
+                                                      _pingServer(server),
+                                                ),
+                                                IconButton(
+                                                  icon: Icon(
+                                                    Icons.more_vert,
+                                                    color: theme
+                                                        .colorScheme.primary,
+                                                  ),
+                                                  tooltip: 'Options',
+                                                  onPressed: () =>
+                                                      _showServerOptions(
+                                                          context, server),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
               ),
-        bottomNavigationBar: BottomNavBar(
-          currentIndex: 2,
-          onTap: (index) {
-            if (index == 0) {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (_) => SettingsPage()));
-            } else if (index == 1) {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (_) => HomePage()));
-            } else if (index == 2) {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (_) => ServersPage()));
-            }
-          },
+        bottomNavigationBar: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                    Theme.of(context).colorScheme.secondary.withOpacity(0.15),
+                  ],
+                ),
+              ),
+              child: BottomNavBar(
+                currentIndex: 2,
+                onTap: (index) {
+                  if (index == 0) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => SettingsPage()),
+                    );
+                  } else if (index == 1) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => HomePage()),
+                    );
+                  } else if (index == 2) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => ServersPage()),
+                    );
+                  }
+                },
+              ),
+            ),
+          ),
         ),
       ),
     );

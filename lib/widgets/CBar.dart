@@ -115,11 +115,12 @@ class _ActionsMenuState extends State<ActionsMenu>
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => NotificationsPage()));
+                                      builder: (context) =>
+                                          NotificationsPage()));
                               _closeMenu();
                             }),
                             _buildMenuButton(context, Icons.rocket_launch,
-                                "CFG", Colors.amberAccent, () {
+                                "CFG", Colors.orangeAccent, () {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
