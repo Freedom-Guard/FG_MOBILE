@@ -240,12 +240,11 @@ Future<bool> tryConnect(String config, String docId, String message_old,
         ? 999
         : -1;
   } else {
-    final resPing = await connect.testConfig(config, type: "f_link");
+    resPing = await connect.testConfig(config, type: "f_link");
   }
-  final docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
 
   String message = message_old;
-
+  var docRef;
   if (resPing > 1) {
     bool success = false;
     if (!(config.startsWith("http"))) {
@@ -255,6 +254,8 @@ Future<bool> tryConnect(String config, String docId, String message_old,
     }
     if (success) {
       try {
+        docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
+
         await docRef.update({'connected': FieldValue.increment(1)}).timeout(
             Duration(seconds: 5), onTimeout: () {
           throw "";
@@ -281,6 +282,7 @@ Future<bool> tryConnect(String config, String docId, String message_old,
   }
 
   try {
+    docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
     await docRef.update({'connected': FieldValue.increment(-1)});
   } on FirebaseException catch (e) {
     await saveFailedUpdate(docId, -1);
