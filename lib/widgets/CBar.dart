@@ -3,6 +3,7 @@ import 'package:Freedom_Guard/screens/browser.dart';
 import 'package:Freedom_Guard/screens/cfg.dart';
 import 'package:Freedom_Guard/screens/f-link.dart';
 import 'package:Freedom_Guard/screens/logs.dart';
+import 'package:Freedom_Guard/screens/notif.dart';
 import 'package:Freedom_Guard/screens/speedtest.dart';
 import 'package:Freedom_Guard/widgets/dns.dart';
 import 'package:flutter/material.dart';
@@ -107,6 +108,14 @@ class _ActionsMenuState extends State<ActionsMenu>
                             _buildMenuButton(context, Icons.dns, "DNS",
                                 Colors.deepPurpleAccent, () {
                               showDnsSelectionPopup(context);
+                              _closeMenu();
+                            }),
+                            _buildMenuButton(context, Icons.notifications,
+                                "Notifications", Colors.amberAccent, () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => NotificationsPage()));
                               _closeMenu();
                             }),
                             _buildMenuButton(context, Icons.rocket_launch,
