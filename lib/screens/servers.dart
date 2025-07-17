@@ -4,7 +4,10 @@ import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:Freedom_Guard/main.dart';
+import 'package:Freedom_Guard/screens/settings.dart';
 import 'package:Freedom_Guard/widgets/encrypt.dart';
+import 'package:Freedom_Guard/widgets/nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -753,6 +756,21 @@ class _ServersPageState extends State<ServersPage> {
                   ),
                 ],
               ),
+        bottomNavigationBar: BottomNavBar(
+          currentIndex: 2,
+          onTap: (index) {
+            if (index == 0) {
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (_) => SettingsPage()));
+            } else if (index == 1) {
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (_) => HomePage()));
+            } else if (index == 2) {
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (_) => ServersPage()));
+            }
+          },
+        ),
       ),
     );
   }

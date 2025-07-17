@@ -14,7 +14,7 @@ Future<void> checkForUpdate(BuildContext context) async {
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
     final latestVersion = data['version'];
-    const currentVersion = '8.1.0';
+    const currentVersion = '8.2.0';
 
     if (latestVersion.compareTo(currentVersion) > 0) {
       showDialog(

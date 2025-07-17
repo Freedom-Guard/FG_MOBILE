@@ -308,8 +308,6 @@ class ThemeNotifier extends ChangeNotifier {
     return ThemeNotifier(themeData, themeName);
   }
 
-  BoxDecoration? getGradientBackground() =>
-      _getGradientBackground(_currentThemeName);
 
   Future<void> setTheme(ThemeData theme, String name) async {
     _currentTheme = theme;
@@ -343,90 +341,4 @@ class ThemeNotifier extends ChangeNotifier {
     }
   }
 
-  BoxDecoration? _getGradientBackground(String themeName) {
-    switch (themeName) {
-      case 'Default Dark':
-        return const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF9A66FF), Color(0xFF00C2FF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        );
-      case 'Programmer':
-        return const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF00FF88), Color(0xFF111111)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        );
-      case 'Matrix':
-        return const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF00FF00), Color(0xFF121212)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        );
-      case 'Neon Dev':
-        return const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF00FF), Color(0xFF00FFFF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        );
-      case 'Cyber Pulse':
-        return const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFEF2D56), Color(0xFF00F5D4)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        );
-      case 'Cosmic Void':
-        return const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF3B28CC), Color(0xFF0A0A14)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        );
-      case 'Neon Abyss':
-        return const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF007F), Color(0xFF00FFFF)],
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-          ),
-        );
-      case 'Galactic Glow':
-        return const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF6B6B), Color(0xFF4ECDC4)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        );
-      case 'Quantum Spark':
-        return const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF7B2CBF), Color(0xFF56CFE1)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        );
-      case 'Black and White':
-        return const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF000000), Color(0xFF666666)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        );
-      default:
-        return null;
-    }
-  }
 }

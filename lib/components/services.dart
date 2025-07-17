@@ -6,11 +6,9 @@ import 'package:Freedom_Guard/components/update.dart';
 class BackgroundService {
   static final List<String> _backgrounds = [
     "10.jpg",
-    "5.jpg",
     "15.jpg",
-    "14.jpg",
-    "4.jpg",
-    "17.jpg",
+    "4.png",
+    "17.png",
     "background.jpg"
   ];
 

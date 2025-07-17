@@ -5,23 +5,19 @@ import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/global.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/services.dart';
-import 'package:Freedom_Guard/widgets/dns.dart';
+import 'package:Freedom_Guard/widgets/CBar.dart';
+import 'package:Freedom_Guard/widgets/nav.dart';
 import 'package:Freedom_Guard/widgets/theme/theme.dart';
 import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
-import 'package:Freedom_Guard/screens/browser.dart';
-import 'package:Freedom_Guard/screens/cfg.dart';
-import 'package:Freedom_Guard/screens/f-link.dart';
 import 'package:Freedom_Guard/screens/servers.dart';
 import 'package:Freedom_Guard/screens/settings.dart';
-import 'package:Freedom_Guard/screens/speedtest.dart';
 import 'package:Freedom_Guard/ui/animations/connect.dart';
 import 'package:Freedom_Guard/widgets/fragment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'screens/logs.dart';
 import 'components/LOGLOG.dart';
 import 'widgets/network.dart';
 
@@ -304,7 +300,7 @@ class _HomePageState extends State<HomePage>
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                 child: AppBar(
-                  backgroundColor: Colors.black.withOpacity(0.7),
+                  backgroundColor: Colors.black.withOpacity(0.0),
                   centerTitle: true,
                   leading: IconButton(
                     icon: const Icon(Icons.cable),
@@ -314,65 +310,9 @@ class _HomePageState extends State<HomePage>
                   ),
                   actions: [
                     IconButton(
-                      icon:
-                          const Icon(Icons.dns, color: Colors.deepPurpleAccent),
+                      icon: Icon(Icons.grid_view_rounded),
                       onPressed: () {
-                        showDnsSelectionPopup(context);
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.rocket_launch,
-                          color: Colors.amberAccent),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CFGPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.volunteer_activism,
-                          color: Colors.red),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PremiumDonateConfigPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.public),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => FreedomBrowser(),
-                          ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.network_check),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SpeedTestPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.bug_report_sharp),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => LogPage()),
-                        );
+                        showActionsMenu(context);
                       },
                     ),
                   ],
@@ -382,13 +322,12 @@ class _HomePageState extends State<HomePage>
           ),
           body: Container(
             alignment: Alignment.center,
-            decoration: themeNotifier.getGradientBackground() ??
-                BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(backgroundPath),
-                    fit: BoxFit.cover,
-                  ),
-                ),
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(backgroundPath),
+                fit: BoxFit.cover,
+              ),
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -397,29 +336,52 @@ class _HomePageState extends State<HomePage>
                   onTapDown: (_) => setState(() => isPressed = true),
                   onTapUp: (_) => setState(() => isPressed = false),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: isPressed ? 110 : 130,
-                    height: isPressed ? 110 : 130,
+                    duration: const Duration(milliseconds: 200),
+                    width: isPressed ? 105 : 120,
+                    height: isPressed ? 105 : 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: RadialGradient(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                         colors: isConnected
-                            ? [Colors.green.shade400, Colors.teal.shade700]
+                            ? [Colors.green.shade300, Colors.teal.shade700]
                             : isConnecting
-                                ? [Colors.blue.shade300, Colors.teal.shade800]
+                                ? [Colors.blue.shade300, Colors.cyan.shade600]
                                 : themeNotifier.getDisconnectedGradient() ??
-                                    [Colors.blueGrey.shade900, Colors.black],
-                        radius: 0.75,
-                        center: Alignment.center,
+                                    [
+                                      Colors.grey.shade800,
+                                      Colors.blueGrey.shade900
+                                    ],
+                      ),
+                      border: Border.all(
+                        color: isConnected
+                            ? Colors.green.shade200.withOpacity(0.9)
+                            : isConnecting
+                                ? Colors.cyan.shade200.withOpacity(0.9)
+                                : Colors.grey.shade400.withOpacity(0.6),
+                        width: isPressed ? 3.5 : 2.5,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: isConnected
-                              ? Colors.green.shade500.withOpacity(0.4)
-                              : Colors.transparent,
-                          blurRadius: isPressed ? 20 : 12,
-                          spreadRadius: isPressed ? 4 : 1,
+                              ? Colors.green.shade400.withOpacity(0.5)
+                              : isConnecting
+                                  ? Colors.cyan.shade400.withOpacity(0.5)
+                                  : Colors.grey.shade600.withOpacity(0.3),
+                          blurRadius: isPressed ? 18 : 12,
+                          spreadRadius: isPressed ? 4 : 2,
                           offset: const Offset(0, 2),
+                        ),
+                        BoxShadow(
+                          color: isConnected
+                              ? Colors.teal.shade300.withOpacity(0.3)
+                              : isConnecting
+                                  ? Colors.blue.shade300.withOpacity(0.3)
+                                  : Colors.black.withOpacity(0.15),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 0),
                         ),
                       ],
                     ),
@@ -430,12 +392,12 @@ class _HomePageState extends State<HomePage>
                         alignment: Alignment.center,
                         children: [
                           AnimatedOpacity(
-                            opacity: isConnecting ? 0.7 : 0.0,
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
+                            opacity: isConnecting ? 0.6 : 0.0,
+                            duration: const Duration(milliseconds: 400),
+                            curve: Curves.easeInOutCubic,
                             child: Container(
-                              width: 130,
-                              height: 130,
+                              width: 120,
+                              height: 120,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(
@@ -443,7 +405,7 @@ class _HomePageState extends State<HomePage>
                                     Colors.white.withOpacity(0.25),
                                     Colors.transparent,
                                   ],
-                                  radius: 0.65,
+                                  radius: 0.7,
                                 ),
                               ),
                             ),
@@ -453,8 +415,8 @@ class _HomePageState extends State<HomePage>
                               animation: _pulseAnimation,
                               builder: (context, child) {
                                 return Container(
-                                  width: 130,
-                                  height: 130,
+                                  width: 120,
+                                  height: 120,
                                   child: CustomPaint(
                                     painter: ConnectPainter(
                                       isConnecting,
@@ -465,16 +427,20 @@ class _HomePageState extends State<HomePage>
                               },
                             ),
                           AnimatedScale(
-                            scale: isPressed ? 0.92 : 1.0,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeOutCubic,
+                            scale: isPressed ? 0.95 : 1.0,
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeOutBack,
                             child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
+                              duration: const Duration(milliseconds: 300),
                               transitionBuilder: (child, animation) {
                                 return FadeTransition(
                                   opacity: animation,
                                   child: ScaleTransition(
-                                    scale: animation,
+                                    scale: animation.drive(
+                                      Tween(begin: 0.85, end: 1.0).chain(
+                                        CurveTween(curve: Curves.easeOutCubic),
+                                      ),
+                                    ),
                                     child: child,
                                   ),
                                 );
@@ -486,14 +452,14 @@ class _HomePageState extends State<HomePage>
                                       ? Icons.vpn_key_off
                                       : Icons.vpn_key,
                                   key: ValueKey(isConnected),
-                                  size: 50,
-                                  color: Colors.white.withOpacity(0.9),
+                                  size: 40,
+                                  color: Colors.white.withOpacity(0.95),
                                   shadows: [
                                     Shadow(
                                       color: isConnected
-                                          ? Colors.blue.shade700
-                                              .withOpacity(0.6)
-                                          : Colors.grey.shade800
+                                          ? Colors.teal.shade800
+                                              .withOpacity(0.5)
+                                          : Colors.grey.shade700
                                               .withOpacity(0.4),
                                       blurRadius: 10,
                                       offset: const Offset(0, 2),
@@ -513,61 +479,20 @@ class _HomePageState extends State<HomePage>
               ],
             ),
           ),
-          bottomNavigationBar: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.fromARGB(45, 26, 27, 38),
-                  Color.fromARGB(78, 42, 43, 54)
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 12,
-                  spreadRadius: 4,
-                  offset: Offset(0, -4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                child: BottomNavigationBar(
-                  backgroundColor: Colors.transparent,
-                  selectedItemColor: Colors.white,
-                  unselectedItemColor: Colors.grey.shade500,
-                  showSelectedLabels: false,
-                  showUnselectedLabels: false,
-                  elevation: 0,
-                  type: BottomNavigationBarType.fixed,
-                  currentIndex: 1,
-                  items: [
-                    _buildNavItem(
-                      Icons.settings_sharp,
-                      tr("settings"),
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SettingsPage()),
-                      ),
-                    ),
-                    _buildNavItem(Icons.home, "خانه", () {}),
-                    _buildNavItem(
-                      Icons.cloud_sync_outlined,
-                      tr("manage-servers-page"),
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ServersPage()),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          bottomNavigationBar: BottomNavBar(
+            currentIndex: 1,
+            onTap: (index) {
+              if (index == 0) {
+                Navigator.pushReplacement(
+                    context, MaterialPageRoute(builder: (_) => SettingsPage()));
+              } else if (index == 1) {
+                Navigator.pushReplacement(
+                    context, MaterialPageRoute(builder: (_) => HomePage()));
+              } else if (index == 2) {
+                Navigator.pushReplacement(
+                    context, MaterialPageRoute(builder: (_) => ServersPage()));
+              }
+            },
           ),
         ),
       ],
