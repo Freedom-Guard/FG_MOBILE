@@ -1,6 +1,5 @@
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/global.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
@@ -232,13 +231,28 @@ Future<List> restoreConfigs() async {
 
 Future<bool> tryConnect(String config, String docId, String message_old,
     String telegramLink) async {
-  final resPing = await connect.testConfig(config, type: "f_link");
+  int resPing = 0;
+  if (config.startsWith("http")) {
+    resPing = (await connect.ConnectSub(config, "f_link", typeC: "f_link")
+            .timeout(Duration(seconds: 25), onTimeout: () {
+      return false;
+    }))
+        ? 999
+        : -1;
+  } else {
+    final resPing = await connect.testConfig(config, type: "f_link");
+  }
   final docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
 
   String message = message_old;
 
   if (resPing > 1) {
-    final success = await connect.ConnectVibe(config, {"type": "f_link"});
+    bool success = false;
+    if (!(config.startsWith("http"))) {
+      success = await connect.ConnectVibe(config, {"type": "f_link"});
+    } else {
+      success = true;
+    }
     if (success) {
       try {
         await docRef.update({'connected': FieldValue.increment(1)}).timeout(

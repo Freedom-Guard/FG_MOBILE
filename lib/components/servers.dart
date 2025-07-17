@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:Freedom_Guard/components/global.dart';
 import 'package:Freedom_Guard/components/settings.dart';
-import 'package:Freedom_Guard/components/connect.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';

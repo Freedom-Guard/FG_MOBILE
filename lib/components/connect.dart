@@ -213,7 +213,8 @@ class Connect extends Tools {
     return false;
   }
 
-  Future<bool> ConnectSub(String config, String type) async {
+  Future<bool> ConnectSub(String config, String type,
+      {String typeC = "normal"}) async {
     await disConnect();
     List configs = [];
     const int maxRetries = 6;
@@ -270,11 +271,11 @@ class Connect extends Tools {
       if (cfg.startsWith("warp")) {
         continue;
       } else if (cfg.startsWith("http")) {
-        return await ConnectSub(cfg, "sub").timeout(Duration(seconds: 30),
-            onTimeout: () {
+        return await ConnectSub(cfg, "sub", typeC: typeC)
+            .timeout(Duration(seconds: 30), onTimeout: () {
           return false;
         });
-      } else if (await testConfig(cfg) != -1) {
+      } else if (await testConfig(cfg, type: typeC) != -1) {
         if (await ConnectVibe(cfg, {})) {
           return true;
         }
