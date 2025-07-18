@@ -267,7 +267,7 @@ class _ServersPageState extends State<ServersPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor:
-            Theme.of(context).colorScheme.surface.withOpacity(0.05),
+            Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: ClipRRect(
           borderRadius: BorderRadius.circular(20),
@@ -275,7 +275,7 @@ class _ServersPageState extends State<ServersPage> {
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
@@ -388,73 +388,69 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor:
-            Theme.of(context).colorScheme.surface.withOpacity(0.05),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: ClipRRect(
           borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 15,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: serverController,
-                    decoration: InputDecoration(
-                      hintText: tr('enter-server-config'),
-                      border: InputBorder.none,
-                      hintStyle: TextStyle(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withOpacity(0.5),
-                      ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 15,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: serverController,
+                  decoration: InputDecoration(
+                    hintText: tr('enter-server-config'),
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.5),
                     ),
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface),
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.content_paste,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        tooltip: 'Paste from clipboard',
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _addFromClipboard();
-                        },
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.content_paste,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.folder_open,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        tooltip: 'Import from file',
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _importConfigFromFile();
-                        },
+                      tooltip: 'Paste from clipboard',
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _addFromClipboard();
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.folder_open,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                      tooltip: 'Import from file',
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _importConfigFromFile();
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -1049,94 +1045,86 @@ class _ServersPageState extends State<ServersPage> {
                                       vertical: 6, horizontal: 16),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(20),
-                                    child: BackdropFilter(
-                                      filter: ImageFilter.blur(
-                                          sigmaX: 12, sigmaY: 12),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.08),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black
-                                                  .withOpacity(0.03),
-                                              blurRadius: 15,
-                                              spreadRadius: 3,
-                                            ),
-                                          ],
-                                          border: Border.all(
-                                            color: isSelected
-                                                ? theme.colorScheme.primary
-                                                    .withOpacity(0.3)
-                                                : Colors.transparent,
-                                            width: 3.5,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.08),
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.03),
+                                            blurRadius: 15,
+                                            spreadRadius: 3,
                                           ),
+                                        ],
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? theme.colorScheme.primary
+                                                  .withOpacity(0.3)
+                                              : Colors.transparent,
+                                          width: 3.5,
                                         ),
-                                        child: InkWell(
-                                          onTap: () async {
-                                            await serversManage
-                                                .selectServer(server);
-                                            if (mounted) setState(() {});
-                                          },
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 8, vertical: 12),
-                                            child: Row(
-                                              children: [
-                                                const SizedBox(width: 8),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        getNameByConfig(server),
-                                                        style: theme.textTheme
-                                                            .titleMedium
-                                                            ?.copyWith(
-                                                          fontWeight: isSelected
-                                                              ? FontWeight.bold
-                                                              : FontWeight
-                                                                  .normal,
-                                                          color: theme
-                                                              .colorScheme
-                                                              .onSurface,
-                                                        ),
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
+                                      ),
+                                      child: InkWell(
+                                        onTap: () async {
+                                          await serversManage
+                                              .selectServer(server);
+                                          if (mounted) setState(() {});
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 12),
+                                          child: Row(
+                                            children: [
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      getNameByConfig(server),
+                                                      style: theme
+                                                          .textTheme.titleMedium
+                                                          ?.copyWith(
+                                                        fontWeight: isSelected
+                                                            ? FontWeight.bold
+                                                            : FontWeight.normal,
+                                                        color: theme.colorScheme
+                                                            .onSurface,
                                                       ),
-                                                      const SizedBox(height: 4),
-                                                      _buildPingIndicator(ping,
-                                                          context, server),
-                                                    ],
-                                                  ),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    _buildPingIndicator(
+                                                        ping, context, server),
+                                                  ],
                                                 ),
-                                                IconButton(
-                                                  icon: Icon(
-                                                    Icons.network_check,
-                                                    color: theme
-                                                        .colorScheme.primary,
-                                                  ),
-                                                  tooltip: 'Ping Server',
-                                                  onPressed: () =>
-                                                      _pingServer(server),
+                                              ),
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.network_check,
+                                                  color:
+                                                      theme.colorScheme.primary,
                                                 ),
-                                                IconButton(
-                                                  icon: Icon(
-                                                    Icons.more_vert,
-                                                    color: theme
-                                                        .colorScheme.primary,
-                                                  ),
-                                                  tooltip: 'Options',
-                                                  onPressed: () =>
-                                                      _showServerOptions(
-                                                          context, server),
+                                                tooltip: 'Ping Server',
+                                                onPressed: () =>
+                                                    _pingServer(server),
+                                              ),
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.more_vert,
+                                                  color:
+                                                      theme.colorScheme.primary,
                                                 ),
-                                              ],
-                                            ),
+                                                tooltip: 'Options',
+                                                onPressed: () =>
+                                                    _showServerOptions(
+                                                        context, server),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ),
