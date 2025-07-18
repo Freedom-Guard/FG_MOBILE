@@ -26,6 +26,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 void main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
   await initTranslations();
   MethodChannel _channel = const MethodChannel('vpn_quick_tile');

@@ -547,25 +547,21 @@ class _ServersPageState extends State<ServersPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: ClipRRect(
           borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 15,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Text(
-                tr('are-you-sure-you-want-to-delete-all-servers'),
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.09),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.09),
+                  blurRadius: 15,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Text(
+              tr('are-you-sure-you-want-to-delete-all-servers'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
         ),
@@ -660,62 +656,59 @@ class _ServersPageState extends State<ServersPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       builder: (context) => ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 15,
-                  spreadRadius: 1,
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface.withOpacity(0.09),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 15,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading:
+                      Icon(Icons.refresh, color: theme.colorScheme.primary),
+                  title: Text(
+                    tr('refresh'),
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _refreshSubscriptions();
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.vpn_key_rounded,
+                      color: theme.colorScheme.secondary),
+                  title: Text(
+                    'Encrypt/Decrypt',
+                    style: TextStyle(color: theme.colorScheme.onSurface),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    showEncryptDecryptDialog(context);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.delete_forever,
+                      color: theme.colorScheme.error),
+                  title: Text(
+                    'Delete All Servers',
+                    style: TextStyle(color: theme.colorScheme.error),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _removeAllServers();
+                  },
                 ),
               ],
-            ),
-            child: SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading:
-                        Icon(Icons.refresh, color: theme.colorScheme.primary),
-                    title: Text(
-                      tr('refresh'),
-                      style: TextStyle(color: theme.colorScheme.onSurface),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _refreshSubscriptions();
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.vpn_key_rounded,
-                        color: theme.colorScheme.secondary),
-                    title: Text(
-                      'Encrypt/Decrypt',
-                      style: TextStyle(color: theme.colorScheme.onSurface),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      showEncryptDecryptDialog(context);
-                    },
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.delete_forever,
-                        color: theme.colorScheme.error),
-                    title: Text(
-                      'Delete All Servers',
-                      style: TextStyle(color: theme.colorScheme.error),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _removeAllServers();
-                    },
-                  ),
-                ],
-              ),
             ),
           ),
         ),
@@ -936,24 +929,21 @@ class _ServersPageState extends State<ServersPage> {
             ? Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.03),
-                            blurRadius: 15,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: CircularProgressIndicator(
-                        color: theme.colorScheme.primary,
-                      ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 15,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: CircularProgressIndicator(
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ),
