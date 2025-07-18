@@ -188,30 +188,25 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor:
-            Theme.of(context).colorScheme.surface.withOpacity(0.05),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: ClipRRect(
           borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 15,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: Text(
-                tr('are-you-sure-you-want-to-delete-this-server'),
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.onSurface),
-              ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 15,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: Text(
+              tr('are-you-sure-you-want-to-delete-this-server'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
         ),
@@ -266,42 +261,35 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor:
-            Theme.of(context).colorScheme.surface,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: ClipRRect(
           borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 15,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: controller,
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                decoration: InputDecoration(
-                  hintText: 'Enter server configuration',
-                  border: InputBorder.none,
-                  hintStyle: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.5),
-                  ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 15,
+                  spreadRadius: 1,
                 ),
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              ],
+            ),
+            child: TextField(
+              controller: controller,
+              maxLines: null,
+              keyboardType: TextInputType.multiline,
+              decoration: InputDecoration(
+                hintText: 'Enter server configuration',
+                border: InputBorder.none,
+                hintStyle: TextStyle(
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                ),
               ),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
         ),
@@ -538,18 +526,17 @@ class _ServersPageState extends State<ServersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor:
-            Theme.of(context).colorScheme.surface.withOpacity(0.05),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.09),
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.09),
+                  color: Colors.black.withOpacity(0.9),
                   blurRadius: 15,
                   spreadRadius: 1,
                 ),
@@ -654,11 +641,11 @@ class _ServersPageState extends State<ServersPage> {
         borderRadius: BorderRadius.circular(20),
         child: Container(
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface.withOpacity(0.09),
+            color: theme.colorScheme.surface.withOpacity(0.5),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withOpacity(0.5),
                 blurRadius: 15,
                 spreadRadius: 1,
               ),
