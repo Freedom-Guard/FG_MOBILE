@@ -59,6 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Scaffold(
         extendBody: true,
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: Text(
             tr("settings"),
             style: TextStyle(fontWeight: FontWeight.bold),
@@ -247,17 +248,14 @@ class _SettingsPageState extends State<SettingsPage> {
             currentIndex: 0,
             onTap: (index) {
               if (index == 0) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => SettingsPage()),
                 );
               } else if (index == 1) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => HomePage()),
-                );
+                Navigator.popUntil(context, (route) => route.isFirst);
               } else if (index == 2) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => ServersPage()),
                 );
@@ -289,60 +287,56 @@ class SettingSwitch extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 15,
-                  spreadRadius: 1,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 15,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: SwitchListTile(
+            title: Row(
+              children: [
+                if (icon != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.15),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 24,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
               ],
             ),
-            child: SwitchListTile(
-              title: Row(
-                children: [
-                  if (icon != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.15),
-                      ),
-                      child: Icon(
-                        icon,
-                        size: 24,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ],
-              ),
-              value: value,
-              onChanged: onChanged,
-              inactiveTrackColor: Colors.white.withOpacity(0.01),
-              activeColor: Theme.of(context).colorScheme.primary,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              hoverColor:
-                  Theme.of(context).colorScheme.primary.withOpacity(0.05),
-            ),
+            value: value,
+            onChanged: onChanged,
+            inactiveTrackColor: Colors.white.withOpacity(0.01),
+            activeColor: Theme.of(context).colorScheme.primary,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
           ),
         ),
       ),

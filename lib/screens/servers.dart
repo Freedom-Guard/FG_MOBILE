@@ -870,6 +870,7 @@ class _ServersPageState extends State<ServersPage> {
       child: Scaffold(
         extendBody: true,
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: Text(tr('manage-servers-page')),
           actions: [
             IconButton(
@@ -1130,17 +1131,14 @@ class _ServersPageState extends State<ServersPage> {
             currentIndex: 2,
             onTap: (index) {
               if (index == 0) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => SettingsPage()),
                 );
               } else if (index == 1) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => HomePage()),
-                );
+                Navigator.popUntil(context, (route) => route.isFirst);
               } else if (index == 2) {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => ServersPage()),
                 );

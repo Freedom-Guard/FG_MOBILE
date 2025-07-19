@@ -26,7 +26,6 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
   await initTranslations();
   MethodChannel _channel = const MethodChannel('vpn_quick_tile');
@@ -80,11 +79,36 @@ void main() async {
   );
 }
 
-class FreedomGuardApp extends StatelessWidget {
+class FreedomGuardApp extends StatefulWidget {
+  @override
+  _FreedomGuardAppState createState() => _FreedomGuardAppState();
+}
+
+class _FreedomGuardAppState extends State<FreedomGuardApp> {
+  TextDirection _direction = TextDirection.ltr;
+  bool _isLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDirection();
+  }
+
+  Future<void> _loadDirection() async {
+    final dir = await getDir();
+    setState(() {
+      _direction = dir == "rtl" ? TextDirection.rtl : TextDirection.ltr;
+      _isLoaded = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_isLoaded) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Directionality(
-      textDirection: getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
+      textDirection: _direction,
       child: HomePage(),
     );
   }
@@ -484,13 +508,12 @@ class _HomePageState extends State<HomePage>
             currentIndex: 1,
             onTap: (index) {
               if (index == 0) {
-                Navigator.pushReplacement(
+                Navigator.push(
                     context, MaterialPageRoute(builder: (_) => SettingsPage()));
               } else if (index == 1) {
-                Navigator.pushReplacement(
-                    context, MaterialPageRoute(builder: (_) => HomePage()));
+                Navigator.popUntil(context, (route) => route.isFirst);
               } else if (index == 2) {
-                Navigator.pushReplacement(
+                Navigator.push(
                     context, MaterialPageRoute(builder: (_) => ServersPage()));
               }
             },
