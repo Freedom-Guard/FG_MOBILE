@@ -11,6 +11,9 @@ ValueNotifier<V2RayStatus> v2rayStatus =
     ValueNotifier<V2RayStatus>(V2RayStatus());
 
 class Connect extends Tools {
+  Timer? _guardModeTimer;
+  bool _guardModeActive = false;
+
   // Test Internet
   Future<bool> test() async {
     try {
@@ -27,9 +30,12 @@ class Connect extends Tools {
   }
 
   // Diconnect VPN
-  Future<void> disConnect() async {
+  Future<void> disConnect({typeDis = "normal"}) async {
     try {
       flutterV2ray.stopV2Ray();
+      if (typeDis != "guard") {
+        _stopGuardModeMonitoring();
+      }
     } catch (_) {
       LogOverlay.addLog("Failed to disconnect");
     }
@@ -138,8 +144,9 @@ class Connect extends Tools {
   }
 
   // Connects to a single V2Ray config
-  Future<bool> ConnectVibe(String config, dynamic args) async {
-    await disConnect();
+  Future<bool> ConnectVibe(String config, dynamic args,
+      {typeDis = "normal"}) async {
+    await disConnect(typeDis: typeDis);
     final stopwatch = Stopwatch()..start();
     LogOverlay.showLog(
       "Connecting To VIBE...",
@@ -273,17 +280,86 @@ class Connect extends Tools {
         continue;
       } else if (cfg.startsWith("http")) {
         return await ConnectSub(cfg, "sub", typeC: typeC)
-            .timeout(Duration(seconds: 30), onTimeout: () {
-          return false;
-        });
+            .timeout(Duration(seconds: 30), onTimeout: () => false);
       } else if (await testConfig(cfg, type: typeC) != -1) {
         if (await ConnectVibe(cfg, {})) {
+          final guardModeEnabled =
+              (await settings.getValue("guard_mode")) == "true";
+          if (guardModeEnabled) {
+            _startGuardModeMonitoring(cfg, configs);
+          } else {
+            _stopGuardModeMonitoring();
+          }
           return true;
         }
       }
     }
 
     return false;
+  }
+
+  void _startGuardModeMonitoring(String currentConfig, List allConfigs) {
+    _guardModeActive = true;
+    int retryCount = 0;
+    const int maxRetries = 3;
+    String activeConfig = currentConfig;
+    int lastPing = 0;
+
+    _guardModeTimer?.cancel();
+    LogOverlay.showLog("Guard mode monitoring started");
+    _guardModeTimer = Timer.periodic(Duration(seconds: 120), (timer) async {
+      if (!_guardModeActive) {
+        timer.cancel();
+        return;
+      }
+
+      int ping = await getConnectedDelay();
+      LogOverlay.addLog("Guard mode check - ping: $ping");
+
+      if (ping == -1 || ping > 5000) {
+        retryCount++;
+        LogOverlay.addLog(
+            "Guard mode: bad connection, retry $retryCount/$maxRetries");
+
+        if (retryCount >= maxRetries) {
+          bool connected = false;
+          allConfigs.shuffle();
+          for (String cfg in allConfigs) {
+            cfg = cfg.replaceAll("vibe,;,", "");
+            if (cfg.startsWith("warp")) continue;
+
+            int newPing = await testConfig(cfg);
+            if (newPing != -1 && newPing < ping) {
+              LogOverlay.addLog(
+                  "Guard mode: trying better config with ping $newPing");
+              bool result = await ConnectVibe(cfg, {}, typeDis: "guard");
+              if (result) {
+                activeConfig = cfg;
+                lastPing = newPing;
+                retryCount = 0;
+                connected = true;
+                LogOverlay.showLog("Guard mode: switched to better config",
+                    type: "success");
+                break;
+              }
+            }
+          }
+          if (!connected) {
+            LogOverlay.addLog("Guard mode: no better config found");
+          }
+        }
+      } else {
+        retryCount = 0;
+        lastPing = ping;
+        LogOverlay.addLog("Guard mode: connection healthy");
+      }
+    });
+  }
+
+  void _stopGuardModeMonitoring() {
+    _guardModeActive = false;
+    _guardModeTimer?.cancel();
+    _guardModeTimer = null;
   }
 
   // Fetches configuration list from FG repo and initiates connection setup

@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
-import 'package:Freedom_Guard/main.dart';
 import 'package:Freedom_Guard/screens/f-link.dart';
 import 'package:Freedom_Guard/screens/servers.dart';
 import 'package:Freedom_Guard/screens/split.dart';
@@ -29,6 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
     settingsJson["block_ads_trackers"] =
         await settings.getValue("block_ads_trackers");
     settingsJson["bypass_lan"] = await settings.getValue("bypass_lan");
+    settingsJson["guard_mode"] = await settings.getValue("guard_mode");
     settingsJson["proxy_mode"] = await settings.getBool("proxy_mode");
     if (mounted) setState(() {});
   }
@@ -190,6 +190,21 @@ class _SettingsPageState extends State<SettingsPage> {
                         }
                       },
                       icon: Icons.lan,
+                    ),
+                    SettingSwitch(
+                      title: tr("guard-mode"),
+                      value: bool.tryParse(
+                              settingsJson["guard_mode"].toString()) ??
+                          false,
+                      onChanged: (bool value) {
+                        if (mounted) {
+                          setState(() {
+                            settingsJson["guard_mode"] = value.toString();
+                          });
+                          settings.setValue("guard_mode", value.toString());
+                        }
+                      },
+                      icon: Icons.shield_outlined,
                     ),
                     SettingSwitch(
                       title: tr("quick-connect-sub"),

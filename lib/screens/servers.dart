@@ -5,7 +5,6 @@ import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
-import 'package:Freedom_Guard/main.dart';
 import 'package:Freedom_Guard/screens/settings.dart';
 import 'package:Freedom_Guard/widgets/encrypt.dart';
 import 'package:Freedom_Guard/widgets/nav.dart';
