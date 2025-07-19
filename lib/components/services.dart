@@ -9,7 +9,7 @@ class BackgroundService {
     "15.jpg",
     "4.png",
     "17.png",
-    "background.jpg"
+    "background.png"
   ];
 
   static String getRandomBackground() {
