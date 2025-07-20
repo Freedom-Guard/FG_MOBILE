@@ -413,7 +413,7 @@ class Connect extends Tools {
         await prefs.setString('cached_fg_config', response.body);
       }
 
-      List<String> publicServers = data["MOBILE"];
+      List publicServers = data["MOBILE"];
 
       for (var entry in publicServers) {
         var parts = entry.split(",;,");
