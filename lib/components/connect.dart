@@ -301,7 +301,7 @@ class Connect extends Tools {
   void _startGuardModeMonitoring(String currentConfig, List allConfigs) {
     _guardModeActive = true;
     int retryCount = 0;
-    const int maxRetries = 3;
+    const int maxRetries = 2;
     String activeConfig = currentConfig;
     int lastPing = 0;
 
@@ -316,7 +316,7 @@ class Connect extends Tools {
       int ping = await getConnectedDelay();
       LogOverlay.addLog("Guard mode check - ping: $ping");
 
-      if (ping == -1 || ping > 5000) {
+      if (ping == -1 || ping > 1000) {
         retryCount++;
         LogOverlay.addLog(
             "Guard mode: bad connection, retry $retryCount/$maxRetries");
