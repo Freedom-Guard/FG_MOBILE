@@ -222,8 +222,8 @@ class _HomePageState extends State<HomePage>
         if (selectedServer.split("#")[0].isEmpty) {
           LogOverlay.showLog("connecting to FL mode...");
           connStat =
-              await connectFL().timeout(Duration(seconds: 10), onTimeout: () {
-            LogOverlay.showLog("Connection to FL mode timed out.");
+              await connectFL().timeout(Duration(seconds: 15), onTimeout: () {
+            LogOverlay.addLog("Connection to FL mode timed out.");
             return false;
           });
           if (!connStat) {
