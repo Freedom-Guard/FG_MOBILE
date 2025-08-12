@@ -221,9 +221,7 @@ class _DnsSelectionDialogState extends State<DnsSelectionDialog> {
   }
 
   bool _isValidIp(String ip) {
-    if (ip.isEmpty) return false;
-    final regex = RegExp(r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$');
-    return regex.hasMatch(ip);
+    return true;
   }
 
   void _showAddCustomDnsDialog() {
