@@ -39,6 +39,9 @@ dependencies:
   cloud_firestore: ^5.6.7
   uuid: ^4.5.1
   encrypt: ^5.0.3
+  quick_settings:
+    git:
+      url: https://github.com/Freedom-Guard-Builder/quick_settings/
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.4

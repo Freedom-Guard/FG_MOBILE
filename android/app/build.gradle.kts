@@ -63,3 +63,9 @@ android {
 flutter {
     source = "../.."
 }
+
+val kotlin_version = "1.8.20"  
+
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+}

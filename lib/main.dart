@@ -5,6 +5,7 @@ import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/global.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/services.dart';
+import 'package:Freedom_Guard/services/quick_connect.dart';
 import 'package:Freedom_Guard/widgets/CBar.dart';
 import 'package:Freedom_Guard/widgets/nav.dart';
 import 'package:Freedom_Guard/widgets/theme/theme.dart';
@@ -18,6 +19,7 @@ import 'package:Freedom_Guard/widgets/fragment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:quick_settings/quick_settings.dart';
 import 'components/LOGLOG.dart';
 import 'widgets/network.dart';
 
@@ -25,21 +27,46 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+Tile onTileClicked(Tile tile) {
+  final oldStatus = tile.tileStatus;
+  if (oldStatus == TileStatus.active) {
+    tile.label = "Guard OFF";
+    tile.tileStatus = TileStatus.inactive;
+    tile.subtitle = "Disconnected";
+    tile.drawableName = "security_off";
+  } else {
+    tile.label = "Guard ON";
+    tile.tileStatus = TileStatus.active;
+    tile.subtitle = "Protected";
+    tile.drawableName = "security_on";
+  }
+  print("Guard Tile Clicked");
+  LogOverlay.addLog("Guard Tile Clicked");
+  toggleQuick();
+  return tile;
+}
+
+Tile onTileAdded(Tile tile) {
+  tile.label = "Guard OFF";
+  tile.tileStatus = TileStatus.active;
+  tile.subtitle = "Disconnected";
+  tile.drawableName = "security_off";
+  LogOverlay.addLog("Guard Tile Added");
+  return tile;
+}
+
+void onTileRemoved() {
+  LogOverlay.addLog("Guard Tile Removed");
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  QuickSettings.setup(
+    onTileClicked: onTileClicked,
+    onTileAdded: onTileAdded,
+    onTileRemoved: onTileRemoved,
+  );
   await initTranslations();
-  MethodChannel _channel = const MethodChannel('vpn_quick_tile');
-  _channel.setMethodCallHandler((call) async {
-    if (call.method == "onTileClicked") {
-      bool isOn = call.arguments == true;
-      if (isOn) {
-        LogOverlay.addLog("🟢 VPN روشن شد از Tile");
-      } else {
-        LogOverlay.addLog("🔴 VPN خاموش شد از Tile");
-      }
-    }
-  });
-  try {} catch (e) {}
   try {
     await Firebase.initializeApp();
     await FirebaseMessaging.instance.setAutoInitEnabled(true);

@@ -50,7 +50,7 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
   }
 
   void _refreshLogs() {
-    _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _loadLogs();
     });
   }

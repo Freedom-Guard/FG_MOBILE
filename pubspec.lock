@@ -632,6 +632,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
+  quick_settings:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: e1583a93d45574dbbe01aa41ce53b5285d625516
+      url: "https://github.com/Freedom-Guard-Builder/quick_settings/"
+    source: git
+    version: "1.0.1"
   share_plus:
     dependency: "direct main"
     description:
