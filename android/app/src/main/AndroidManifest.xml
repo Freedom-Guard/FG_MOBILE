@@ -1,10 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
     <uses-permission android:name="android.permission.BIND_QUICK_SETTINGS_TILE" />
+
+    <uses-feature android:name="android.software.leanback" android:required="true"/>
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
+    <uses-feature android:name="android.hardware.faketouch" android:required="false"/>
+    <uses-feature android:name="android.hardware.telephony" android:required="false"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
+    <uses-feature android:name="android.hardware.microphone" android:required="false"/>
+
     <application
         android:label="Freedom Guard"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:banner="@drawable/banner_tv">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -16,24 +26,27 @@
             android:windowSoftInputMode="adjustResize">
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
+              android:resource="@style/NormalTheme"/>
             <meta-data
                 android:name="io.flutter.embedding.android.DisableSurfaceControl"
-                android:value="true" 
-            />
+                android:value="true"/>
             <meta-data android:name="io.flutter.embedding.android.EnableImpeller"
-                android:value="false" 
-            /> 
+                android:value="false"/> 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+                <category android:name="android.intent.category.HOME"/>
             </intent-filter>
         </activity>
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
+
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>

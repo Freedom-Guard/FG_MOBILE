@@ -6,6 +6,7 @@ import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/screens/settings.dart';
+import 'package:Freedom_Guard/services/config.dart';
 import 'package:Freedom_Guard/widgets/encrypt.dart';
 import 'package:Freedom_Guard/widgets/nav.dart';
 import 'package:flutter/material.dart';
@@ -146,32 +147,7 @@ class _ServersPageState extends State<ServersPage> {
     await prefs.setStringList('servers', servers);
     _applyFiltersAndSort();
   }
-
-  String getNameByConfig(String config) {
-    try {
-      final decodedConfig = Uri.decodeFull(config);
-      final utf8Decoded = utf8.decode(decodedConfig.runes.toList());
-      final decoded = jsonDecode(utf8Decoded);
-      return decoded['remarks']?.toString() ?? _extractNameFromConfig(config);
-    } catch (_) {
-      return _extractNameFromConfig(config);
-    }
-  }
-
-  String _extractNameFromConfig(String config) {
-    try {
-      final uriDecoded = Uri.decodeFull(config);
-      final hashIndex = uriDecoded.lastIndexOf('#');
-      if (hashIndex != -1 && hashIndex < uriDecoded.length - 1) {
-        final name = uriDecoded.substring(hashIndex + 1);
-        return name.trim().isNotEmpty ? name.trim() : 'Unnamed Server';
-      }
-      return uriDecoded.split("#")[uriDecoded.lastIndexOf('#')];
-    } catch (_) {
-      return config.split("#")[config.lastIndexOf('#')];
-    }
-  }
-
+  
   void _addServer(String serverName) {
     if (serverName.isNotEmpty && !servers.contains(serverName)) {
       setState(() {

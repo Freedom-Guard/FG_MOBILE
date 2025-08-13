@@ -1,28 +1,32 @@
 import 'package:Freedom_Guard/components/LOGLOG.dart';
-import 'package:Freedom_Guard/components/global.dart';
+import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/services.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:quick_settings/quick_settings.dart';
 
 toggleQuick() async {
-  var selectedServer = "";
-  if (((await Settings().getValue("config_backup")) != "") &&
-      (selectedServer.split("#")[0].isEmpty ||
-          selectedServer.split("#")[0].startsWith("http"))) {
-    selectedServer = (await Settings().getValue("config_backup"));
-    LogOverlay.showToast("Conneting to QUICK mode...");
-  }
-  if (await checker.checkVPN()) {
-    LogOverlay.showToast("Disconnecting...");
-    await connect.disConnect();
-    await Future.delayed(Duration(seconds: 1));
-    LogOverlay.showToast("Disconnected!");
-  } else {
-    if (selectedServer == "") {
-      LogOverlay.showToast("Please connect once from within the app.");
-      return false;
+  try {
+    var selectedServer = (await Settings().getValue("config_backup"));
+    if (((await Settings().getValue("config_backup")) != "") &&
+        selectedServer.split("#")[0].isEmpty) {
+      LogOverlay.showToast("Conneting to QUICK mode...");
     }
-    return await connect.ConnectVibe(selectedServer, {});
+    if (await checker.checkVPN()) {
+      LogOverlay.showToast("Disconnecting...");
+      await Connect().disConnect();
+      await Future.delayed(Duration(seconds: 1));
+      LogOverlay.showToast("Disconnected!");
+    } else {
+      if (selectedServer == "") {
+        LogOverlay.showToast("Please connect once from within the app.");
+        return false;
+      }
+      LogOverlay.showToast("Connecting to QUICK mode... \n " + selectedServer);
+      await Connect().ConnectVibe(selectedServer, {});
+      LogOverlay.showToast("Connected!");
+    }
+  } catch (e) {
+    print("Error in toggleQuick: $e");
   }
   return false;
 }
@@ -30,7 +34,9 @@ toggleQuick() async {
 @pragma('vm:entry-point')
 Tile onTileClicked(Tile tile) {
   final oldStatus = tile.tileStatus;
-  final connStatus = toggleQuick();
+
+  toggleQuick();
+
   if (oldStatus == TileStatus.active) {
     tile.label = "Guard OFF";
     tile.tileStatus = TileStatus.inactive;

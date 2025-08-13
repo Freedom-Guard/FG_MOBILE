@@ -52,7 +52,10 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
     try {
       List<String> links = await getSubLinks();
       setState(() {
-        subLinks = links.where((link) => link.startsWith('http')).toList();
+        subLinks = links
+            .where((link) =>
+                link.startsWith('http') || link.startsWith('freedom-guard://'))
+            .toList();
         isLoading = false;
       });
     } catch (e) {
@@ -305,36 +308,33 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
   }
 
   String getConfigName(String config) {
-    if (config.isEmpty) return 'Unknown';
-
-    String extractPart() {
-      final parts = config.split('#');
-      return parts.length > 1
-          ? parts[1].trim()
-          : config.substring(0, config.length > 20 ? 20 : config.length);
-    }
-
-    String decode(String input) {
-      try {
-        final decoded = Uri.decodeFull(input);
-        return utf8
-            .decode(decoded.runes.toList())
-            .substring(0, input.length > 20 ? 20 : input.length);
-      } catch (_) {
+    try {
+      if (config.trim().isEmpty) return 'Unnamed Server';
+      String safeDecode(String input) {
         try {
-          return Uri.decodeComponent(input)
-              .substring(0, input.length > 20 ? 20 : input.length);
+          return utf8.decode(Uri.decodeFull(input).runes.toList());
         } catch (_) {
-          return input;
+          try {
+            return utf8.decode(Uri.decodeComponent(input).runes.toList());
+          } catch (_) {
+            return input;
+          }
         }
       }
-    }
 
-    if (config.contains('#')) {
-      return decode(extractPart());
-    }
+      String part;
+      if (config.contains('#')) {
+        final parts = config.split('#');
+        part = parts.isNotEmpty ? parts.last.trim() : '';
+      } else {
+        part = config.trim();
+      }
 
-    return config.substring(0, config.length > 15 ? 15 : config.length);
+      final decoded = safeDecode(part);
+      return decoded.isNotEmpty ? decoded : 'Unnamed Server';
+    } catch (_) {
+      return 'Unnamed Server';
+    }
   }
 
   @override
@@ -523,7 +523,8 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
                                         ],
                                       ),
                                       child: Padding(
-                                        padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
+                                        padding: const EdgeInsets.only(
+                                            top: 12, left: 12, right: 12),
                                         child: Column(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,

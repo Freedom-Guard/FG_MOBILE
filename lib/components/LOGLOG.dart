@@ -12,6 +12,7 @@ class LogOverlay {
   static bool _isShowingLog = false;
 
   static void addLog(String message) {
+    print(message);
     final now = DateTime.now();
     final logMessage =
         '[${now.toIso8601String()}] ${message.replaceAll("\n", "")}';
@@ -43,6 +44,7 @@ class LogOverlay {
       textColor: Colors.white,
       fontSize: 16.0,
     );
+    addLog(message);
   }
 
   static void showModal(

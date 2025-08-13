@@ -29,11 +29,13 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   QuickSettings.setup(
     onTileClicked: onTileClicked,
     onTileAdded: onTileAdded,
     onTileRemoved: onTileRemoved,
   );
+  
   await initTranslations();
   try {
     await Firebase.initializeApp();
