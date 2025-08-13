@@ -27,38 +27,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-Tile onTileClicked(Tile tile) {
-  final oldStatus = tile.tileStatus;
-  if (oldStatus == TileStatus.active) {
-    tile.label = "Guard OFF";
-    tile.tileStatus = TileStatus.inactive;
-    tile.subtitle = "Disconnected";
-    tile.drawableName = "security_off";
-  } else {
-    tile.label = "Guard ON";
-    tile.tileStatus = TileStatus.active;
-    tile.subtitle = "Protected";
-    tile.drawableName = "security_on";
-  }
-  print("Guard Tile Clicked");
-  LogOverlay.addLog("Guard Tile Clicked");
-  toggleQuick();
-  return tile;
-}
-
-Tile onTileAdded(Tile tile) {
-  tile.label = "Guard OFF";
-  tile.tileStatus = TileStatus.active;
-  tile.subtitle = "Disconnected";
-  tile.drawableName = "security_off";
-  LogOverlay.addLog("Guard Tile Added");
-  return tile;
-}
-
-void onTileRemoved() {
-  LogOverlay.addLog("Guard Tile Removed");
-}
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   QuickSettings.setup(

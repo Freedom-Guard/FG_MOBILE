@@ -42,6 +42,7 @@ dependencies:
   quick_settings:
     git:
       url: https://github.com/Freedom-Guard-Builder/quick_settings/
+  fluttertoast: ^8.2.12
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.4

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:clipboard/clipboard.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LogOverlay {
@@ -31,6 +32,17 @@ class LogOverlay {
       debugPrint('Error copying logs: $e');
       return false;
     }
+  }
+
+  static void showToast(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.black.withOpacity(0.7),
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 
   static void showModal(
