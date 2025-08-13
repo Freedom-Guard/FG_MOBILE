@@ -166,9 +166,9 @@ class _ServersPageState extends State<ServersPage> {
         final name = uriDecoded.substring(hashIndex + 1);
         return name.trim().isNotEmpty ? name.trim() : 'Unnamed Server';
       }
-      return 'Unnamed Server';
+      return uriDecoded.split("#")[uriDecoded.lastIndexOf('#')];
     } catch (_) {
-      return 'Unnamed Server';
+      return config.split("#")[config.lastIndexOf('#')];
     }
   }
 

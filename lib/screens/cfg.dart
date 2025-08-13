@@ -308,9 +308,11 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
     if (config.isEmpty) return 'Unknown';
     if (config.contains('#')) {
       final parts = config.split('#');
-      return parts.length > 1
+      final decodedConfig = Uri.decodeFull(parts.length > 1
           ? parts[1].trim()
-          : config.substring(0, config.length > 20 ? 20 : config.length);
+          : config.substring(0, config.length > 20 ? 20 : config.length));
+      final utf8Decoded = utf8.decode(decodedConfig.runes.toList());
+      return utf8Decoded;
     }
     return config.substring(0, config.length > 20 ? 20 : config.length);
   }
