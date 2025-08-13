@@ -108,13 +108,21 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
             throw Exception('Empty response from server');
           }
           List<String> decodedConfigs = [];
-          if (content.contains('\n')) {
+          try {
+            var jsonData = jsonDecode(content);
+            if (jsonData is Map && jsonData.containsKey("MOBILE")) {
+              decodedConfigs = jsonData["MOBILE"];
+            }
+          } catch (e) {
+            LogOverlay.addLog("error on json cfg: " + e.toString());
+          }
+          if (content.contains('\n') && decodedConfigs == []) {
             decodedConfigs = content
                 .split('\n')
                 .where((line) =>
                     line.trim().isNotEmpty && !(line.startsWith("//")))
                 .toList();
-          } else {
+          } else if (decodedConfigs == []) {
             try {
               decodedConfigs = decodedConfigs = utf8
                   .decode(base64Decode(content))
