@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
+import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vibe_core/flutter_v2ray.dart';
@@ -20,6 +21,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
   int? ping;
   String? country;
   Timer? _autoRefreshTimer;
+  String serverName = "FG Server";
   late AnimationController _refreshController;
 
   @override
@@ -39,10 +41,11 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
     super.dispose();
   }
 
-  void _startAutoRefresh() {
+  Future<void> _startAutoRefresh() async {
     _autoRefreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (!isPinging) _fetchPingAndCountry();
     });
+    await Future.delayed(Duration(seconds: 3));
     _fetchPingAndCountry();
   }
 
@@ -59,7 +62,10 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
             .get(Uri.parse('http://ip-api.com/json'))
             .timeout(const Duration(seconds: 5));
         final countryData = jsonDecode(countryResponse.body);
-
+        serverName = Uri.decodeFull(
+                (await Settings().getValue("config_backup")).split("#")[1] ??
+                    "FG Server")
+            .substring(0, 50);
         setState(() {
           ping = pingConnected >= 0 ? pingConnected : null;
           country = countryData['country'] ?? 'Unknown';
@@ -155,13 +161,27 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
                                   const Icon(Icons.circle,
                                       size: 10, color: Colors.greenAccent),
                                   const SizedBox(width: 6),
-                                  Text(
-                                    country ?? "Connecting...",
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        country ?? "Connecting...",
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      Text(
+                                        serverName,
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                   const Spacer(),
                                   _buildRefreshButton(),

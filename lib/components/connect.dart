@@ -180,8 +180,10 @@ class Connect extends Tools {
         String parsedJson = await addOptionsToVibe(jsonDecode(parser));
         if (!(args["type"] is String && args["type"] == "f_link")) {
           LogOverlay.addLog(parsedJson);
+          settings.setValue("config_backup", config);
+        } else {
+          settings.setValue("config_backup", "");
         }
-        settings.setValue("config_backup", config);
 
         flutterV2ray.startV2Ray(
           remark: "Freedom Guard",

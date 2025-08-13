@@ -4,7 +4,7 @@ import 'package:Freedom_Guard/components/services.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:quick_settings/quick_settings.dart';
 
-Future<bool> toggleQuick() async {
+toggleQuick() async {
   var selectedServer = "";
   if (((await Settings().getValue("config_backup")) != "") &&
       (selectedServer.split("#")[0].isEmpty ||
@@ -28,15 +28,15 @@ Future<bool> toggleQuick() async {
 }
 
 @pragma('vm:entry-point')
-Future<Tile> onTileClicked(Tile tile) async {
+Tile onTileClicked(Tile tile) {
   final oldStatus = tile.tileStatus;
-  final connStatus = await toggleQuick();
+  final connStatus = toggleQuick();
   if (oldStatus == TileStatus.active) {
     tile.label = "Guard OFF";
     tile.tileStatus = TileStatus.inactive;
     tile.subtitle = "Disconnected";
     tile.drawableName = "security_off";
-  } else if (connStatus) {
+  } else {
     tile.label = "Guard ON";
     tile.tileStatus = TileStatus.active;
     tile.subtitle = "Protected";
