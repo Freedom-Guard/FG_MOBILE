@@ -42,7 +42,6 @@ class Connect extends Tools {
   }
 
   // Add Fragment, Mux, ...
-
   Future<String> addOptionsToVibe(dynamic parsedJson) async {
     final settingsValues = await Future.wait([
       settings.getValue("mux"),
@@ -51,20 +50,19 @@ class Connect extends Tools {
       settings.getBool("child_lock_enabled"),
       settings.getValue("block_ads_trackers"),
       settings.getList("preferred_dns"),
+      settings.getValue("fakedns"),
     ]);
-
     String mux = settingsValues[0] as String;
     String fragment = settingsValues[1] as String;
     String bypassIran = settingsValues[2] as String;
     bool childLock = settingsValues[3] as bool;
     String blockTADS = settingsValues[4] as String;
     List dnsServers = settingsValues[5] as List;
-
+    String fakeDns = settingsValues[6] as String;
     if (parsedJson is Map<String, dynamic>) {
       parsedJson["outbounds"] ??= [];
       parsedJson["routing"] ??= {};
       parsedJson["routing"]["rules"] ??= [];
-
       parsedJson["outbounds"].add({
         "protocol": "blackhole",
         "tag": "blockedrule",
@@ -73,10 +71,11 @@ class Connect extends Tools {
         },
       });
 
+      parsedJson["dns"] ??= {};
+      parsedJson["dns"]["servers"] ??= [];
+
       if (dnsServers.isNotEmpty) {
-        if (dnsServers != []) {
-          parsedJson["dns"]["servers"] = dnsServers;
-        }
+        parsedJson["dns"]["servers"] = dnsServers;
       }
 
       if (bypassIran == "true") {
@@ -136,6 +135,21 @@ class Connect extends Tools {
                     fragJson;
               }
             }
+          }
+        } catch (e) {}
+      }
+
+      if (fakeDns.trim().isNotEmpty) {
+        try {
+          final fakeJson = json.decode(fakeDns);
+          if (fakeJson is Map && fakeJson["enabled"] == true) {
+            parsedJson["fakedns"] = [
+              {
+                "ipPool": fakeJson["ipPool"],
+                "poolSize": fakeJson["lruSize"],
+              }
+            ];
+            (parsedJson["dns"]["servers"] as List).insert(0, "fakedns");
           }
         } catch (e) {}
       }

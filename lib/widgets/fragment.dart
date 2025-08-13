@@ -22,9 +22,16 @@ class XraySettingsDialog {
       text: initialConfig['fragment']?['interval']?.toString() ?? '10-20',
     );
     bool muxEnabled = initialConfig['mux']?['enabled'] ?? false;
-    bool BypassIranEnabled = await settings.getValue("bypass_iran") == "true";
     TextEditingController concurrencyController = TextEditingController(
       text: initialConfig['mux']?['concurrency']?.toString() ?? '8',
+    );
+    bool bypassIranEnabled = await settings.getValue("bypass_iran") == "true";
+    bool fakeDnsEnabled = initialConfig['fakedns']?['enabled'] ?? false;
+    TextEditingController ipPoolController = TextEditingController(
+      text: initialConfig['fakedns']?['ipPool']?.toString() ?? '198.18.0.0/15',
+    );
+    TextEditingController poolSizeController = TextEditingController(
+      text: initialConfig['fakedns']?['lruSize']?.toString() ?? '65535',
     );
 
     showDialog(
@@ -70,7 +77,6 @@ class XraySettingsDialog {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
                       if (fragmentEnabled) ...[
                         _buildTextField(
                           controller: packetsController,
@@ -90,32 +96,7 @@ class XraySettingsDialog {
                           hint: 'e.g., 10-20',
                         ),
                       ],
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Bypass IRAN',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFE0E0E0),
-                            ),
-                          ),
-                          Switch(
-                            value: BypassIranEnabled,
-                            activeColor: Theme.of(context).colorScheme.primary,
-                            activeTrackColor: const Color(0xFF2A2A2A),
-                            inactiveThumbColor: Colors.grey[700],
-                            inactiveTrackColor: const Color(0xFF424242),
-                            onChanged: (value) {
-                              setState(() {
-                                BypassIranEnabled = value;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
+                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -141,14 +122,76 @@ class XraySettingsDialog {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
                       if (muxEnabled)
                         _buildTextField(
                           controller: concurrencyController,
                           label: 'Concurrency',
                           hint: 'e.g., 8',
                         ),
-                      const SizedBox(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'FakeDNS',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFE0E0E0),
+                            ),
+                          ),
+                          Switch(
+                            value: fakeDnsEnabled,
+                            activeColor: Theme.of(context).colorScheme.primary,
+                            activeTrackColor: const Color(0xFF2A2A2A),
+                            inactiveThumbColor: Colors.grey[700],
+                            inactiveTrackColor: const Color(0xFF424242),
+                            onChanged: (value) {
+                              setState(() {
+                                fakeDnsEnabled = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      if (fakeDnsEnabled) ...[
+                        _buildTextField(
+                          controller: ipPoolController,
+                          label: 'IP Pool',
+                          hint: 'e.g., 198.18.0.0/15',
+                        ),
+                        const SizedBox(height: 12),
+                        _buildTextField(
+                          controller: poolSizeController,
+                          label: 'Pool Size',
+                          hint: 'e.g., 65535',
+                        ),
+                      ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Bypass Iran',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFE0E0E0),
+                            ),
+                          ),
+                          Switch(
+                            value: bypassIranEnabled,
+                            activeColor: Theme.of(context).colorScheme.primary,
+                            activeTrackColor: const Color(0xFF2A2A2A),
+                            inactiveThumbColor: Colors.grey[700],
+                            inactiveTrackColor: const Color(0xFF424242),
+                            onChanged: (value) {
+                              setState(() {
+                                bypassIranEnabled = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -195,6 +238,16 @@ class XraySettingsDialog {
                                         ) ??
                                         8,
                                 },
+                                'fakedns': {
+                                  'enabled': fakeDnsEnabled,
+                                  if (fakeDnsEnabled) ...{
+                                    'ipPool': ipPoolController.text,
+                                    'lruSize': int.tryParse(
+                                          poolSizeController.text,
+                                        ) ??
+                                        65535,
+                                  },
+                                },
                               };
                               settings.setValue(
                                 'fragment',
@@ -205,8 +258,12 @@ class XraySettingsDialog {
                                 jsonEncode(newConfig['mux']),
                               );
                               settings.setValue(
+                                'fakedns',
+                                jsonEncode(newConfig['fakedns']),
+                              );
+                              settings.setValue(
                                 'bypass_iran',
-                                (BypassIranEnabled.toString()),
+                                bypassIranEnabled.toString(),
                               );
                               onConfigChanged(newConfig);
                               Navigator.pop(context);
@@ -279,12 +336,16 @@ Future<void> openXraySettings(BuildContext context) async {
       'interval': '10-20',
     },
     'mux': {'enabled': false, 'concurrency': 8},
+    'fakedns': {'enabled': false, 'ipPool': '198.18.0.0/15', 'lruSize': 65535},
   };
   if (await settings.getValue("fragment") != "") {
     initialConfig["fragment"] = jsonDecode(await settings.getValue("fragment"));
   }
   if (await settings.getValue("mux") != "") {
     initialConfig["mux"] = jsonDecode(await settings.getValue("mux"));
+  }
+  if (await settings.getValue("fakedns") != "") {
+    initialConfig["fakedns"] = jsonDecode(await settings.getValue("fakedns"));
   }
   XraySettingsDialog.show(
     context,
