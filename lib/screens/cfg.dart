@@ -108,23 +108,15 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
             throw Exception('Empty response from server');
           }
           List<String> decodedConfigs = [];
-          try {
-            var jsonData = jsonDecode(content);
-            if (jsonData is Map && jsonData.containsKey("MOBILE")) {
-              decodedConfigs = jsonData["MOBILE"];
-            }
-          } catch (e) {
-            LogOverlay.addLog("error on json cfg: " + e.toString());
-          }
-          if (content.contains('\n') && decodedConfigs == []) {
+          if (content.contains('\n')) {
             decodedConfigs = content
                 .split('\n')
                 .where((line) =>
                     line.trim().isNotEmpty && !(line.startsWith("//")))
                 .toList();
-          } else if (decodedConfigs == []) {
+          } else {
             try {
-              decodedConfigs = decodedConfigs = utf8
+              decodedConfigs = utf8
                   .decode(base64Decode(content))
                   .split('\n')
                   .where((line) =>
@@ -133,6 +125,14 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
             } catch (e) {
               decodedConfigs = [content];
             }
+          }
+          try {
+            var jsonData = jsonDecode(content);
+            if (jsonData is Map && jsonData.containsKey("MOBILE")) {
+              decodedConfigs = jsonData["MOBILE"];
+            }
+          } catch (e) {
+            LogOverlay.addLog("error on json cfg: " + e.toString());
           }
           if (decodedConfigs.isEmpty) {
             throw Exception('No valid configs found');
@@ -308,10 +308,23 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
     if (config.isEmpty) return 'Unknown';
     if (config.contains('#')) {
       final parts = config.split('#');
-      final decodedConfig = Uri.decodeFull(parts.length > 1
-          ? parts[1].trim()
-          : config.substring(0, config.length > 20 ? 20 : config.length));
-      final utf8Decoded = utf8.decode(decodedConfig.runes.toList());
+      var utf8Decoded;
+      try {
+        final decodedConfig = Uri.decodeFull(parts.length > 1
+            ? parts[1].trim()
+            : config.substring(0, config.length > 20 ? 20 : config.length));
+        utf8Decoded = utf8.decode(decodedConfig.runes.toList());
+      } catch (e) {
+        try {
+          utf8Decoded = Uri.decodeComponent(parts.length > 1
+              ? parts[1].trim()
+              : config.substring(0, config.length > 20 ? 20 : config.length));
+        } catch (e) {
+          utf8Decoded = parts.length > 1
+              ? parts[1].trim()
+              : config.substring(0, config.length > 20 ? 20 : config.length);
+        }
+      }
       return utf8Decoded;
     }
     return config.substring(0, config.length > 20 ? 20 : config.length);
