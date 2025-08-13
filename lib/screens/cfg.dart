@@ -306,28 +306,35 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
 
   String getConfigName(String config) {
     if (config.isEmpty) return 'Unknown';
-    if (config.contains('#')) {
+
+    String extractPart() {
       final parts = config.split('#');
-      var utf8Decoded;
+      return parts.length > 1
+          ? parts[1].trim()
+          : config.substring(0, config.length > 20 ? 20 : config.length);
+    }
+
+    String decode(String input) {
       try {
-        final decodedConfig = Uri.decodeFull(parts.length > 1
-            ? parts[1].trim()
-            : config.substring(0, config.length > 20 ? 20 : config.length));
-        utf8Decoded = utf8.decode(decodedConfig.runes.toList());
-      } catch (e) {
+        final decoded = Uri.decodeFull(input);
+        return utf8
+            .decode(decoded.runes.toList())
+            .substring(0, input.length > 20 ? 20 : input.length);
+      } catch (_) {
         try {
-          utf8Decoded = Uri.decodeComponent(parts.length > 1
-              ? parts[1].trim()
-              : config.substring(0, config.length > 20 ? 20 : config.length));
-        } catch (e) {
-          utf8Decoded = parts.length > 1
-              ? parts[1].trim()
-              : config.substring(0, config.length > 20 ? 20 : config.length);
+          return Uri.decodeComponent(input)
+              .substring(0, input.length > 20 ? 20 : input.length);
+        } catch (_) {
+          return input;
         }
       }
-      return utf8Decoded;
     }
-    return config.substring(0, config.length > 20 ? 20 : config.length);
+
+    if (config.contains('#')) {
+      return decode(extractPart());
+    }
+
+    return config.substring(0, config.length > 15 ? 15 : config.length);
   }
 
   @override
@@ -461,10 +468,10 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
                           padding: const EdgeInsets.all(16),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 1.3,
+                            crossAxisCount: 1,
+                            crossAxisSpacing: 0,
+                            mainAxisSpacing: 0,
+                            childAspectRatio: 5,
                           ),
                           itemCount: configs.length,
                           itemBuilder: (context, index) {
@@ -492,6 +499,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
                                 child: Stack(
                                   children: [
                                     Container(
+                                      alignment: Alignment.center,
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(16),
                                         gradient: isSelected
@@ -515,14 +523,16 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
                                         ],
                                       ),
                                       child: Padding(
-                                        padding: const EdgeInsets.all(12),
+                                        padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
                                         child: Column(
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                              CrossAxisAlignment.center,
                                           children: [
                                             Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
                                               children: [
                                                 Icon(
                                                   Icons.vpn_key,
@@ -534,24 +544,58 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
                                                   size: 24,
                                                 ),
                                                 const SizedBox(width: 8),
-                                                Expanded(
-                                                  child: Text(
-                                                    getConfigName(
-                                                        configs[index]),
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 16,
-                                                      color: isSelected
-                                                          ? theme.colorScheme
-                                                              .onPrimary
-                                                          : theme.colorScheme
-                                                              .onSurface,
-                                                    ),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                Text(
+                                                  getConfigName(configs[index]),
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                    color: isSelected
+                                                        ? theme.colorScheme
+                                                            .onPrimary
+                                                        : theme.colorScheme
+                                                            .onSurface,
                                                   ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
+                                                Spacer(flex: 1),
+                                                const SizedBox(width: 3),
+                                                if (!isSelected)
+                                                  Text(
+                                                    '${testResult?['ping'] != null ? '${testResult?['ping']}ms' : 'N/A'}',
+                                                    style: TextStyle(
+                                                      color:
+                                                          testResult?['success']
+                                                              ? Colors.green
+                                                              : Colors.red,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                const SizedBox(width: 3),
+                                                if (isTested &&
+                                                    testResult != null &&
+                                                    !isSelected)
+                                                  Icon(
+                                                    testResult['success']
+                                                        ? testResult["ping"] >
+                                                                500
+                                                            ? Icons
+                                                                .wifi_1_bar_sharp
+                                                            : testResult[
+                                                                        "ping"] >
+                                                                    150
+                                                                ? Icons
+                                                                    .wifi_2_bar
+                                                                : Icons.wifi
+                                                        : Icons.wifi_off,
+                                                    color: testResult['success']
+                                                        ? Colors.green
+                                                        : Colors.red,
+                                                    size: 20,
+                                                  ),
+                                                const SizedBox(width: 8),
                                                 if (isSelected)
                                                   Container(
                                                     padding: const EdgeInsets
@@ -578,33 +622,6 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
                                               ],
                                             ),
                                             const SizedBox(height: 12),
-                                            if (isTested && testResult != null)
-                                              Row(
-                                                children: [
-                                                  Icon(
-                                                    testResult['success']
-                                                        ? Icons.check_circle
-                                                        : Icons.error,
-                                                    color: testResult['success']
-                                                        ? Colors.green
-                                                        : Colors.red,
-                                                    size: 20,
-                                                  ),
-                                                  const SizedBox(width: 6),
-                                                  Text(
-                                                    'Ping: ${testResult['ping'] != null ? '${testResult['ping']} ms' : 'N/A'}',
-                                                    style: TextStyle(
-                                                      color:
-                                                          testResult['success']
-                                                              ? Colors.green
-                                                              : Colors.red,
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
                                           ],
                                         ),
                                       ),
