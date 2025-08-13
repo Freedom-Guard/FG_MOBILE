@@ -290,12 +290,15 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
 
   Future<void> selectConfig(String config) async {
     try {
-      await ServersM().saveServers([config] + (await ServersM().oldServers()));
+      var oldServers = await ServersM().oldServers();
+      if (!oldServers.contains(config)) {
+        await ServersM().saveServers([config] + oldServers);
+      }
       await ServersM().selectServer(config);
       setState(() {
         selectedConfig = config;
       });
-      LogOverlay.showLog('Selected: ${getConfigName(config)}');
+      LogOverlay.addLog('Selected: ${getConfigName(config)}');
     } catch (e) {
       LogOverlay.showLog('Failed to select config: $e');
     }
