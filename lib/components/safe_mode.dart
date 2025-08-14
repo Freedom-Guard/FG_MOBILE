@@ -10,7 +10,7 @@ class SafeMode {
   }
 
   Future<bool> checkXrayAndConfirm(String xrayConfigJson,
-      {int minSecurityScore = 40}) async {
+      {int minSecurityScore = 50}) async {
     final context = LogOverlay.navigatorKey.currentContext;
     if (context == null) return false;
 
