@@ -2,15 +2,15 @@ import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/services.dart';
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:flutter/material.dart';
 import 'package:quick_settings/quick_settings.dart';
 
 toggleQuick() async {
   try {
+    await WidgetsFlutterBinding.ensureInitialized();
+
     var selectedServer = (await Settings().getValue("config_backup"));
-    if (((await Settings().getValue("config_backup")) != "") &&
-        selectedServer.split("#")[0].isEmpty) {
-      LogOverlay.showToast("Conneting to QUICK mode...");
-    }
+    print(selectedServer);
     if (await checker.checkVPN()) {
       LogOverlay.showToast("Disconnecting...");
       await Connect().disConnect();
@@ -22,7 +22,7 @@ toggleQuick() async {
         return false;
       }
       LogOverlay.showToast("Connecting to QUICK mode... \n " + selectedServer);
-      await Connect().ConnectVibe(selectedServer, {});
+      await Connect().ConnectVibe(selectedServer, {}, typeDis: "quick");
       LogOverlay.showToast("Connected!");
     }
   } catch (e) {

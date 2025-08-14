@@ -169,7 +169,9 @@ class Connect extends Tools {
 
     try {
       String parser = "";
-      if (await flutterV2ray.requestPermission()) {
+      bool requestPermission =
+          typeDis != "quick" ? await flutterV2ray.requestPermission() : true;
+      if (requestPermission) {
         try {
           var parsedConfig = FlutterV2ray.parseFromURL(config);
           parser = parsedConfig != null
@@ -194,7 +196,8 @@ class Connect extends Tools {
         String parsedJson = await addOptionsToVibe(jsonDecode(parser));
         if (!(args["type"] is String && args["type"] == "f_link")) {
           LogOverlay.addLog(parsedJson);
-          settings.setValue("config_backup", config);
+          Settings().setValue("config_backup", config);
+          LogOverlay.addLog("saved config_backup to " + config);
         } else {
           settings.setValue("config_backup", "");
         }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:Freedom_Guard/services/config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -99,7 +100,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
     });
     int maxRetries = 3;
     int retryCount = 0;
-
+    subLink = subLink.replaceAll("freedom-guard://", "");
     while (retryCount < maxRetries) {
       try {
         final response = await http
@@ -308,33 +309,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
   }
 
   String getConfigName(String config) {
-    try {
-      if (config.trim().isEmpty) return 'Unnamed Server';
-      String safeDecode(String input) {
-        try {
-          return utf8.decode(Uri.decodeFull(input).runes.toList());
-        } catch (_) {
-          try {
-            return utf8.decode(Uri.decodeComponent(input).runes.toList());
-          } catch (_) {
-            return input;
-          }
-        }
-      }
-
-      String part;
-      if (config.contains('#')) {
-        final parts = config.split('#');
-        part = parts.isNotEmpty ? parts.last.trim() : '';
-      } else {
-        part = config.trim();
-      }
-
-      final decoded = safeDecode(part);
-      return decoded.isNotEmpty ? decoded : 'Unnamed Server';
-    } catch (_) {
-      return 'Unnamed Server';
-    }
+    return getNameByConfig(config);
   }
 
   @override

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:Freedom_Guard/services/config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vibe_core/flutter_v2ray.dart';
@@ -54,7 +55,8 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
     _refreshController.repeat();
     int attempts = 0;
     const maxAttempts = 2;
-
+    String serverNameTemp =
+        getNameByConfig(await Settings().getValue("config_backup"));
     while (attempts < maxAttempts) {
       try {
         var pingConnected = await connect.getConnectedDelay();
@@ -62,24 +64,24 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
             .get(Uri.parse('http://ip-api.com/json'))
             .timeout(const Duration(seconds: 5));
         final countryData = jsonDecode(countryResponse.body);
-        serverName = Uri.decodeFull(
-                (await Settings().getValue("config_backup")).split("#")[1] ??
-                    "FG Server")
-            .substring(0, 50);
+
         setState(() {
           ping = pingConnected >= 0 ? pingConnected : null;
           country = countryData['country'] ?? 'Unknown';
           isPinging = false;
+          serverName = serverNameTemp;
         });
         _refreshController.reset();
         return;
       } catch (_) {
         attempts++;
         if (attempts == maxAttempts) {
+          if (!mounted) return;
           setState(() {
             ping = null;
             country = 'Unknown';
             isPinging = false;
+            serverName = serverNameTemp;
           });
           _refreshController.reset();
         }

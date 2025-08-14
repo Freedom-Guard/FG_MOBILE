@@ -28,14 +28,14 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  await WidgetsFlutterBinding.ensureInitialized();
 
   QuickSettings.setup(
     onTileClicked: onTileClicked,
     onTileAdded: onTileAdded,
     onTileRemoved: onTileRemoved,
   );
-  
+
   await initTranslations();
   try {
     await Firebase.initializeApp();
