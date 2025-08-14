@@ -57,6 +57,8 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
     const maxAttempts = 2;
     String serverNameTemp =
         getNameByConfig(await Settings().getValue("config_backup"));
+    serverNameTemp =
+        serverNameTemp == "Unnamed Server" ? "FG Server (FL)" : serverNameTemp;
     while (attempts < maxAttempts) {
       try {
         var pingConnected = await connect.getConnectedDelay();
