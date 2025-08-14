@@ -51,6 +51,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
   }
 
   Future<void> _fetchPingAndCountry() async {
+    if (!mounted) return;
     setState(() => isPinging = true);
     _refreshController.repeat();
     int attempts = 0;

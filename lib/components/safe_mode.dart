@@ -10,7 +10,7 @@ class SafeMode {
   }
 
   Future<bool> checkXrayAndConfirm(String xrayConfigJson,
-      {int minSecurityScore = 50}) async {
+      {int minSecurityScore = 40}) async {
     final context = LogOverlay.navigatorKey.currentContext;
     if (context == null) return false;
 
@@ -134,61 +134,71 @@ class SafeMode {
 
       if (securityScore < minSecurityScore) {
         bool userConfirmed = await showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: Row(
-              children: [
-                Icon(Icons.shield, color: Colors.redAccent),
-                SizedBox(width: 8),
-                Text('امنیت پایین',
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface)),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'سطح امنیت این کانفیگ $securityScore% است. جزئیات:',
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant),
-                ),
-                SizedBox(height: 8),
-                ...issues.map((issue) => Row(
+            context: context,
+            builder: (ctx) => Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: AlertDialog(
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    title: Row(
                       children: [
-                        Icon(Icons.warning, size: 16, color: Colors.orange),
-                        SizedBox(width: 6),
-                        Expanded(
-                            child: Text(issue,
-                                style: TextStyle(color: Colors.orangeAccent))),
+                        Icon(Icons.shield, color: Colors.redAccent),
+                        SizedBox(width: 8),
+                        Text('امنیت پایین',
+                            style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.onSurface)),
                       ],
-                    )),
-                SizedBox(height: 12),
-                Text('آیا می‌خواهید ادامه دهید؟',
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface)),
-              ],
-            ),
-            actions: [
-              TextButton(
-                style: TextButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.primary),
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: Text('لغو'),
-              ),
-              TextButton(
-                style: TextButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.primary),
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: Text('ادامه'),
-              ),
-            ],
-          ),
-        );
+                    ),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'سطح امنیت این کانفیگ $securityScore% است. جزئیات:',
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant),
+                        ),
+                        SizedBox(height: 8),
+                        ...issues.map((issue) => Row(
+                              children: [
+                                Icon(Icons.warning,
+                                    size: 16, color: Colors.orange),
+                                SizedBox(width: 6),
+                                Expanded(
+                                    child: Text(issue,
+                                        style: TextStyle(
+                                            color: Colors.orangeAccent))),
+                              ],
+                            )),
+                        SizedBox(height: 12),
+                        Text('آیا می‌خواهید ادامه دهید؟',
+                            style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.onSurface)),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        style: TextButton.styleFrom(
+                            foregroundColor:
+                                Theme.of(context).colorScheme.primary),
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        child: Text('لغو'),
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                            foregroundColor:
+                                Theme.of(context).colorScheme.primary),
+                        onPressed: () => Navigator.of(ctx).pop(true),
+                        child: Text('ادامه'),
+                      ),
+                    ],
+                  ),
+                ));
         return userConfirmed ?? false;
       }
       LogOverlay.showToast(
