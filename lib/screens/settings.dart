@@ -30,6 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
     settingsJson["bypass_lan"] = await settings.getValue("bypass_lan");
     settingsJson["guard_mode"] = await settings.getValue("guard_mode");
     settingsJson["proxy_mode"] = await settings.getBool("proxy_mode");
+    settingsJson["safe_mode"] = await settings.getBool("safe_mode");
     if (mounted) setState(() {});
   }
 
@@ -162,6 +163,19 @@ class _SettingsPageState extends State<SettingsPage> {
                         }
                       },
                       icon: Icons.block,
+                    ),
+                    SettingSwitch(
+                      title: tr("safe-mode"),
+                      value: settingsJson["safe_mode"] ?? false,
+                      onChanged: (bool value) {
+                        if (mounted) {
+                          setState(() {
+                            settingsJson["safe_mode"] = value;
+                          });
+                          settings.setBool("safe_mode", value);
+                        }
+                      },
+                      icon: Icons.lock,
                     ),
                     SettingSwitch(
                       title: tr("proxy-mode"),
@@ -375,7 +389,7 @@ class SettingSelector extends StatefulWidget {
 }
 
 class _SettingSelectorState extends State<SettingSelector> {
-  late String _selectedValue;
+  String _selectedValue = "";
 
   @override
   void initState() {

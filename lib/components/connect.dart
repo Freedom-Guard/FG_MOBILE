@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/components/safe_mode.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,6 +40,10 @@ class Connect extends Tools {
     } catch (_) {
       LogOverlay.addLog("Failed to disconnect");
     }
+  }
+
+  getJson(config) {
+    return FlutterV2ray.parseFromURL(config);
   }
 
   // Add Fragment, Mux, ...
@@ -194,6 +199,13 @@ class Connect extends Tools {
           LogOverlay.addLog('Ping connecting $ping ms');
         }
         String parsedJson = await addOptionsToVibe(jsonDecode(parser));
+        if ((await settings.getBool("safe_mode")) == true) {
+          final safeStat = await SafeMode().checkXrayAndConfirm(parsedJson);
+          LogOverlay.addLog("safe mode: " + safeStat.toString());
+          if (!safeStat) {
+            return false;
+          }
+        }
         if (!(args["type"] is String && args["type"] == "f_link")) {
           LogOverlay.addLog(parsedJson);
           Settings().setValue("config_backup", config);
