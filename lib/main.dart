@@ -17,7 +17,6 @@ import 'package:Freedom_Guard/screens/settings.dart';
 import 'package:Freedom_Guard/ui/animations/connect.dart';
 import 'package:Freedom_Guard/widgets/fragment.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:quick_settings/quick_settings.dart';
 import 'components/LOGLOG.dart';

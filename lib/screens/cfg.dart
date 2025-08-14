@@ -27,6 +27,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
   final Map<String, bool> _configLoading = {};
 
   @override
+  @override
   void initState() {
     super.initState();
     _fadeController = AnimationController(
@@ -38,8 +39,11 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
       curve: Curves.easeInOut,
     );
     _fadeController.forward();
-    loadSubLinks();
-    loadSelectedSubLink();
+
+    Future.microtask(() async {
+      await loadSubLinks();
+      await loadSelectedSubLink();
+    });
   }
 
   @override
@@ -309,7 +313,16 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
   }
 
   String getConfigName(String config) {
-    return getNameByConfig(config);
+    try {
+      String name = getNameByConfig(config);
+      if (name.length > 20) {
+        name = name.substring(0, 20);
+      }
+      return name;
+    } catch (e) {
+      LogOverlay.addLog("Error getting config name: $e");
+      return 'Unnamed Config';
+    }
   }
 
   @override
@@ -540,10 +553,13 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
                                                   Text(
                                                     '${testResult?['ping'] != null ? '${testResult?['ping']}ms' : 'N/A'}',
                                                     style: TextStyle(
-                                                      color:
-                                                          testResult?['success']
-                                                              ? Colors.green
-                                                              : Colors.red,
+                                                      color: (testResult !=
+                                                                  null &&
+                                                              (testResult[
+                                                                      'success'] ??
+                                                                  false))
+                                                          ? Colors.green
+                                                          : Colors.red,
                                                       fontSize: 14,
                                                       fontWeight:
                                                           FontWeight.w500,
