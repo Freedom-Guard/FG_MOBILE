@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'dart:io';
+import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/servers.dart';
@@ -10,6 +11,7 @@ import 'package:Freedom_Guard/screens/settings.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:Freedom_Guard/widgets/encrypt.dart';
 import 'package:Freedom_Guard/widgets/nav.dart';
+import 'package:Freedom_Guard/widgets/qr_code.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +19,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
-import 'package:qr_flutter/qr_flutter.dart';
 
 class ServersPage extends StatefulWidget {
   @override
@@ -466,9 +467,9 @@ class _ServersPageState extends State<ServersPage> {
           _addServer(server);
         }
       }
-      _showSnackBar('File imported successfully.');
+      LogOverlay.showLog('File imported successfully.');
     } catch (_) {
-      _showSnackBar('Error importing file.');
+      LogOverlay.showLog('Error importing file.');
     }
   }
 
@@ -477,7 +478,7 @@ class _ServersPageState extends State<ServersPage> {
       final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
       final text = clipboardData?.text?.trim();
       if (text == null || text.isEmpty) {
-        _showSnackBar('Clipboard is empty.');
+        LogOverlay.showLog('Clipboard is empty.');
         return;
       }
 
@@ -494,7 +495,7 @@ class _ServersPageState extends State<ServersPage> {
         }
       }
     } catch (_) {
-      _showSnackBar('Error reading clipboard.');
+      LogOverlay.showLog('Error reading clipboard.');
     }
   }
 
@@ -549,57 +550,6 @@ class _ServersPageState extends State<ServersPage> {
             child: Text(
               tr('delete'),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showQRCode(String text) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor:
-            Theme.of(context).colorScheme.surface.withOpacity(0.05),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 15,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: SizedBox(
-                width: 250,
-                height: 250,
-                child: Center(
-                  child: QrImageView(
-                    data: text,
-                    version: QrVersions.auto,
-                    size: 200,
-                    backgroundColor: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Close',
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
             ),
           ),
         ],
@@ -755,7 +705,7 @@ class _ServersPageState extends State<ServersPage> {
                       ),
                       onTap: () {
                         Navigator.pop(context);
-                        _showQRCode(server);
+                        showQRCode(context, server);
                       },
                     ),
                     ListTile(
@@ -788,22 +738,6 @@ class _ServersPageState extends State<ServersPage> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-        ),
-        backgroundColor:
-            Theme.of(context).colorScheme.surface.withOpacity(0.05),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
     );
   }
