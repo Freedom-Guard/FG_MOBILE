@@ -18,18 +18,34 @@ class SafeMode {
       final Map<String, dynamic> config = jsonDecode(xrayConfigJson);
       int securityScore = 100;
       List<String> issues = [];
+      
+      final Map<String, dynamic> outbound =
+    ((config['outbounds'] is List && config['outbounds'].isNotEmpty)
+        ? config['outbounds'][0]
+        : config) as Map<String, dynamic>;
 
-      final String protocol = config['protocol']?.toLowerCase() ?? '';
+      final String protocol = (outbound['protocol'] ?? '')
+    .toString()
+    .toLowerCase();
+      
       final Map<String, dynamic> streamSettings =
-          config['streamSettings'] ?? {};
+    (outbound['streamSettings'] ?? {}) as Map<String, dynamic>;
+
       final String transportSecurity =
-          streamSettings['security']?.toLowerCase() ?? 'none';
+    (streamSettings['security'] ?? 'none')
+        .toString()
+        .toLowerCase();
+
       final Map<String, dynamic> tlsSettings =
-          streamSettings['tlsSettings'] ?? {};
-      final bool allowInsecure = tlsSettings['allowInsecure'] ?? false;
+    (streamSettings['tlsSettings'] ?? {}) as Map<String, dynamic>;
+      final bool allowInsecure =
+    (tlsSettings['allowInsecure'] ?? false) as bool;
+
       final Map<String, dynamic> realitySettings =
-          streamSettings['realitySettings'] ?? {};
-      final Map<String, dynamic> settings = config['settings'] ?? {};
+    (streamSettings['realitySettings'] ?? {}) as Map<String, dynamic>;
+
+      final Map<String, dynamic> settings =
+    (outbound['settings'] ?? {}) as Map<String, dynamic>;
 
       if (transportSecurity != 'tls' && transportSecurity != 'reality') {
         securityScore -= 30;
