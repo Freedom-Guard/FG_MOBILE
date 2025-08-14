@@ -669,8 +669,8 @@ class _ServersPageState extends State<ServersPage> {
                     if (server.startsWith("freedom-guard://") ||
                         server.startsWith("http"))
                       ListTile(
-                        leading:
-                            Icon(Icons.share, color: theme.colorScheme.primary),
+                        leading: Icon(Icons.rocket_launch,
+                            color: theme.colorScheme.primary),
                         title: Text(
                           tr('CFG (View Configs)'),
                           style: TextStyle(color: theme.colorScheme.onSurface),
