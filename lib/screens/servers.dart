@@ -5,6 +5,7 @@ import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:Freedom_Guard/screens/cfg.dart';
 import 'package:Freedom_Guard/screens/settings.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:Freedom_Guard/widgets/encrypt.dart';
@@ -147,7 +148,7 @@ class _ServersPageState extends State<ServersPage> {
     await prefs.setStringList('servers', servers);
     _applyFiltersAndSort();
   }
-  
+
   void _addServer(String serverName) {
     if (serverName.isNotEmpty && !servers.contains(serverName)) {
       setState(() {
@@ -715,6 +716,24 @@ class _ServersPageState extends State<ServersPage> {
                         _editServer(server);
                       },
                     ),
+                    if (server.startsWith("freedom-guard://") ||
+                        server.startsWith("http"))
+                      ListTile(
+                        leading:
+                            Icon(Icons.share, color: theme.colorScheme.primary),
+                        title: Text(
+                          tr('CFG (View Configs)'),
+                          style: TextStyle(color: theme.colorScheme.onSurface),
+                        ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          settings.setValue("selectedSubLink", server);
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => CFGPage()));
+                        },
+                      ),
                     ListTile(
                       leading:
                           Icon(Icons.share, color: theme.colorScheme.primary),
