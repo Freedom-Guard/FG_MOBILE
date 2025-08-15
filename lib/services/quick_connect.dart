@@ -9,7 +9,7 @@ toggleQuick() async {
   try {
     await WidgetsFlutterBinding.ensureInitialized();
 
-    var selectedServer = (await Settings().getValue("config_backup"));
+    var selectedServer = (await SettingsApp().getValue("config_backup"));
     print(selectedServer);
     if (await checker.checkVPN()) {
       LogOverlay.showToast("Disconnecting...");

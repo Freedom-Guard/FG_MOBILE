@@ -14,7 +14,7 @@ class _SplitPageState extends State<SplitPage> {
   List<AppInfo> installedApps = [];
   List<String> selectedApps = [];
   bool showSystemApps = false;
-  Settings settings = Settings();
+  SettingsApp settings = SettingsApp();
   bool isSettingsLoading = true;
   bool isLoading = true;
   bool checkedAll = false;

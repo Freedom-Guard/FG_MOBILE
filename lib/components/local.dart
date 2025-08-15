@@ -1,6 +1,6 @@
 import 'package:Freedom_Guard/components/settings.dart';
 
-final Settings _settings = Settings();
+final SettingsApp _settings = SettingsApp();
 Map<String, String> _translate = AllTr_en;
 String _dir = 'ltr';
 String tr(String key) {

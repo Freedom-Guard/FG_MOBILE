@@ -303,16 +303,15 @@ class ThemeNotifier extends ChangeNotifier {
   };
 
   static Future<ThemeNotifier> init() async {
-    final themeName = await Settings().getValue("theme");
+    final themeName = await SettingsApp().getValue("theme");
     final themeData = _themes[themeName] ?? defaultDarkTheme;
     return ThemeNotifier(themeData, themeName);
   }
 
-
   Future<void> setTheme(ThemeData theme, String name) async {
     _currentTheme = theme;
     _currentThemeName = name;
-    await Settings().setValue('theme', name);
+    await SettingsApp().setValue('theme', name);
     notifyListeners();
   }
 
@@ -340,5 +339,4 @@ class ThemeNotifier extends ChangeNotifier {
         return null;
     }
   }
-
 }

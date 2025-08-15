@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ServersM extends ChangeNotifier {
   String? selectedServer;
-  Settings settings = new Settings();
+  SettingsApp settings = new SettingsApp();
   ServersM() {
     _loadSelectedServer();
     loadServers();

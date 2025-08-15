@@ -55,7 +55,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: themeNotifier),
         ChangeNotifierProvider(create: (context) => ServersM()),
-        Provider(create: (context) => Settings()),
+        Provider(create: (context) => SettingsApp()),
       ],
       child: Consumer<ThemeNotifier>(
         builder: (context, themeNotifier, _) {
@@ -177,7 +177,7 @@ class _HomePageState extends State<HomePage>
 
   Future<void> toggleConnection() async {
     final serverM = Provider.of<ServersM>(context, listen: false);
-    final settings = Provider.of<Settings>(context, listen: false);
+    final settings = Provider.of<SettingsApp>(context, listen: false);
     if (isConnecting) {
       await connect.disConnect();
       setState(() {

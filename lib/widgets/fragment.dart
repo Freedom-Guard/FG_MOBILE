@@ -10,7 +10,7 @@ class XraySettingsDialog {
     required Map<String, dynamic> initialConfig,
     required Function(Map<String, dynamic>) onConfigChanged,
   }) async {
-    Settings settings = Settings();
+    SettingsApp settings = SettingsApp();
     bool fragmentEnabled = initialConfig['fragment']?['enabled'] ?? true;
     TextEditingController packetsController = TextEditingController(
       text: initialConfig['fragment']?['packets']?.toString() ?? '1-3',
@@ -327,7 +327,7 @@ class XraySettingsDialog {
 }
 
 Future<void> openXraySettings(BuildContext context) async {
-  Settings settings = Settings();
+  SettingsApp settings = SettingsApp();
   Map<String, dynamic> initialConfig = {
     'fragment': {
       'enabled': true,

@@ -19,7 +19,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _isSettingEnabled = false;
   bool isLoading = false;
-  Settings settings = Settings();
+  SettingsApp settings = SettingsApp();
   Map settingsJson = {};
 
   _initSettingJson() async {

@@ -1,5 +1,6 @@
 import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/global.dart';
+import 'package:Freedom_Guard/components/settings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
@@ -84,6 +85,7 @@ Future<String> getUserISP() async {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      SettingsApp().setValue("isp", data['org'] ?? "Unknown ISP");
       return data['org'] ?? "Unknown ISP";
     }
   } catch (e) {
@@ -404,7 +406,8 @@ Future<bool> connectFL() async {
       final docId = config['id'];
       final success = await tryConnect(configStr, docId, message, telegramLink);
       if (success) {
-        await addISPToConfig(docId, await getUserISP());
+        final isp = await SettingsApp().getValue("isp");
+        await addISPToConfig(docId, (isp == "" ? await getUserISP() : isp));
         return true;
       }
     }

@@ -208,7 +208,7 @@ class Connect extends Tools {
         }
         if (!(args["type"] is String && args["type"] == "f_link")) {
           LogOverlay.addLog(parsedJson);
-          Settings().setValue("config_backup", config);
+          SettingsApp().setValue("config_backup", config);
           LogOverlay.addLog("saved config_backup to " + config);
         } else {
           settings.setValue("config_backup", "");
@@ -479,7 +479,7 @@ class Connect extends Tools {
 class Tools {
   bool _isConnected = false;
   bool get isConnected => _isConnected;
-  Settings settings = new Settings();
+  SettingsApp settings = new SettingsApp();
   late final FlutterV2ray flutterV2ray;
 
   Tools() {

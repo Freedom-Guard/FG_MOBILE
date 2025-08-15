@@ -20,7 +20,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
   List<Map<String, dynamic>> testedConfigs = [];
   bool isLoading = false;
   bool isTesting = false;
-  Settings settings = Settings();
+  SettingsApp settings = SettingsApp();
   ServersM serversM = new ServersM();
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;

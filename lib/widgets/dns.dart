@@ -148,7 +148,7 @@ class _DnsSelectionDialogState extends State<DnsSelectionDialog> {
   }
 
   Future<List<DnsInfo>> _loadCustomDnsList() async {
-    final jsonString = await Settings().getString('custom_dns_list');
+    final jsonString = await SettingsApp().getString('custom_dns_list');
     if (jsonString != null && jsonString.isNotEmpty) {
       try {
         final List<dynamic> decodedList = jsonDecode(jsonString);
@@ -163,11 +163,11 @@ class _DnsSelectionDialogState extends State<DnsSelectionDialog> {
   Future<void> _saveCustomDnsList(List<DnsInfo> customDns) async {
     final List<Map<String, dynamic>> jsonList =
         customDns.map((dns) => dns.toJson()).toList();
-    await Settings().setString('custom_dns_list', jsonEncode(jsonList));
+    await SettingsApp().setString('custom_dns_list', jsonEncode(jsonList));
   }
 
   Future<void> _loadCurrentDnsSelection() async {
-    final dnsList = await Settings().getList('preferred_dns');
+    final dnsList = await SettingsApp().getList('preferred_dns');
     if (dnsList != null && dnsList.isNotEmpty && mounted) {
       setState(() {
         _selectedDnsAddresses = dnsList.cast<String>();
@@ -196,7 +196,7 @@ class _DnsSelectionDialogState extends State<DnsSelectionDialog> {
 
   Future<void> _saveSelection() async {
     if (_selectedDnsAddresses != null) {
-      await Settings().setList('preferred_dns', _selectedDnsAddresses!);
+      await SettingsApp().setList('preferred_dns', _selectedDnsAddresses!);
       if (mounted) {
         LogOverlay.showLog('DNS جدید با موفقیت ذخیره شد.');
         Navigator.of(context).pop();
@@ -208,7 +208,7 @@ class _DnsSelectionDialogState extends State<DnsSelectionDialog> {
 
   Future<void> _clearSelection(
       {bool showLog = true, bool popContext = true}) async {
-    await Settings().setList('preferred_dns', []);
+    await SettingsApp().setList('preferred_dns', []);
     if (mounted) {
       setState(() => _selectedDnsAddresses = null);
       if (popContext) {

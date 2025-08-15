@@ -30,7 +30,7 @@ class _ServersPageState extends State<ServersPage> {
   List<String> servers = [];
   List<String> filteredServers = [];
   late ServersM serversManage;
-  late Settings settings;
+  late SettingsApp settings;
   final TextEditingController serverController = TextEditingController();
   final TextEditingController searchController = TextEditingController();
   final Map<String, int?> serverPingTimes = {};
@@ -40,7 +40,7 @@ class _ServersPageState extends State<ServersPage> {
   @override
   void initState() {
     super.initState();
-    settings = Settings();
+    settings = SettingsApp();
     serversManage = Provider.of<ServersM>(context, listen: false);
     searchController.addListener(_applyFiltersAndSort);
     Future.microtask(_loadServersAndInit);

@@ -57,7 +57,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
     int attempts = 0;
     const maxAttempts = 2;
     String serverNameTemp =
-        getNameByConfig(await Settings().getValue("config_backup"));
+        getNameByConfig(await SettingsApp().getValue("config_backup"));
     serverNameTemp =
         serverNameTemp == "Unnamed Server" ? "FG Server (FL)" : serverNameTemp;
     while (attempts < maxAttempts) {

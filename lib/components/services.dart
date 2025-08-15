@@ -19,7 +19,7 @@ class BackgroundService {
 }
 
 class checker {
-  static Settings settings = new Settings();
+  static SettingsApp settings = new SettingsApp();
 
   static checkVPN() async {
     initSettings();
