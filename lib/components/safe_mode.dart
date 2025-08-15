@@ -10,60 +10,58 @@ class SafeMode {
   }
 
   Future<bool> checkXrayAndConfirm(String xrayConfigJson,
-      {int minSecurityScore = 50}) async {
+      {int minSecurityScore = 70}) async {
     final context = LogOverlay.navigatorKey.currentContext;
-    if (context == null) return false;
+    if (context == null) {
+      print("context unavailable");
+      return false;
+    }
 
     try {
       final Map<String, dynamic> config = jsonDecode(xrayConfigJson);
       int securityScore = 100;
       List<String> issues = [];
-      
-      final Map<String, dynamic> outbound =
-    ((config['outbounds'] is List && config['outbounds'].isNotEmpty)
-        ? config['outbounds'][0]
-        : config) as Map<String, dynamic>;
 
-      final String protocol = (outbound['protocol'] ?? '')
-    .toString()
-    .toLowerCase();
-      
-      final Map<String, dynamic> streamSettings =
-    (outbound['streamSettings'] ?? {}) as Map<String, dynamic>;
+      final Map<String, dynamic> outbound =
+          ((config['outbounds'] is List && config['outbounds'].isNotEmpty)
+              ? config['outbounds'][0]
+              : config) as Map<String, dynamic>;
+
+      final String protocol =
+          (outbound['protocol'] ?? '').toString().toLowerCase();
+
+      final Map streamSettings = (outbound['streamSettings'] ?? {}) as Map;
 
       final String transportSecurity =
-    (streamSettings['security'] ?? 'none')
-        .toString()
-        .toLowerCase();
+          (streamSettings['security'] ?? 'none').toString().toLowerCase();
 
-      final Map<String, dynamic> tlsSettings =
-    (streamSettings['tlsSettings'] ?? {}) as Map<String, dynamic>;
+      final Map tlsSettings = (streamSettings['tlsSettings'] ?? {}) as Map;
       final bool allowInsecure =
-    (tlsSettings['allowInsecure'] ?? false) as bool;
+          (tlsSettings['allowInsecure'] ?? false) as bool;
 
-      final Map<String, dynamic> realitySettings =
-    (streamSettings['realitySettings'] ?? {}) as Map<String, dynamic>;
+      final Map realitySettings =
+          (streamSettings['realitySettings'] ?? {}) as Map;
 
-      final Map<String, dynamic> settings =
-    (outbound['settings'] ?? {}) as Map<String, dynamic>;
+      final Map settings = (outbound['settings'] ?? {}) as Map;
 
       if (transportSecurity != 'tls' && transportSecurity != 'reality') {
-        securityScore -= 30;
-        issues.add('امنیت حمل و نقل ضعیف است (TLS یا Reality توصیه می‌شود)');
+        securityScore -= 50;
+        issues.add('امنیت حمل و نقل ضعیف است (TLS یا Reality الزامی است)');
       } else if (transportSecurity == 'tls') {
         if (allowInsecure) {
-          securityScore -= 25;
-          issues.add('اجازه اتصال ناامن فعال است');
+          securityScore -= 40;
+          issues.add(
+              'ویژگی allowInsecure فعال است که اجازه اتصال ناامن به سرور را می‌دهد و ممکن است دسترسی غیرمجاز به داده‌ها را ممکن سازد.');
         }
         if (tlsSettings['serverName'] == null ||
             tlsSettings['serverName'].isEmpty) {
-          securityScore -= 15;
+          securityScore -= 20;
           issues.add('نام سرور (SNI) مشخص نشده است');
         }
       } else if (transportSecurity == 'reality') {
         if (realitySettings['serverName'] == null ||
             realitySettings['serverName'].isEmpty) {
-          securityScore -= 10;
+          securityScore -= 15;
           issues.add('نام سرور برای Reality مشخص نشده است');
         }
       }
@@ -76,25 +74,25 @@ class SafeMode {
             final String userSecurity =
                 users[0]['security']?.toLowerCase() ?? 'auto';
             if (userSecurity == 'none') {
-              securityScore -= 20;
-              issues.add('رمزنگاری VMess غیرفعال است');
+              securityScore -= 40;
+              issues.add('رمزنگاری VMess غیرفعال است و سرور می‌تواند بخواند');
             } else if (userSecurity == 'aes-128-gcm' ||
                 userSecurity == 'chacha20-poly1305') {
             } else {
-              securityScore -= 10;
-              issues.add('رمزنگاری VMess متوسط است');
+              securityScore -= 20;
+              issues.add('رمزنگاری VMess متوسط است و ممکن است ضعیف باشد');
             }
           }
         }
       } else if (protocol == 'vless') {
         if (transportSecurity == 'none') {
-          securityScore -= 20;
-          issues.add('VLESS بدون امنیت حمل و نقل ناامن است');
+          securityScore -= 40;
+          issues.add('VLESS بدون امنیت حمل و نقل اجازه دسترسی سرور می‌دهد');
         }
       } else if (protocol == 'trojan') {
         if (transportSecurity != 'tls') {
-          securityScore -= 25;
-          issues.add('Trojan بدون TLS ناامن است');
+          securityScore -= 45;
+          issues.add('Trojan بدون TLS اجازه خواندن اطلاعات توسط سرور می‌دهد');
         }
       } else if (protocol == 'shadowsocks') {
         final List<dynamic> servers = settings['servers'] ?? [];
@@ -107,42 +105,43 @@ class SafeMode {
           ];
           List<String> weakMethods = ['aes-256-cfb', 'aes-128-cfb', 'rc4-md5'];
           if (weakMethods.contains(method)) {
-            securityScore -= 20;
-            issues.add('روش رمزنگاری Shadowsocks ضعیف است');
+            securityScore -= 35;
+            issues.add(
+                'روش رمزنگاری Shadowsocks ضعیف است و سرور می‌تواند بخواند');
           } else if (!strongMethods.contains(method)) {
-            securityScore -= 10;
+            securityScore -= 20;
             issues.add('روش رمزنگاری Shadowsocks متوسط است');
           }
         }
       } else {
-        securityScore -= 15;
-        issues.add('پروتکل ناشناخته یا پشتیبانی‌نشده');
+        securityScore -= 30;
+        issues.add('پروتکل ناشناخته یا پشتیبانی‌نشده ممکن است ناامن باشد');
       }
 
       final String network = streamSettings['network']?.toLowerCase() ?? 'tcp';
       if (network == 'tcp' && transportSecurity == 'none') {
-        securityScore -= 15;
-        issues.add('شبکه TCP بدون امنیت ناامن است');
+        securityScore -= 25;
+        issues.add('شبکه TCP بدون امنیت اجازه دسترسی سرور می‌دهد');
       }
 
       if (config.containsKey('certificateValid') &&
           !config['certificateValid']) {
-        securityScore -= 20;
-        issues.add('گواهی SSL معتبر نیست');
+        securityScore -= 30;
+        issues.add('گواهی SSL معتبر نیست و امنیت را کاهش می‌دهد');
       }
       if (config.containsKey('certificateExpiry')) {
         DateTime expiry = DateTime.parse(config['certificateExpiry']);
         if (expiry.isBefore(DateTime.now().add(Duration(days: 30)))) {
-          securityScore -= 15;
-          issues.add('گواهی به زودی منقضی می‌شود');
+          securityScore -= 20;
+          issues.add('گواهی به زودی منقضی می‌شود و ممکن است ناامن شود');
         }
       }
 
       Map<String, bool> headers = config['securityHeaders'] ?? {};
       headers.forEach((key, value) {
         if (!value) {
-          securityScore -= 5;
-          issues.add('Header امنیتی $key وجود ندارد');
+          securityScore -= 10;
+          issues.add('Header امنیتی $key وجود ندارد و امنیت را کاهش می‌دهد');
         }
       });
 
@@ -219,9 +218,10 @@ class SafeMode {
       }
       LogOverlay.showToast(
           "🔒 Configuration secured! Security Score: $securityScore%");
-
+      LogOverlay.addLog(issues.toString());
       return true;
     } catch (e) {
+      LogOverlay.addLog("error safe mode:" + e.toString());
       return false;
     }
   }
