@@ -273,7 +273,7 @@ class Connect extends Tools {
             LogOverlay.addLog(
                 "Base64 decode failed, using raw text, Attempt: $attempt");
           }
-          configs = type == "sub"
+          configs = type == "sub" || type == "f_link"
               ? decoded.split('\n')
               : jsonDecode(decoded)["MOBILE"];
           break;

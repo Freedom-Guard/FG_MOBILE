@@ -3,6 +3,7 @@ import 'package:Freedom_Guard/components/global.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:Freedom_Guard/components/fsecure.dart';
@@ -73,6 +74,22 @@ bool isValidTelegramLink(String input) {
   } else {
     return false;
   }
+}
+
+Future<String> getUserISP() async {
+  try {
+    final response = await http
+        .get(Uri.parse("http://ip-api.com/json/"))
+        .timeout(Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['org'] ?? "Unknown ISP";
+    }
+  } catch (e) {
+    print("Error getting ISP: $e");
+  }
+  return "Unknown ISP";
 }
 
 Future<bool> donateCONFIG(String config,
@@ -162,14 +179,16 @@ Future<bool> donateCONFIG(String config,
   }
 }
 
-Future<List> getRandomConfigs() async {
+Future<List> getConfigsByISP() async {
   try {
+    final userISP = await getUserISP();
     final deviceID = await getDeviceId();
     final ipId = 'ip-$deviceID';
     final statsRef =
         FirebaseFirestore.instance.collection('usageStats').doc(ipId);
     final statsSnap = await statsRef.get();
     final today = DateTime.now().toIso8601String().substring(0, 10);
+
     if (!statsSnap.exists || statsSnap.data()?['lastUpdate'] != today) {
       await statsRef
           .set({'createdToday': 0, 'listedToday': 1, 'lastUpdate': today});
@@ -182,25 +201,33 @@ Future<List> getRandomConfigs() async {
       await statsRef.update({'listedToday': FieldValue.increment(1)});
     }
 
-    final snapshot = await FirebaseFirestore.instance
+    var query = FirebaseFirestore.instance
         .collection('configs')
         .where('isActive', isEqualTo: true)
+        .where('ispList', arrayContains: userISP)
         .orderBy('connected', descending: true)
         .orderBy('addedAt', descending: true)
-        .limit(15)
-        .get()
-        .timeout(Duration(seconds: 10), onTimeout: () {
-      LogOverlay.showLog("Server FG timeout", type: "error");
-      throw "timeout fb online";
-    });
+        .limit(15);
 
-    await saveConfigs(
-        snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList());
-    List listConfigs =
+    var snapshot = await query.get();
+
+    if (snapshot.docs.isEmpty) {
+      snapshot = await FirebaseFirestore.instance
+          .collection('configs')
+          .where('isActive', isEqualTo: true)
+          .orderBy('connected', descending: true)
+          .orderBy('addedAt', descending: true)
+          .limit(15)
+          .get();
+    }
+
+    List<Map<String, dynamic>> listConfigs =
         snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
+
+    await saveConfigs(listConfigs);
     listConfigs.shuffle();
     return listConfigs;
-  } catch (_) {
+  } catch (e) {
     List listConfigs = await restoreConfigs();
     listConfigs.shuffle();
     return listConfigs;
@@ -298,8 +325,60 @@ Future<bool> tryConnect(String config, String docId, String message_old,
 
 Future<void> refreshCache() async {
   await Future.delayed(Duration(seconds: 3));
-  await getRandomConfigs();
+  await getConfigsByISP();
   await processFailedUpdates();
+  await processFailedISPAdds();
+}
+
+Future<void> addISPToConfig(String docId, String isp) async {
+  try {
+    final docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
+    await docRef.update({
+      'ispList': FieldValue.arrayUnion([isp])
+    });
+    LogOverlay.addLog("ISP added to config: $isp");
+  } catch (e) {
+    LogOverlay.showLog("Error adding ISP to config: $e", type: "error");
+    await cacheFailedISP(docId, isp);
+  }
+}
+
+Future<void> cacheFailedISP(String docId, String isp) async {
+  final prefs = await SharedPreferences.getInstance();
+  final failedListJson = prefs.getString('failedISPs');
+  List failedList = failedListJson != null ? jsonDecode(failedListJson) : [];
+
+  if (!failedList.any((item) => item['docId'] == docId && item['isp'] == isp)) {
+    failedList.add({'docId': docId, 'isp': isp});
+    await prefs.setString('failedISPs', jsonEncode(failedList));
+    LogOverlay.addLog("Cached failed ISP update for later: $docId");
+  }
+}
+
+Future<void> processFailedISPAdds() async {
+  final prefs = await SharedPreferences.getInstance();
+  final failedListJson = prefs.getString('failedISPs');
+  if (failedListJson == null) return;
+
+  List failedList = jsonDecode(failedListJson);
+  List processed = [];
+
+  for (var item in failedList) {
+    try {
+      final docRef =
+          FirebaseFirestore.instance.collection('configs').doc(item['docId']);
+      await docRef.update({
+        'ispList': FieldValue.arrayUnion([item['isp']])
+      });
+      processed.add(item);
+      LogOverlay.addLog("Retried ISP update: ${item['isp']}");
+    } catch (e) {
+      LogOverlay.addLog("Retry failed for ISP: ${item['isp']}");
+    }
+  }
+  LogOverlay.addLog("Successful ISP updates: ${processed.length}");
+  failedList.removeWhere((item) => processed.contains(item));
+  await prefs.setString('failedISPs', jsonEncode(failedList));
 }
 
 Future<void> rating(String docID) async {
@@ -314,7 +393,7 @@ Future<void> rating(String docID) async {
 
 Future<bool> connectFL() async {
   try {
-    final configs = await getRandomConfigs().timeout(Duration(seconds: 5),
+    final configs = await getConfigsByISP().timeout(Duration(seconds: 5),
         onTimeout: () async {
       return await restoreConfigs();
     });
@@ -325,6 +404,7 @@ Future<bool> connectFL() async {
       final docId = config['id'];
       final success = await tryConnect(configStr, docId, message, telegramLink);
       if (success) {
+        await addISPToConfig(docId, await getUserISP());
         return true;
       }
     }
