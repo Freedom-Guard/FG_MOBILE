@@ -389,7 +389,7 @@ class SettingSelector extends StatefulWidget {
 }
 
 class _SettingSelectorState extends State<SettingSelector> {
-  String _selectedValue = "";
+  String? _selectedValue;
 
   @override
   void initState() {
@@ -453,7 +453,7 @@ class _SettingSelectorState extends State<SettingSelector> {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: DropdownButton<String>(
                   isExpanded: true,
-                  value: _selectedValue,
+                  value: _selectedValue ?? widget.options[0],
                   items: widget.options.map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,

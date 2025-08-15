@@ -123,7 +123,6 @@ class _HomePageState extends State<HomePage>
   bool isConnecting = false;
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
-  late Timer _timer;
   Map<String, String> defSet = {
     "fgconfig":
         "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
@@ -142,16 +141,20 @@ class _HomePageState extends State<HomePage>
       ),
     );
     Future.microtask(() async {
-      Timer.periodic(Duration(seconds: 45), (timer) async {
+      Timer.periodic(Duration(seconds: 30), (timer) async {
         final connected = await checker.checkVPN();
+        if (mounted) {
+          setState(() {
+            isConnected = connected;
+          });
+        }
+      });
+      final connected = await checker.checkVPN();
+      if (mounted) {
         setState(() {
           isConnected = connected;
         });
-      });
-      final connected = await checker.checkVPN();
-      setState(() {
-        isConnected = connected;
-      });
+      }
       await checkForUpdate(context);
     });
   }
@@ -168,8 +171,6 @@ class _HomePageState extends State<HomePage>
 
   @override
   void dispose() {
-    _timer.cancel();
-
     _animationController.dispose();
     super.dispose();
   }

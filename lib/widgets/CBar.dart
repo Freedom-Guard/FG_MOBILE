@@ -6,6 +6,8 @@ import 'package:Freedom_Guard/screens/logs.dart';
 import 'package:Freedom_Guard/screens/notif.dart';
 import 'package:Freedom_Guard/screens/speedtest.dart';
 import 'package:Freedom_Guard/widgets/dns.dart';
+import 'package:Freedom_Guard/components/local.dart';
+
 import 'package:flutter/material.dart';
 
 void showActionsMenu(BuildContext context) {
@@ -86,7 +88,12 @@ class _ActionsMenuState extends State<ActionsMenu>
                 ),
                 Positioned(
                   top: kToolbarHeight + 10,
-                  right: 10,
+                  right: Directionality.of(context) == TextDirection.rtl
+                      ? 10
+                      : null,
+                  left: Directionality.of(context) == TextDirection.ltr
+                      ? 10
+                      : null,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: BackdropFilter(
@@ -111,7 +118,7 @@ class _ActionsMenuState extends State<ActionsMenu>
                               _closeMenu();
                             }),
                             _buildMenuButton(context, Icons.notifications,
-                                "Notifications", Colors.amberAccent, () {
+                                tr("notifications"), Colors.amberAccent, () {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -128,7 +135,7 @@ class _ActionsMenuState extends State<ActionsMenu>
                               _closeMenu();
                             }),
                             _buildMenuButton(context, Icons.volunteer_activism,
-                                "Donate", Colors.redAccent, () {
+                                tr("donate"), Colors.redAccent, () {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -136,8 +143,8 @@ class _ActionsMenuState extends State<ActionsMenu>
                                           PremiumDonateConfigPage()));
                               _closeMenu();
                             }),
-                            _buildMenuButton(context, Icons.public, "Browser",
-                                Colors.blueAccent, () {
+                            _buildMenuButton(context, Icons.public,
+                                tr("browser"), Colors.blueAccent, () {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -145,15 +152,15 @@ class _ActionsMenuState extends State<ActionsMenu>
                               _closeMenu();
                             }),
                             _buildMenuButton(context, Icons.network_check,
-                                "Speed Test", Colors.greenAccent, () {
+                                tr("speed-test"), Colors.greenAccent, () {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => SpeedTestPage()));
                               _closeMenu();
                             }),
-                            _buildMenuButton(context, Icons.bug_report, "Logs",
-                                Colors.orangeAccent, () {
+                            _buildMenuButton(context, Icons.bug_report,
+                                tr("logs"), Colors.orangeAccent, () {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
