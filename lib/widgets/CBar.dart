@@ -88,12 +88,8 @@ class _ActionsMenuState extends State<ActionsMenu>
                 ),
                 Positioned(
                   top: kToolbarHeight + 10,
-                  right: Directionality.of(context) == TextDirection.rtl
-                      ? 10
-                      : null,
-                  left: Directionality.of(context) == TextDirection.ltr
-                      ? 10
-                      : null,
+                  right: getDir() == "ltr" ? 10 : null,
+                  left: getDir() == "rtl" ? 10 : null,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: BackdropFilter(
