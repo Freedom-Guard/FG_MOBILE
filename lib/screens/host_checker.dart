@@ -155,7 +155,7 @@ class _HostCheckerScreenState extends State<HostCheckerScreen> {
       backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
         title: const Text('Host Checker'),
-        backgroundColor: theme.colorScheme.background,
+        backgroundColor: theme.colorScheme.primary,
         elevation: 0,
       ),
       body: Padding(
