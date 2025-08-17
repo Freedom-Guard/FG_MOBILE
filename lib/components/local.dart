@@ -29,6 +29,7 @@ Map<String, String> AllTr_fa = {
   'proxy-mode': 'حالت پراکسی',
   'safe-mode': 'حالت ایمن',
   'browser': 'مرورگر',
+  'Host Checker': 'بررسی هاست',
   'notifications': 'آگاهی‌ها',
   'split-tunneling': 'تقسیم تونل',
   'guard-mode': 'حالت نگهبان',
@@ -75,7 +76,6 @@ Map<String, String> AllTr_fa = {
   'more-options': 'گزینه‌های بیشتر',
   'refresh-subscription': 'به‌روزرسانی اشتراک',
   'encrypt-decrypt': 'رمزگذاری/رمزگشایی',
-  'delete-all-servers': 'حذف همه سرورها',
   'show-system-apps': 'نمایش برنامه های سیستمی',
   'about-app': 'گارد آزادی ابزاری متن باز برای عبور از فیلترینگ اینترنت است'
 };
@@ -87,6 +87,7 @@ Map<String, String> AllTr_en = {
   'proxy-mode': 'Proxy mode',
   'safe-mode': "Safe Mode",
   'browser': 'Browser',
+  'Host Checker': 'Host Checker',
   'notifications': 'Notifications',
   'guard-mode': 'Guard mode',
   'manual-mode': 'Manual mode',
@@ -132,7 +133,6 @@ Map<String, String> AllTr_en = {
   'more-options': 'More Options',
   'refresh-subscription': 'Refresh Subscription',
   'encrypt-decrypt': 'Encrypt/Decrypt',
-  'delete-all-servers': 'Delete All Servers',
   'show-system-apps': 'Show system Apps',
   'about-app':
       'Freedom Guard is an open-source tool to bypass internet censorship.'

@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:Freedom_Guard/screens/browser.dart';
 import 'package:Freedom_Guard/screens/cfg.dart';
 import 'package:Freedom_Guard/screens/f-link.dart';
+import 'package:Freedom_Guard/screens/host_checker.dart';
 import 'package:Freedom_Guard/screens/logs.dart';
 import 'package:Freedom_Guard/screens/notif.dart';
 import 'package:Freedom_Guard/screens/speedtest.dart';
@@ -161,6 +162,15 @@ class _ActionsMenuState extends State<ActionsMenu>
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => LogPage()));
+                              _closeMenu();
+                            }),
+                            _buildMenuButton(context, Icons.security,
+                                tr("Host Checker"), Colors.deepOrange, () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          HostCheckerScreen()));
                               _closeMenu();
                             }),
                           ],

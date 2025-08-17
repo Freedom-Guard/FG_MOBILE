@@ -672,7 +672,7 @@ class _ServersPageState extends State<ServersPage> {
                         leading: Icon(Icons.rocket_launch,
                             color: theme.colorScheme.primary),
                         title: Text(
-                          tr('CFG (View Configs)'),
+                          'CFG',
                           style: TextStyle(color: theme.colorScheme.onSurface),
                         ),
                         onTap: () {
