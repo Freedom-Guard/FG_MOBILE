@@ -609,7 +609,7 @@ class _ServersPageState extends State<ServersPage> {
                   leading: Icon(Icons.delete_forever,
                       color: theme.colorScheme.error),
                   title: Text(
-                    'Delete All Servers',
+                    tr('delete-all-servers'),
                     style: TextStyle(color: theme.colorScheme.error),
                   ),
                   onTap: () {

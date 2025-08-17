@@ -58,6 +58,7 @@ Map<String, String> AllTr_fa = {
   'cancel': 'لغو',
   'are-you-sure-you-want-to-delete-all-servers':
       'آیا مطمئن هستید که می‌خواهید همه سرورها را حذف کنید؟',
+  'delete-all-servers': 'حذف همه کانفیگ ها',
   'remove-all-servers': 'حذف همه کانفیگ ها',
   'choose-theme': 'انتخاب قالب',
   'servers': 'سرورها',
@@ -114,6 +115,7 @@ Map<String, String> AllTr_en = {
   'cancel': 'Cancel',
   'are-you-sure-you-want-to-delete-all-servers':
       'Are you sure you want to delete all servers?',
+  'delete-all-servers': 'Delete all servers',
   'remove-all-servers': 'Remove all servers',
   'choose-theme': 'Choose theme',
   'servers': 'Servers',
