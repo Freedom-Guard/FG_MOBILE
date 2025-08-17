@@ -190,7 +190,7 @@ class SafeMode {
                               ],
                             )),
                         SizedBox(height: 12),
-                        Text('آیا می‌خواهید ادامه دهید؟',
+                        Text('آیا اجازه اتصال به این کانفیگ را می‌دهید؟',
                             style: TextStyle(
                                 color:
                                     Theme.of(context).colorScheme.onSurface)),
@@ -209,7 +209,7 @@ class SafeMode {
                             foregroundColor:
                                 Theme.of(context).colorScheme.primary),
                         onPressed: () => Navigator.of(ctx).pop(true),
-                        child: Text('ادامه'),
+                        child: Text('اجازه میدم'),
                       ),
                     ],
                   ),

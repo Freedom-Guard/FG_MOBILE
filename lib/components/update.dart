@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:Freedom_Guard/components/connect.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -124,6 +125,10 @@ Future<bool> checkForVPN() async {
   if (connectivityResult.contains(ConnectivityResult.vpn)) {
     return true;
   } else {
-    return false;
+    if (v2rayStatus.value.state == "CONNECTED") {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
