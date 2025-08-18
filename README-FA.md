@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/Freedom-Guard/FG_MOBILE/refs/heads/main/assets/icon/ico.png" alt="لوگوی گارد آزادی موبایل" width="150" />
 
-  <h1>گارد آزادی – موبایل</h1>
+  <h1>گارد آزادی <br /> موبایل</h1>
   <p>🕊️ ابزار متن‌باز برای دسترسی امن، سریع و آزاد به اینترنت</p>
 
   <a href="https://github.com/Freedom-Guard/FG_MOBILE/releases">
@@ -17,6 +17,13 @@
   <h3>🌍 فراتر از محدودیت‌ها</h3>
 </div>
 
+<p>
+    <a href="README.Md">
+    <small>English</small>
+    </a>
+        | 
+    <small>پارسی</small>
+</p>
 ---
 
 <div align="center">
