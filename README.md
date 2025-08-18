@@ -1,41 +1,91 @@
 <div align="center">
-  <div style="display: flex; justify-content: center; align-items: center;">
-  <img src="https://raw.githubusercontent.com/Freedom-Guard/FG_MOBILE/refs/heads/main/assets/icon/ico.png" alt="Freedom Guard Mobile Logo" width="120" />
-  </div>
-  
-  
+  <img src="https://raw.githubusercontent.com/Freedom-Guard/FG_MOBILE/refs/heads/main/assets/icon/ico.png" alt="Freedom Guard Mobile Logo" width="150" />
 
-  <h1>Freedom Guard - Mobile</h1>
-  <p>ابزار متن‌باز برای آزادی اینترنت با امنیت و سرعت بالا</p>
-  <a href="https://github.com/Freedom-Guard/FG_MOBILE/releases"><img src="https://img.shields.io/github/v/release/Freedom-Guard/FG_MOBILE?style=flat-square&color=green" alt="Latest Release"></a>
-  <a href="https://github.com/Freedom-Guard/FG_MOBILE/stargazers"><img src="https://img.shields.io/github/stars/Freedom-Guard/FG_MOBILE?style=flat-square&color=yellow" alt="Stars"></a>
-  <a href="https://github.com/Freedom-Guard/FG_MOBILE/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Freedom-Guard/FG_MOBILE?style=flat-square&color=blue" alt="License"></a>
+  <h1>Freedom Guard – Mobile</h1>
+  <p>🕊️ Open-source tool for secure, fast, and truly free internet access</p>
+
+  <a href="https://github.com/Freedom-Guard/FG_MOBILE/releases">
+    <img src="https://img.shields.io/github/v/release/Freedom-Guard/FG_MOBILE?style=for-the-badge&color=3fb950" alt="Latest Release">
+  </a>
+  <a href="https://github.com/Freedom-Guard/FG_MOBILE/stargazers">
+    <img src="https://img.shields.io/github/stars/Freedom-Guard/FG_MOBILE?style=for-the-badge&color=facc15" alt="Stars">
+  </a>
+  <a href="https://github.com/Freedom-Guard/FG_MOBILE/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/Freedom-Guard/FG_MOBILE?style=for-the-badge&color=0ea5e9" alt="License">
+  </a>
+
+  <h3>🌍 Beyond Limits</h3>
+</div>
+
+---
+
+<div align="center">
+  <p>🖥️ Looking for Desktop? <br>
+  👉 <a href="https://github.com/Freedom-Guard/Freedom-Guard/">Freedom Guard Desktop</a></p>
+</div>
+
+---
+
+## 🌟 About the Project
+**Freedom Guard** is an **open-source, community-driven project** created by the **Freedom Guard Team**.  
+Its goal is to help people **bypass censorship**, ensure **secure connections**, and provide **fast & reliable internet access** anywhere in the world.  
+
+Our philosophy is simple:  
+> The internet should be **open, free, and safe** for everyone.  
+
+---
+
+## 🔑 Key Features
+
+✨ **Fast & Reliable Connection**  
+Connect to optimized servers with just one tap.  
+
+🛡️ **Powered by Xray Core**  
+Robust, flexible, and highly secure.  
+
+🔄 **Smart Auto-Configuration**  
+Automatic setup for hassle-free access to a free internet.  
+
+📂 **Easy Config Management**  
+Import, export, and share your configs with friends.  
+
+🧩 **Advanced Options**  
+Take full control with powerful extra features:  
+
+- 🔍 **Host Checker** – Test website accessibility before connecting  
+- 🌐 **Custom DNS & DoH** – Configure DNS servers and enable DNS-over-HTTPS  
+- 🔀 **Smart Routing** – Split tunneling and advanced traffic rules  
+- 🧱 **Fragmentation & MUX** – Boost stability and efficiency under censorship  
+
+🔐 **Multi-Protocol Support**  
+VMess, VLESS, Trojan, Shadowsocks, and other popular secure protocols.  
+
+---
+
+## 📲 Installation
+
+1. Download the **latest APK** from the [Releases page](https://github.com/Freedom-Guard/FG_MOBILE/releases).  
+2. Install the app on your Android device.  
+3. Open **Freedom Guard**, connect, and enjoy censorship-free browsing 🚀.  
+
+---
+
+## 🤝 The Freedom Guard Team
+The **Freedom Guard Team** is a group of developers and contributors united by one mission:  
+to keep the internet **free, secure, and accessible** for everyone.  
+
+- 💡 **Community-Driven**: anyone can contribute  
+- 🔓 **Transparent**: open-source and publicly available  
+- 🌍 **Global Mission**: fighting censorship everywhere  
+
+We welcome contributions, ideas, and feedback from everyone who believes in digital freedom.  
+
+---
+
+<div align="center">
+  <sub>💙 Built with passion & dedication by the Freedom Guard Team</sub>
+</div>
 
   آزادی در دستان توست🕊️
 
 </div>
-
-
----
-<div align="center">
-  <p>🖥️نسخه دسکتاپ <br><a href="https://github.com/Freedom-Guard/Freedom-Guard/releases">Freedom Guard Desktop</a></p>
-</div>
-
-## 🌟 درباره پروژه
-**گارد آزادی** یه ابزار متن‌باز برای دور زدن فیلترینگ و دسترسی آزاد به اینترنت توی محیط‌های محدودشده‌ست.
-
-## 🔑 ویژگی‌های کلیدی
-
-- **اتصال سریع و پایدار**: اتصال به سرورهای بهینه با یه لمس.
-- **پشتیبانی از Xray**: استفاده از هسته قدرتمند Xray برای امنیت و انعطاف‌پذیری.
-- **کانفیگ خودکار**: کانفیگ خودکار برای دسترسی به اینترنت آزاد.
-- **مدیریت کانفیگ‌ها**:  وارد کردن، به اشتراک گذاری کانفیگ ها.
-- **رابط کاربری دوگانه**: ساده برای کاربران عادی، پیشرفته برای حرفه‌ای‌ها.
-- **مرورگر داخلی**: مرورگر داخلی سریع بدون ذخیره تاریخچه
-- **قابلیت های متنوع**: فعال کردن فرگمنت و mux و ...
-
-
-## 📲 نصب سریع
-1. آخرین نسخه APK رو از [Releases](https://github.com/Freedom-Guard/FG_MOBILE/releases) دانلود کنید.
-2. برنامه رو نصب و اجرا کنید و به اینترنت آزاد متصل بشید!
-
