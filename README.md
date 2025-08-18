@@ -17,7 +17,7 @@
   <h3>🌍 Beyond Limits</h3>
 </div>
 <p>
-    <a href="FA">
+    <a href="README-FA.md">
     <small>پارسی</small>
     </a>
         | 
