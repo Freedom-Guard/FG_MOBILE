@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/Freedom-Guard/FG_MOBILE/refs/heads/main/assets/icon/ico.png" alt="Freedom Guard Mobile Logo" width="150" />
 
-  <h1>Freedom Guard – Mobile</h1>
+  <h1>Freedom Guard <br /> Mobile</h1>
   <p>🕊️ Open-source tool for secure, fast, and truly free internet access</p>
 
   <a href="https://github.com/Freedom-Guard/FG_MOBILE/releases">
@@ -16,7 +16,13 @@
 
   <h3>🌍 Beyond Limits</h3>
 </div>
-
+<p>
+    <a href="FA">
+    <small>پارسی</small>
+    </a>
+        | 
+    <small>English</small>
+</p>
 ---
 
 <div align="center">
