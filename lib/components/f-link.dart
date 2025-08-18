@@ -86,7 +86,7 @@ Future<String> getUserISP({type = "normal"}) async {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       type != "normal"
-          ? data["org"] = SettingsApp().getValue("isp")
+          ? data["org"] = (await SettingsApp().getValue("isp"))
           : SettingsApp().setValue("isp", data['org'] ?? "Unknown ISP");
       return data['org'] ?? "Unknown ISP";
     }
