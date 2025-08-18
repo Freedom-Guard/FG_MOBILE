@@ -18,12 +18,13 @@
 </div>
 
 <p>
-    <a href="README.Md">
+    <a href="README.md">
     <small>English</small>
     </a>
         | 
     <small>پارسی</small>
 </p>
+
 ---
 
 <div align="center">
