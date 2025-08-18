@@ -77,7 +77,7 @@ bool isValidTelegramLink(String input) {
   }
 }
 
-Future<String> getUserISP() async {
+Future<String> getUserISP({type = "normal"}) async {
   try {
     final response = await http
         .get(Uri.parse("http://ip-api.com/json/"))
@@ -85,7 +85,9 @@ Future<String> getUserISP() async {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      SettingsApp().setValue("isp", data['org'] ?? "Unknown ISP");
+      type != "normal"
+          ? data["org"] = SettingsApp().getValue("isp")
+          : SettingsApp().setValue("isp", data['org'] ?? "Unknown ISP");
       return data['org'] ?? "Unknown ISP";
     }
   } catch (e) {
@@ -181,9 +183,9 @@ Future<bool> donateCONFIG(String config,
   }
 }
 
-Future<List> getConfigsByISP() async {
+Future<List> getConfigsByISP({type = "normal"}) async {
   try {
-    final userISP = await getUserISP();
+    final userISP = await getUserISP(type: type);
     final deviceID = await getDeviceId();
     final ipId = 'ip-$deviceID';
     final statsRef =
@@ -327,7 +329,7 @@ Future<bool> tryConnect(String config, String docId, String message_old,
 
 Future<void> refreshCache() async {
   await Future.delayed(Duration(seconds: 3));
-  await getConfigsByISP();
+  await getConfigsByISP(type: "cache");
   await processFailedUpdates();
   await processFailedISPAdds();
 }
