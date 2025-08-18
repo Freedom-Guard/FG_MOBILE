@@ -2,10 +2,10 @@ name: Freedom_Guard
 description: "Freedom Guard +x Freedom Vibe +x Freedom Link"
 publish_to: 'none' 
 
-version: 9.0.0+1 
+version: 9.1.0+1 
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -21,8 +21,6 @@ dependencies:
   synchronized: ^3.3.0+3
   clipboard: ^0.1.3
   url_launcher: ^6.3.1
-  firebase_core: any
-  firebase_analytics: ^11.4.4
   firebase_messaging: ^15.2.4
   share_plus: ^11.0.0
   file_picker: ^10.2.0
@@ -43,6 +41,9 @@ dependencies:
     git:
       url: https://github.com/Freedom-Guard-Builder/quick_settings/
   fluttertoast: ^8.2.12
+  firebase_core: ^3.5.0
+  firebase_analytics: ^11.2.0
+  firebase_in_app_messaging: ^0.8.1+10
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.4

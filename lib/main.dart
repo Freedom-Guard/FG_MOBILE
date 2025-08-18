@@ -25,6 +25,7 @@ import 'widgets/network.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 
 void main() async {
   await WidgetsFlutterBinding.ensureInitialized();
@@ -39,15 +40,12 @@ void main() async {
   try {
     await Firebase.initializeApp();
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
+
     print("🔥 Firebase Initialized Successfully");
   } catch (e) {
     print("❌ Firebase Initialization Failed: $e");
   }
-
-  FirebaseAnalytics.instance.logEvent(
-    name: "app_opened",
-    parameters: {"time": DateTime.now().toString()},
-  );
+  
   final themeNotifier = await ThemeNotifier.init();
 
   runApp(
