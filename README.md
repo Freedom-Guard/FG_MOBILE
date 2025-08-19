@@ -90,9 +90,5 @@ We welcome contributions, ideas, and feedback from everyone who believes in digi
 ---
 
 <div align="center">
-  <sub>💙 Built with passion & dedication by the Freedom Guard Team</sub>
-</div>
-
-  آزادی در دستان توست🕊️
-
+  <sub>Developed by the Freedom Guard Team</sub>
 </div>
