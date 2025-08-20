@@ -746,7 +746,11 @@ class _ServersPageState extends State<ServersPage> {
     final theme = Theme.of(context);
     if (ping == null) {
       return Text(
-        server.startsWith("http") ? 'SUB' : 'Not tested',
+        server.startsWith("http")
+            ? server.startsWith("freedom-guard")
+                ? 'SUB (FG)'
+                : "SUB"
+            : 'Not tested',
         style: TextStyle(
           color: theme.colorScheme.onSurface.withOpacity(0.7),
         ),

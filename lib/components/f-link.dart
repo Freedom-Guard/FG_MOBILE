@@ -228,8 +228,8 @@ Future<List> getConfigsByISP({type = "normal"}) async {
     List<Map<String, dynamic>> listConfigs =
         snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList();
 
-    await saveConfigs(listConfigs);
     listConfigs.shuffle();
+    await saveConfigs(listConfigs);
     return listConfigs;
   } catch (e) {
     List listConfigs = await restoreConfigs();
