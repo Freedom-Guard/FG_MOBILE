@@ -169,7 +169,6 @@ class _ServersPageState extends State<ServersPage> {
           borderRadius: BorderRadius.circular(20),
           child: Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
