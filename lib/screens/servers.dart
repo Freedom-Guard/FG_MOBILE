@@ -303,7 +303,7 @@ class _ServersPageState extends State<ServersPage> {
   }
 
   Future<void> _pingServer(String server) async {
-    if (server.startsWith('http')) {
+    if (server.startsWith('http') || server.startsWith('freedom-guard')) {
       if (mounted) {
         setState(() => serverPingTimes[server] = null);
         await _savePingTimes();
@@ -1058,26 +1058,6 @@ class _ServersPageState extends State<ServersPage> {
                   ],
                 ),
               ),
-        bottomNavigationBar: Container(
-          child: BottomNavBar(
-            currentIndex: 2,
-            onTap: (index) {
-              if (index == 0) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => SettingsPage()),
-                );
-              } else if (index == 1) {
-                Navigator.popUntil(context, (route) => route.isFirst);
-              } else if (index == 2) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ServersPage()),
-                );
-              }
-            },
-          ),
-        ),
       ),
     );
   }
