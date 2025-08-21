@@ -38,32 +38,34 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       extendBody: true,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: AppBar(
-              backgroundColor: Colors.black.withOpacity(0.0),
-              centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(Icons.cable),
-                onPressed: () {
-                  openXraySettings(context);
-                },
-              ),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.grid_view_rounded),
-                  onPressed: () {
-                    showActionsMenu(context);
-                  },
+      appBar: _currentIndex == 1 // Show AppBar only for HomeContent
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(kToolbarHeight),
+              child: ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  child: AppBar(
+                    backgroundColor: Colors.black.withOpacity(0.0),
+                    centerTitle: true,
+                    leading: IconButton(
+                      icon: const Icon(Icons.cable),
+                      onPressed: () {
+                        openXraySettings(context);
+                      },
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: Icon(Icons.grid_view_rounded),
+                        onPressed: () {
+                          showActionsMenu(context);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
-        ),
-      ),
+              ),
+            )
+          : null, // No AppBar for other pages
       body: IndexedStack(
         index: _currentIndex,
         children: _pages,

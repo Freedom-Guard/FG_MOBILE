@@ -3,10 +3,8 @@ import 'package:Freedom_Guard/components/LOGLOG.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/screens/f-link.dart';
-import 'package:Freedom_Guard/screens/servers.dart';
 import 'package:Freedom_Guard/screens/split.dart';
 import 'package:Freedom_Guard/widgets/about.dart';
-import 'package:Freedom_Guard/widgets/nav.dart';
 import 'package:Freedom_Guard/widgets/theme/dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -271,26 +269,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ],
-        ),
-        bottomNavigationBar: Container(
-          child: BottomNavBar(
-            currentIndex: 0,
-            onTap: (index) {
-              if (index == 0) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => SettingsPage()),
-                );
-              } else if (index == 1) {
-                Navigator.popUntil(context, (route) => route.isFirst);
-              } else if (index == 2) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ServersPage()),
-                );
-              }
-            },
-          ),
         ),
       ),
     );

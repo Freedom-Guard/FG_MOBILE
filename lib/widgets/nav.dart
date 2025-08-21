@@ -8,39 +8,48 @@ class BottomNavBar extends StatelessWidget {
   const BottomNavBar({
     required this.currentIndex,
     required this.onTap,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(36),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: Container(
-            height: 70,
+            height: 68,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(28),
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.05),
+                  Colors.black.withOpacity(0.02),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(36),
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
-                width: 1,
+                color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                width: 0.8,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
-                  blurRadius: 20,
-                  offset: Offset(0, 10),
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 6,
+                  spreadRadius: 0.5,
+                  offset: Offset(0, 2),
                 ),
               ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(Icons.settings, "تنظیمات", 0),
-                _buildNavItem(Icons.home_rounded, "خانه", 1),
-                _buildNavItem(Icons.cloud_sync_outlined, "سرورها", 2),
+                _buildNavItem(Icons.settings_rounded, 0, context),
+                _buildNavItem(Icons.home_rounded, 1, context),
+                _buildNavItem(Icons.cloud_sync_rounded, 2, context),
               ],
             ),
           ),
@@ -49,31 +58,93 @@ class BottomNavBar extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
+  Widget _buildNavItem(IconData icon, int index, BuildContext context) {
     bool isActive = index == currentIndex;
 
     return GestureDetector(
       onTap: () => onTap(index),
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 250),
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        duration: Duration(milliseconds: 350),
+        curve: Curves.easeInOutSine,
+        width: 56,
+        height: 56,
         decoration: BoxDecoration(
+          shape: BoxShape.circle,
           gradient: isActive
               ? LinearGradient(
                   colors: [
-                    Colors.deepPurpleAccent.withOpacity(0.8),
-                    Colors.blueAccent.withOpacity(0.8),
+                    Theme.of(context).colorScheme.secondary.withOpacity(0.9),
+                    Theme.of(context).colorScheme.primary.withOpacity(0.75),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
               : null,
-          borderRadius: BorderRadius.circular(30),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .secondary
+                        .withOpacity(0.25),
+                    blurRadius: 8,
+                    spreadRadius: 1.5,
+                    offset: Offset(0, 1),
+                  ),
+                ]
+              : [],
         ),
-        child: Icon(
-          icon,
-          size: isActive ? 26 : 24,
-          color: isActive ? Colors.white : Colors.grey.shade400,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            AnimatedScale(
+              scale: isActive ? 1.15 : 1.0,
+              duration: Duration(milliseconds: 350),
+              curve: Curves.easeOutCubic,
+              child: AnimatedOpacity(
+                opacity: isActive ? 1.0 : 0.7,
+                duration: Duration(milliseconds: 350),
+                child: Icon(
+                  icon,
+                  size: isActive ? 30 : 26,
+                  color: isActive
+                      ? Colors.white
+                      : Colors.grey.shade200.withOpacity(0.75),
+                  shadows: isActive
+                      ? [
+                          Shadow(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondary
+                                .withOpacity(0.3),
+                            blurRadius: 6,
+                            offset: Offset(0, 1),
+                          ),
+                        ]
+                      : [],
+                ),
+              ),
+            ),
+            AnimatedOpacity(
+              opacity: isActive ? 0.3 : 0.0,
+              duration: Duration(milliseconds: 500),
+              curve: Curves.easeOutSine,
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.secondary.withOpacity(0.4),
+                      Colors.transparent,
+                    ],
+                    radius: 0.65,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
