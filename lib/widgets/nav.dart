@@ -14,32 +14,37 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+      padding: EdgeInsets.only(
+        left: 32,
+        right: 32,
+        bottom: MediaQuery.of(context).padding.bottom + 16,
+        top: 10,
+      ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(36),
+        borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
             height: 68,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.white.withOpacity(0.05),
-                  Colors.black.withOpacity(0.02),
+                  Colors.white.withOpacity(0.08),
+                  Colors.black.withOpacity(0.04),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(36),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-                width: 0.8,
+                color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+                width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 6,
-                  spreadRadius: 0.5,
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 1,
                   offset: Offset(0, 2),
                 ),
               ],
@@ -64,17 +69,17 @@ class BottomNavBar extends StatelessWidget {
     return GestureDetector(
       onTap: () => onTap(index),
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 350),
-        curve: Curves.easeInOutSine,
-        width: 56,
-        height: 56,
+        duration: Duration(milliseconds: 400),
+        curve: Curves.easeInOutQuart,
+        width: 60,
+        height: 60,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: isActive
               ? LinearGradient(
                   colors: [
-                    Theme.of(context).colorScheme.secondary.withOpacity(0.9),
-                    Theme.of(context).colorScheme.primary.withOpacity(0.75),
+                    Theme.of(context).colorScheme.secondary,
+                    Theme.of(context).colorScheme.primary.withOpacity(0.85),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -86,10 +91,10 @@ class BottomNavBar extends StatelessWidget {
                     color: Theme.of(context)
                         .colorScheme
                         .secondary
-                        .withOpacity(0.25),
-                    blurRadius: 8,
-                    spreadRadius: 1.5,
-                    offset: Offset(0, 1),
+                        .withOpacity(0.3),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                    offset: Offset(0, 3),
                   ),
                 ]
               : [],
@@ -98,37 +103,21 @@ class BottomNavBar extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             AnimatedScale(
-              scale: isActive ? 1.15 : 1.0,
-              duration: Duration(milliseconds: 350),
-              curve: Curves.easeOutCubic,
-              child: AnimatedOpacity(
-                opacity: isActive ? 1.0 : 0.7,
-                duration: Duration(milliseconds: 350),
-                child: Icon(
-                  icon,
-                  size: isActive ? 30 : 26,
-                  color: isActive
-                      ? Colors.white
-                      : Colors.grey.shade200.withOpacity(0.75),
-                  shadows: isActive
-                      ? [
-                          Shadow(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .secondary
-                                .withOpacity(0.3),
-                            blurRadius: 6,
-                            offset: Offset(0, 1),
-                          ),
-                        ]
-                      : [],
-                ),
+              scale: isActive ? 1.1 : 1.0,
+              duration: Duration(milliseconds: 400),
+              curve: Curves.easeInOutQuart,
+              child: Icon(
+                icon,
+                size: isActive ? 30 : 26,
+                color: isActive
+                    ? Colors.white
+                    : Colors.grey.shade300.withOpacity(0.8),
               ),
             ),
             AnimatedOpacity(
-              opacity: isActive ? 0.3 : 0.0,
-              duration: Duration(milliseconds: 500),
-              curve: Curves.easeOutSine,
+              opacity: isActive ? 0.4 : 0.0,
+              duration: Duration(milliseconds: 400),
+              curve: Curves.easeInOutQuart,
               child: Container(
                 width: 56,
                 height: 56,
@@ -139,7 +128,7 @@ class BottomNavBar extends StatelessWidget {
                       Theme.of(context).colorScheme.secondary.withOpacity(0.4),
                       Colors.transparent,
                     ],
-                    radius: 0.65,
+                    radius: 0.55,
                   ),
                 ),
               ),
