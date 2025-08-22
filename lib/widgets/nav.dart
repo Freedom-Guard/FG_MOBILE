@@ -15,10 +15,10 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 32,
-        right: 32,
+        left: 50,
+        right: 50,
         bottom: MediaQuery.of(context).padding.bottom + 16,
-        top: 10,
+        top: 5,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
@@ -36,10 +36,6 @@ class BottomNavBar extends StatelessWidget {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
-                width: 1.2,
-              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -69,7 +65,7 @@ class BottomNavBar extends StatelessWidget {
     return GestureDetector(
       onTap: () => onTap(index),
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 400),
+        duration: Duration(milliseconds: 100),
         curve: Curves.easeInOutQuart,
         width: 60,
         height: 60,
@@ -104,7 +100,7 @@ class BottomNavBar extends StatelessWidget {
           children: [
             AnimatedScale(
               scale: isActive ? 1.1 : 1.0,
-              duration: Duration(milliseconds: 400),
+              duration: Duration(milliseconds: 100),
               curve: Curves.easeInOutQuart,
               child: Icon(
                 icon,
