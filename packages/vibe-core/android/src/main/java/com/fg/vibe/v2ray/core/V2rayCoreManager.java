@@ -33,13 +33,6 @@ import libv2ray.Libv2ray;
 import libv2ray.V2RayPoint;
 import libv2ray.V2RayVPNServiceSupportsSet;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-
 public final class V2rayCoreManager {
     private static final int NOTIFICATION_ID = 1;
     private volatile static V2rayCoreManager INSTANCE;
@@ -337,42 +330,22 @@ public final class V2rayCoreManager {
     }
 
     public Long getV2rayServerDelay(final String config, final String url) {
-        long timeoutMillis = 5000;
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<Long> future = executor.submit(() -> {
-            try {
-                String finalConfig;
-                try {
-                    JSONObject configJson = new JSONObject(config);
-                    if (configJson.has("routing")) {
-                        JSONObject newRoutingJson = configJson.getJSONObject("routing");
-                        newRoutingJson.remove("rules");
-                        configJson.put("routing", newRoutingJson);
-                    }
-                    finalConfig = configJson.toString();
-                } catch (Exception jsonError) {
-                    finalConfig = config;
-                }
-                return Libv2ray.measureOutboundDelay(finalConfig, url);
-            } catch (Exception e) {
-                Log.e("getV2rayServerDelay", e.toString());
-                return -1L;
-            }
-        });
-
         try {
-            return future.get(timeoutMillis, TimeUnit.MILLISECONDS);
-        } catch (TimeoutException e) {
-            future.cancel(true);
-            Log.e("getV2rayServerDelay", "Timeout for URL: " + url);
-            return -1L;
+            try {
+                JSONObject config_json = new JSONObject(config);
+                JSONObject new_routing_json = config_json.getJSONObject("routing");
+                new_routing_json.remove("rules");
+                config_json.remove("routing");
+                config_json.put("routing", new_routing_json);
+                return Libv2ray.measureOutboundDelay(config_json.toString(), url);
+            } catch (Exception json_error) {
+                Log.e("getV2rayServerDelay", json_error.toString());
+                return Libv2ray.measureOutboundDelay(config, url);
+            }
         } catch (Exception e) {
-            Log.e("getV2rayServerDelay", e.toString());
+            Log.e("getV2rayServerDelayCore", e.toString());
             return -1L;
-        } finally {
-            executor.shutdownNow();
         }
     }
-
 
 }
