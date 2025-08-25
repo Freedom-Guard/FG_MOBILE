@@ -397,9 +397,7 @@ Future<void> rating(String docID) async {
 
 Future<bool> connectFL() async {
   try {
-    final configs = await getConfigsByISP().timeout(Duration(seconds: 5),
-        onTimeout: () async {
-      return await restoreConfigs();
+    final configs = await restoreConfigs();
     });
     for (var config in configs) {
       final configStr = config['config'] as String;
@@ -414,8 +412,8 @@ Future<bool> connectFL() async {
       }
     }
   } catch (e) {
-    LogOverlay.showLog("Error connecting FL: $e", type: "error");
+    LogOverlay.addLog("Error connecting FL: $e");
   }
-  LogOverlay.showLog("Connection FL failed", type: "warning");
+  LogOverlay.addLog("Connection FL failed");
   return false;
 }
