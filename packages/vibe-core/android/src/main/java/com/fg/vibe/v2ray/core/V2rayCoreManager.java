@@ -335,31 +335,39 @@ public final class V2rayCoreManager {
     }
 
     public Long getV2rayServerDelay(final String config, final String url) {
-        final int MAX_ATTEMPTS = 3;
-        final long RETRY_DELAY_MS = 120L; 
-        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+            JSONObject config_json = new JSONObject(config);
+            JSONObject new_routing_json = config_json.getJSONObject("routing");
+            new_routing_json.remove("rules");
+            config_json.remove("routing");
+            config_json.put("routing", new_routing_json);
+            java.util.concurrent.Callable<Long> task = () -> Libv2ray.measureOutboundDelay(config_json.toString(), url);
+            java.util.concurrent.ExecutorService executor = Executors.newSingleThreadExecutor();
+            java.util.concurrent.Future<Long> future = executor.submit(task);
             try {
-                try {
-                    JSONObject config_json = new JSONObject(config);
-                    JSONObject new_routing_json = config_json.getJSONObject("routing");
-                    new_routing_json.remove("rules");
-                    config_json.remove("routing");
-                    config_json.put("routing", new_routing_json);
-                    long delay = Libv2ray.measureOutboundDelay(config_json.toString(), url);
-                    if (delay >= 0) return delay;
-                } catch (Exception json_error) {
-                    Log.e("getV2rayServerDelay", json_error.toString());
-                    long delay = Libv2ray.measureOutboundDelay(config, url);
-                    if (delay >= 0) return delay;
-                }
+                Long result = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                executor.shutdownNow();
+                return result != null ? result : -1L;
             } catch (Exception e) {
-                Log.e("getV2rayServerDelayCore", e.toString());
+                future.cancel(true);
+                executor.shutdownNow();
+                return -1L;
             }
+        } catch (Exception json_error) {
+            Log.e("getV2rayServerDelay", json_error.toString());
+            java.util.concurrent.Callable<Long> task = () -> Libv2ray.measureOutboundDelay(config, url);
+            java.util.concurrent.ExecutorService executor = Executors.newSingleThreadExecutor();
+            java.util.concurrent.Future<Long> future = executor.submit(task);
             try {
-                Thread.sleep(RETRY_DELAY_MS);
-            } catch (InterruptedException ignored) {}
+                Long result = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                executor.shutdownNow();
+                return result != null ? result : -1L;
+            } catch (Exception e) {
+                future.cancel(true);
+                executor.shutdownNow();
+                return -1L;
+            }
         }
-        return -1L;
     }
 
     private final ExecutorService delayTestExecutor = Executors.newFixedThreadPool(5); // حداکثر ۵ تست همزمان
