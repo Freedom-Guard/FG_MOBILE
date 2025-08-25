@@ -8,14 +8,14 @@ import 'package:vibe_core/url/url.dart';
 import 'package:vibe_core/url/vless.dart';
 import 'package:vibe_core/url/vmess.dart';
 
-import 'flutter_v2ray_platform_interface.dart';
+import 'vibe_core_platform_interface.dart';
 import 'model/v2ray_status.dart';
 
 export 'model/v2ray_status.dart';
 export 'url/url.dart';
 
-class FlutterV2ray {
-  FlutterV2ray({required this.onStatusChanged});
+class VibeCore {
+  VibeCore({required this.onStatusChanged});
 
   /// This method is called when V2Ray status has changed.
   final void Function(V2RayStatus status) onStatusChanged;
@@ -23,7 +23,7 @@ class FlutterV2ray {
   /// Request VPN service permission specifically for Android.
   Future<bool> requestPermission() async {
     if (Platform.isAndroid) {
-      return await FlutterV2rayPlatform.instance.requestPermission();
+      return await VibeCorePlatform.instance.requestPermission();
     }
     return true;
   }
@@ -33,7 +33,7 @@ class FlutterV2ray {
     String notificationIconResourceType = "mipmap",
     String notificationIconResourceName = "ic_launcher",
   }) async {
-    await FlutterV2rayPlatform.instance.initializeV2Ray(
+    await VibeCorePlatform.instance.initializeV2Ray(
       onStatusChanged: onStatusChanged,
       notificationIconResourceType: notificationIconResourceType,
       notificationIconResourceName: notificationIconResourceName,
@@ -85,7 +85,7 @@ class FlutterV2ray {
       throw ArgumentError('The provided string is not valid JSON');
     }
 
-    await FlutterV2rayPlatform.instance.startV2Ray(
+    await VibeCorePlatform.instance.startV2Ray(
       remark: remark,
       config: config,
       blockedApps: blockedApps,
@@ -97,7 +97,7 @@ class FlutterV2ray {
 
   /// Stop V2Ray service.
   Future<void> stopV2Ray() async {
-    await FlutterV2rayPlatform.instance.stopV2Ray();
+    await VibeCorePlatform.instance.stopV2Ray();
   }
 
   /// This method returns the real server delay of the configuration.
@@ -111,19 +111,19 @@ class FlutterV2ray {
     } catch (_) {
       throw ArgumentError('The provided string is not valid JSON');
     }
-    return await FlutterV2rayPlatform.instance
+    return await VibeCorePlatform.instance
         .getServerDelay(config: config, url: url);
   }
 
   /// This method returns the connected server delay.
   Future<int> getConnectedServerDelay(
       {String url = 'https://google.com/generate_204'}) async {
-    return await FlutterV2rayPlatform.instance.getConnectedServerDelay(url);
+    return await VibeCorePlatform.instance.getConnectedServerDelay(url);
   }
 
   // This method returns the V2Ray Core version.
   Future<String> getCoreVersion() async {
-    return await FlutterV2rayPlatform.instance.getCoreVersion();
+    return await VibeCorePlatform.instance.getCoreVersion();
   }
 
   /// parse V2RayURL object from V2Ray share link

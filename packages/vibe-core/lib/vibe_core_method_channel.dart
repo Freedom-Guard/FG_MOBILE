@@ -2,14 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'model/v2ray_status.dart' show V2RayStatus;
 
-import 'flutter_v2ray_platform_interface.dart';
+import 'vibe_core_platform_interface.dart';
 
-/// An implementation of [FlutterV2rayPlatform] that uses method channels.
-class MethodChannelFlutterV2ray extends FlutterV2rayPlatform {
+/// An implementation of [VibeCorePlatform] that uses method channels.
+class MethodChannelFlutterV2ray extends VibeCorePlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
-  final methodChannel = const MethodChannel('flutter_v2ray');
-  final eventChannel = const EventChannel('flutter_v2ray/status');
+  final methodChannel = const MethodChannel('vibe_core');
+  final eventChannel = const EventChannel('vibe_core/status');
 
   @override
   Future<void> initializeV2Ray({

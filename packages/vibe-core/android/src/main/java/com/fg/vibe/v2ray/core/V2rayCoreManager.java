@@ -245,7 +245,7 @@ public final class V2rayCoreManager {
             NotificationManager notificationManager =
                     (NotificationManager) v2rayServicesListener.getService().getSystemService(Context.NOTIFICATION_SERVICE);
 
-            String channelId = "A_FLUTTER_V2RAY_SERVICE_CH_ID";
+            String channelId = "A_VIBE_CORE_SERVICE_CH_ID";
             String channelName = appName + " Background Service";
             NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT);
             channel.setDescription(channelName);

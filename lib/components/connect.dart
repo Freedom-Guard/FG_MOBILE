@@ -4,7 +4,7 @@ import 'package:Freedom_Guard/components/safe_mode.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vibe_core/flutter_v2ray.dart';
+import 'package:vibe_core/vibe_core.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
@@ -33,7 +33,7 @@ class Connect extends Tools {
   // Diconnect VPN
   Future<void> disConnect({typeDis = "normal"}) async {
     try {
-      flutterV2ray.stopV2Ray();
+      vibeCoreMain.stopV2Ray();
       if (typeDis != "guard") {
         _stopGuardModeMonitoring();
       }
@@ -43,7 +43,7 @@ class Connect extends Tools {
   }
 
   getJson(config) {
-    return FlutterV2ray.parseFromURL(config);
+    return VibeCore.parseFromURL(config);
   }
 
   // Add Fragment, Mux, ...
@@ -175,10 +175,10 @@ class Connect extends Tools {
     try {
       String parser = "";
       bool requestPermission =
-          typeDis != "quick" ? await flutterV2ray.requestPermission() : true;
+          typeDis != "quick" ? await vibeCoreMain.requestPermission() : true;
       if (requestPermission) {
         try {
-          var parsedConfig = FlutterV2ray.parseFromURL(config);
+          var parsedConfig = VibeCore.parseFromURL(config);
           parser = parsedConfig != null
               ? parsedConfig.getFullConfiguration()
               : config;
@@ -188,7 +188,7 @@ class Connect extends Tools {
 
         int ping = -1;
         try {
-          ping = await flutterV2ray
+          ping = await vibeCoreMain
               .getServerDelay(config: parser)
               .timeout(Duration(seconds: 4), onTimeout: () => -1);
         } catch (_) {
@@ -214,7 +214,7 @@ class Connect extends Tools {
           settings.setValue("config_backup", "");
         }
 
-        flutterV2ray.startV2Ray(
+        vibeCoreMain.startV2Ray(
           remark: "Freedom Guard",
           config: parsedJson,
           blockedApps: (await settings.getValue("split_app"))
@@ -480,10 +480,10 @@ class Tools {
   bool _isConnected = false;
   bool get isConnected => _isConnected;
   SettingsApp settings = new SettingsApp();
-  late final FlutterV2ray flutterV2ray;
+  late final VibeCore vibeCoreMain;
 
   Tools() {
-    flutterV2ray = FlutterV2ray(
+    vibeCoreMain = VibeCore(
       onStatusChanged: (status) {
         v2rayStatus.value = status;
         _isConnected = status.state == "CONNECTED";
@@ -493,7 +493,7 @@ class Tools {
   }
   Future<void> _initializeV2RayOnce() async {
     try {
-      await flutterV2ray.initializeV2Ray();
+      await vibeCoreMain.initializeV2Ray();
     } catch (e, stackTrace) {
       _log("خطا در مقداردهی اولیه VIBE: $e\nStackTrace: $stackTrace",
           type: "add");
@@ -523,7 +523,7 @@ class Tools {
   }
 
   Future<int> getConnectedDelay() async {
-    return await flutterV2ray
+    return await vibeCoreMain
         .getConnectedServerDelay()
         .timeout(Duration(seconds: 7), onTimeout: () {
       return -1;
@@ -532,9 +532,9 @@ class Tools {
 
   Future<int> testConfig(String config, {String type = "normal"}) async {
     try {
-      final parser = FlutterV2ray.parseFromURL(config);
+      final parser = VibeCore.parseFromURL(config);
 
-      final ping = await flutterV2ray
+      final ping = await vibeCoreMain
           .getServerDelay(config: parser.getFullConfiguration())
           .timeout(
         const Duration(seconds: 6),

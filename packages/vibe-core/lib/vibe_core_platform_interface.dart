@@ -1,25 +1,25 @@
 import 'package:vibe_core/model/v2ray_status.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'flutter_v2ray_method_channel.dart';
+import 'vibe_core_method_channel.dart';
 
-abstract class FlutterV2rayPlatform extends PlatformInterface {
-  /// Constructs a FlutterV2rayPlatform.
-  FlutterV2rayPlatform() : super(token: _token);
+abstract class VibeCorePlatform extends PlatformInterface {
+  /// Constructs a VibeCorePlatform.
+  VibeCorePlatform() : super(token: _token);
 
   static final Object _token = Object();
 
-  static FlutterV2rayPlatform _instance = MethodChannelFlutterV2ray();
+  static VibeCorePlatform _instance = MethodChannelFlutterV2ray();
 
-  /// The default instance of [FlutterV2rayPlatform] to use.
+  /// The default instance of [VibeCorePlatform] to use.
   ///
   /// Defaults to [MethodChannelFlutterV2ray].
-  static FlutterV2rayPlatform get instance => _instance;
+  static VibeCorePlatform get instance => _instance;
 
   /// Platform-specific implementations should set this with their own
-  /// platform-specific class that extends [FlutterV2rayPlatform] when
+  /// platform-specific class that extends [VibeCorePlatform] when
   /// they register themselves.
-  static set instance(FlutterV2rayPlatform instance) {
+  static set instance(VibeCorePlatform instance) {
     PlatformInterface.verifyToken(instance, _token);
     _instance = instance;
   }

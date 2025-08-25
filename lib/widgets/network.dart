@@ -5,7 +5,7 @@ import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:vibe_core/flutter_v2ray.dart';
+import 'package:vibe_core/vibe_core.dart';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/global.dart';
 

@@ -23,6 +23,6 @@ flutter:
     platforms:
       android:
         package: com.fg.vibe
-        pluginClass: FlutterV2rayPlugin
+        pluginClass: VibeCorePlugin
       ios:
-        pluginClass: FlutterV2rayPlugin
+        pluginClass: VibeCorePlugin

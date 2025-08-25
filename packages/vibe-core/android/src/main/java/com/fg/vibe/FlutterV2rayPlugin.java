@@ -29,10 +29,7 @@ import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
 
-/**
- * FlutterV2rayPlugin
- */
-public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginRegistry.ActivityResultListener {
+public class VibeCorePlugin implements FlutterPlugin, ActivityAware, PluginRegistry.ActivityResultListener {
 
     private static final int REQUEST_CODE_VPN_PERMISSION = 24;
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1;
@@ -47,8 +44,8 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
     @SuppressLint("DiscouragedApi")
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
-        vpnControlMethod = new MethodChannel(binding.getBinaryMessenger(), "flutter_v2ray");
-        vpnStatusEvent = new EventChannel(binding.getBinaryMessenger(), "flutter_v2ray/status");
+        vpnControlMethod = new MethodChannel(binding.getBinaryMessenger(), "vibe_core");
+        vpnStatusEvent = new EventChannel(binding.getBinaryMessenger(), "vibe_core/status");
 
         vpnStatusEvent.setStreamHandler(new EventChannel.StreamHandler() {
             @Override
@@ -97,7 +94,7 @@ public class FlutterV2rayPlugin implements FlutterPlugin, ActivityAware, PluginR
                 case "initializeV2Ray":
                     String iconResourceName = call.argument("notificationIconResourceName");
                     String iconResourceType = call.argument("notificationIconResourceType");
-                    V2rayController.init(binding.getApplicationContext(), binding.getApplicationContext().getResources().getIdentifier(iconResourceName, iconResourceType, binding.getApplicationContext().getPackageName()), "Flutter V2ray");
+                    V2rayController.init(binding.getApplicationContext(), binding.getApplicationContext().getResources().getIdentifier(iconResourceName, iconResourceType, binding.getApplicationContext().getPackageName()), "Vibe Core");
                     result.success(null);
                     break;
                 case "getServerDelay":
