@@ -342,29 +342,22 @@ public final class V2rayCoreManager {
             config_json.remove("routing");
             config_json.put("routing", new_routing_json);
             java.util.concurrent.Callable<Long> task = () -> Libv2ray.measureOutboundDelay(config_json.toString(), url);
-            java.util.concurrent.ExecutorService executor = Executors.newSingleThreadExecutor();
-            java.util.concurrent.Future<Long> future = executor.submit(task);
+            java.util.concurrent.Future<Long> future = delayTestExecutor.submit(task);
             try {
                 Long result = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
-                executor.shutdownNow();
                 return result != null ? result : -1L;
             } catch (Exception e) {
                 future.cancel(true);
-                executor.shutdownNow();
                 return -1L;
             }
         } catch (Exception json_error) {
-            Log.e("getV2rayServerDelay", json_error.toString());
             java.util.concurrent.Callable<Long> task = () -> Libv2ray.measureOutboundDelay(config, url);
-            java.util.concurrent.ExecutorService executor = Executors.newSingleThreadExecutor();
-            java.util.concurrent.Future<Long> future = executor.submit(task);
+            java.util.concurrent.Future<Long> future = delayTestExecutor.submit(task);
             try {
                 Long result = future.get(5, java.util.concurrent.TimeUnit.SECONDS);
-                executor.shutdownNow();
                 return result != null ? result : -1L;
             } catch (Exception e) {
                 future.cancel(true);
-                executor.shutdownNow();
                 return -1L;
             }
         }
