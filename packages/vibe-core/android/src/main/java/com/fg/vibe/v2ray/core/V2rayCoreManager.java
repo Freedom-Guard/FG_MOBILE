@@ -29,6 +29,10 @@ import com.fg.vibe.v2ray.utils.V2rayConfig;
 
 import org.json.JSONObject;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 import libv2ray.Libv2ray;
 import libv2ray.V2RayPoint;
 import libv2ray.V2RayVPNServiceSupportsSet;
@@ -90,6 +94,8 @@ public final class V2rayCoreManager {
     private int seconds, minutes, hours;
     private long totalDownload, totalUpload, uploadSpeed, downloadSpeed;
     private String SERVICE_DURATION = "00:00:00";
+
+    private final ExecutorService delayTestExecutor = Executors.newFixedThreadPool(5); // حداکثر ۵ تست همزمان
 
     public static V2rayCoreManager getInstance() {
         if (INSTANCE == null) {
@@ -330,22 +336,37 @@ public final class V2rayCoreManager {
     }
 
     public Long getV2rayServerDelay(final String config, final String url) {
-        try {
+        final int MAX_ATTEMPTS = 3;
+        final long RETRY_DELAY_MS = 120L; 
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             try {
-                JSONObject config_json = new JSONObject(config);
-                JSONObject new_routing_json = config_json.getJSONObject("routing");
-                new_routing_json.remove("rules");
-                config_json.remove("routing");
-                config_json.put("routing", new_routing_json);
-                return Libv2ray.measureOutboundDelay(config_json.toString(), url);
-            } catch (Exception json_error) {
-                Log.e("getV2rayServerDelay", json_error.toString());
-                return Libv2ray.measureOutboundDelay(config, url);
+                try {
+                    JSONObject config_json = new JSONObject(config);
+                    JSONObject new_routing_json = config_json.getJSONObject("routing");
+                    new_routing_json.remove("rules");
+                    config_json.remove("routing");
+                    config_json.put("routing", new_routing_json);
+                    long delay = Libv2ray.measureOutboundDelay(config_json.toString(), url);
+                    if (delay >= 0) return delay;
+                } catch (Exception json_error) {
+                    Log.e("getV2rayServerDelay", json_error.toString());
+                    long delay = Libv2ray.measureOutboundDelay(config, url);
+                    if (delay >= 0) return delay;
+                }
+            } catch (Exception e) {
+                Log.e("getV2rayServerDelayCore", e.toString());
             }
-        } catch (Exception e) {
-            Log.e("getV2rayServerDelayCore", e.toString());
-            return -1L;
+            try {
+                Thread.sleep(RETRY_DELAY_MS);
+            } catch (InterruptedException ignored) {}
         }
+        return -1L;
+    }
+
+    private final ExecutorService delayTestExecutor = Executors.newFixedThreadPool(5); // حداکثر ۵ تست همزمان
+
+    public Future<Long> getV2rayServerDelayAsync(final String config, final String url) {
+        return delayTestExecutor.submit(() -> getV2rayServerDelay(config, url));
     }
 
 }
