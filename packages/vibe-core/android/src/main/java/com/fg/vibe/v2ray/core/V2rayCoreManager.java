@@ -95,7 +95,6 @@ public final class V2rayCoreManager {
     private long totalDownload, totalUpload, uploadSpeed, downloadSpeed;
     private String SERVICE_DURATION = "00:00:00";
 
-    private final ExecutorService delayTestExecutor = Executors.newFixedThreadPool(5); // حداکثر ۵ تست همزمان
 
     public static V2rayCoreManager getInstance() {
         if (INSTANCE == null) {
