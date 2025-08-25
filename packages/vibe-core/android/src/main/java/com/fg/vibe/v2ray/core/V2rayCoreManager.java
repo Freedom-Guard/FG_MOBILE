@@ -370,7 +370,7 @@ public final class V2rayCoreManager {
         }
     }
 
-    private final ExecutorService delayTestExecutor = Executors.newFixedThreadPool(5); // حداکثر ۵ تست همزمان
+    private final ExecutorService delayTestExecutor = Executors.newFixedThreadPool(5);
 
     public Future<Long> getV2rayServerDelayAsync(final String config, final String url) {
         return delayTestExecutor.submit(() -> getV2rayServerDelay(config, url));
