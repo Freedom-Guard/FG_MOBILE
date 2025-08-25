@@ -398,7 +398,6 @@ Future<void> rating(String docID) async {
 Future<bool> connectFL() async {
   try {
     final configs = await restoreConfigs();
-    });
     for (var config in configs) {
       final configStr = config['config'] as String;
       final message = config['message'] ?? "";
