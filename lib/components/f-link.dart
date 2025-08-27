@@ -54,7 +54,7 @@ Future<void> processFailedUpdates() async {
           .collection('configs')
           .doc(docId)
           .update({'connected': FieldValue.increment(increment)}).timeout(
-              Duration(seconds: 10), onTimeout: () {
+              Duration(seconds: 7), onTimeout: () {
         throw "";
       });
     } catch (e) {
@@ -288,7 +288,7 @@ Future<bool> tryConnect(String config, String docId, String message_old,
         docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
 
         await docRef.update({'connected': FieldValue.increment(1)}).timeout(
-            Duration(seconds: 5), onTimeout: () {
+            Duration(seconds: 3), onTimeout: () {
           throw "";
         });
       } on FirebaseException catch (e) {
@@ -314,7 +314,10 @@ Future<bool> tryConnect(String config, String docId, String message_old,
 
   try {
     docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
-    await docRef.update({'connected': FieldValue.increment(-1)});
+    await docRef.update({'connected': FieldValue.increment(1)}).timeout(
+        Duration(seconds: 3), onTimeout: () {
+      throw "";
+    });
   } on FirebaseException catch (e) {
     await saveFailedUpdate(docId, -1);
     LogOverlay.addLog(
