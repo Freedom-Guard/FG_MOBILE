@@ -400,7 +400,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                 ),
                 const SizedBox(height: 16),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     IconButton(
                       icon: Icon(
@@ -426,7 +426,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                     ),
                     IconButton(
                       icon: Icon(
-                        Icons.build,
+                        Icons.build_rounded,
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       tooltip: 'Add Manual Config',
