@@ -530,18 +530,12 @@ class Tools {
     return jsonEncode(parsedJson);
   }
 
-
   Future<int> testConfig(String config, {String type = "normal"}) async {
     try {
       final parser = VibeCore.parseFromURL(config);
-      var parserFinal;
-      try {
-        parserFinal = await addOptionsToVibe(parser.getFullConfiguration());
-      } catch (_) {
-        parserFinal = parser.getFullConfiguration();
-      }
-      final ping =
-          await vibeCoreMain.getServerDelay(config: parserFinal).timeout(
+      final ping = await vibeCoreMain
+          .getServerDelay(config: parser.getFullConfiguration())
+          .timeout(
         const Duration(seconds: 6),
         onTimeout: () {
           type != "f_link"
