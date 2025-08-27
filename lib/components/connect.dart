@@ -533,7 +533,12 @@ class Tools {
   Future<int> testConfig(String config, {String type = "normal"}) async {
     try {
       final parser = VibeCore.parseFromURL(config);
-      final parserFinal = await addOptionsToVibe(parser.getFullConfiguration());
+      var parserFinal;
+      try {
+        parserFinal = await addOptionsToVibe(parser.getFullConfiguration());
+      } catch (_) {
+        parserFinal = parser.getFullConfiguration();
+      }
       final ping =
           await vibeCoreMain.getServerDelay(config: parserFinal).timeout(
         const Duration(seconds: 6),
