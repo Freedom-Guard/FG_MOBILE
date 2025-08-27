@@ -530,6 +530,7 @@ class Tools {
     return jsonEncode(parsedJson);
   }
 
+
   Future<int> testConfig(String config, {String type = "normal"}) async {
     try {
       final parser = VibeCore.parseFromURL(config);

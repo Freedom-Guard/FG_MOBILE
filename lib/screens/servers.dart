@@ -10,6 +10,7 @@ import 'package:Freedom_Guard/main.dart';
 import 'package:Freedom_Guard/screens/cfg.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:Freedom_Guard/widgets/encrypt.dart';
+import 'package:Freedom_Guard/widgets/enter_config.dart';
 import 'package:Freedom_Guard/widgets/qr_code.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -421,6 +422,19 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                       onPressed: () {
                         Navigator.pop(context);
                         _importConfigFromFile();
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.build,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      tooltip: 'Add Manual Config',
+                      onPressed: () async {
+                        final config = await showManualConfigDialog(context);
+                        if (config != null) {
+                          _addServer(config);
+                        }
                       },
                     ),
                   ],
