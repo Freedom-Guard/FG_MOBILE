@@ -5,7 +5,7 @@ import 'model/v2ray_status.dart' show V2RayStatus;
 import 'vibe_core_platform_interface.dart';
 
 /// An implementation of [VibeCorePlatform] that uses method channels.
-class MethodChannelFlutterV2ray extends VibeCorePlatform {
+class MethodChannelVibeCore extends VibeCorePlatform {
   /// The method channel used to interact with the native platform.
   @visibleForTesting
   final methodChannel = const MethodChannel('vibe_core');

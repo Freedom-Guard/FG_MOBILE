@@ -9,11 +9,11 @@ abstract class VibeCorePlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static VibeCorePlatform _instance = MethodChannelFlutterV2ray();
+  static VibeCorePlatform _instance = MethodChannelVibeCore();
 
   /// The default instance of [VibeCorePlatform] to use.
   ///
-  /// Defaults to [MethodChannelFlutterV2ray].
+  /// Defaults to [MethodChannelVibeCore].
   static VibeCorePlatform get instance => _instance;
 
   /// Platform-specific implementations should set this with their own
