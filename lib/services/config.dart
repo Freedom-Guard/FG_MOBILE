@@ -15,9 +15,12 @@ String getNameByConfig(String config) {
     final decodedConfig = VibeCore.parseFromURL(
         config.startsWith("vmess") ? config.split("#")[0] : config);
     try {
-      return Uri.decodeComponent(decodedConfig.remark);
+      return Uri.decodeComponent(
+          decodedConfig.remark == "" ? "Unnamed Server" : decodedConfig.remark);
     } catch (_) {
-      return decodedConfig.remark;
+      return decodedConfig.remark == ""
+          ? "Unnamed Server"
+          : decodedConfig.remark;
     }
   } catch (_) {
     try {

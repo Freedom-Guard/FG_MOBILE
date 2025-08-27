@@ -6,6 +6,7 @@ import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:Freedom_Guard/main.dart';
 import 'package:Freedom_Guard/screens/cfg.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:Freedom_Guard/widgets/encrypt.dart';
@@ -23,7 +24,7 @@ class ServersPage extends StatefulWidget {
   State<ServersPage> createState() => _ServersPageState();
 }
 
-class _ServersPageState extends State<ServersPage> {
+class _ServersPageState extends State<ServersPage> with RouteAware {
   bool isLoading = true;
   List<String> servers = [];
   List<String> filteredServers = [];
@@ -46,9 +47,21 @@ class _ServersPageState extends State<ServersPage> {
 
   @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     serverController.dispose();
     searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)! as PageRoute);
+  }
+
+  @override
+  void didPopNext() {
+    _restoreServers();
   }
 
   Future<void> _loadServersAndInit() async {

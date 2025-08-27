@@ -306,6 +306,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
       setState(() {
         selectedConfig = config;
       });
+
       LogOverlay.addLog('Selected: ${getConfigName(config)}');
     } catch (e) {
       LogOverlay.showLog('Failed to select config: $e');

@@ -16,6 +16,8 @@ import 'components/LOGLOG.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
 void main() async {
   await WidgetsFlutterBinding.ensureInitialized();
 
@@ -47,6 +49,7 @@ void main() async {
         builder: (context, themeNotifier, _) {
           return MaterialApp(
             navigatorKey: LogOverlay.navigatorKey,
+            navigatorObservers: [routeObserver],
             debugShowCheckedModeBanner: false,
             theme: themeNotifier.currentTheme,
             initialRoute: '/',
