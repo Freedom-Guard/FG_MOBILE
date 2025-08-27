@@ -46,122 +46,6 @@ class Connect extends Tools {
     return VibeCore.parseFromURL(config);
   }
 
-  // Add Fragment, Mux, ...
-  Future<String> addOptionsToVibe(dynamic parsedJson) async {
-    final settingsValues = await Future.wait([
-      settings.getValue("mux"),
-      settings.getValue("fragment"),
-      settings.getValue("bypass_iran"),
-      settings.getBool("child_lock_enabled"),
-      settings.getValue("block_ads_trackers"),
-      settings.getList("preferred_dns"),
-      settings.getValue("fakedns"),
-    ]);
-    String mux = settingsValues[0] as String;
-    String fragment = settingsValues[1] as String;
-    String bypassIran = settingsValues[2] as String;
-    bool childLock = settingsValues[3] as bool;
-    String blockTADS = settingsValues[4] as String;
-    List dnsServers = settingsValues[5] as List;
-    String fakeDns = settingsValues[6] as String;
-    if (parsedJson is Map<String, dynamic>) {
-      parsedJson["outbounds"] ??= [];
-      parsedJson["routing"] ??= {};
-      parsedJson["routing"]["rules"] ??= [];
-      parsedJson["outbounds"].add({
-        "protocol": "blackhole",
-        "tag": "blockedrule",
-        "settings": {
-          "response": {"type": "http"},
-        },
-      });
-
-      parsedJson["dns"] ??= {};
-      parsedJson["dns"]["servers"] ??= [];
-
-      if (dnsServers.isNotEmpty) {
-        parsedJson["dns"]["servers"] = dnsServers;
-      }
-
-      if (bypassIran == "true") {
-        (parsedJson["routing"]["rules"] as List).add({
-          "type": "field",
-          "ip": ["geoip:ir"],
-          "outboundTag": "direct",
-        });
-      }
-
-      if (childLock) {
-        parsedJson["routing"]["rules"].add({
-          "type": "field",
-          "domain": ["geosite:category-adult"],
-          "outboundTag": "blockedrule",
-        });
-      }
-
-      if (blockTADS == "true") {
-        (parsedJson["routing"]["rules"] as List).add({
-          "type": "field",
-          "domain": [
-            "geosite:category-ads-all",
-            "geosite:category-public-tracker",
-          ],
-          "outboundTag": "blockedrule",
-        });
-      }
-
-      if (mux.trim().isNotEmpty) {
-        try {
-          final muxJson = json.decode(mux);
-          if (muxJson is Map && muxJson["enabled"] == true) {
-            for (var outbound in parsedJson["outbounds"]) {
-              if (outbound is Map<String, dynamic>) {
-                final protocol = outbound["protocol"];
-                if (protocol != 'freedom' &&
-                    protocol != 'blackhole' &&
-                    protocol != 'direct') {
-                  outbound["mux"] = muxJson;
-                }
-              }
-            }
-          }
-        } catch (e) {}
-      }
-
-      if (fragment.trim().isNotEmpty) {
-        try {
-          final fragJson = json.decode(fragment);
-          if (fragJson is Map && fragJson["enabled"] == true) {
-            for (var outbound in parsedJson["outbounds"]) {
-              if (outbound is Map<String, dynamic> &&
-                  outbound["protocol"] == 'freedom') {
-                outbound["settings"] ??= {};
-                (outbound["settings"] as Map<String, dynamic>)["fragment"] =
-                    fragJson;
-              }
-            }
-          }
-        } catch (e) {}
-      }
-
-      if (fakeDns.trim().isNotEmpty) {
-        try {
-          final fakeJson = json.decode(fakeDns);
-          if (fakeJson is Map && fakeJson["enabled"] == true) {
-            parsedJson["fakedns"] = [
-              {
-                "ipPool": fakeJson["ipPool"],
-                "poolSize": fakeJson["lruSize"],
-              }
-            ];
-            (parsedJson["dns"]["servers"] as List).insert(0, "fakedns");
-          }
-        } catch (e) {}
-      }
-    }
-    return jsonEncode(parsedJson);
-  }
-
   // Connects to a single V2Ray config
   Future<bool> ConnectVibe(String config, dynamic args,
       {typeDis = "normal"}) async {
@@ -530,13 +414,128 @@ class Tools {
     });
   }
 
+  // Add Fragment, Mux, ...
+  Future<String> addOptionsToVibe(dynamic parsedJson) async {
+    final settingsValues = await Future.wait([
+      settings.getValue("mux"),
+      settings.getValue("fragment"),
+      settings.getValue("bypass_iran"),
+      settings.getBool("child_lock_enabled"),
+      settings.getValue("block_ads_trackers"),
+      settings.getList("preferred_dns"),
+      settings.getValue("fakedns"),
+    ]);
+    String mux = settingsValues[0] as String;
+    String fragment = settingsValues[1] as String;
+    String bypassIran = settingsValues[2] as String;
+    bool childLock = settingsValues[3] as bool;
+    String blockTADS = settingsValues[4] as String;
+    List dnsServers = settingsValues[5] as List;
+    String fakeDns = settingsValues[6] as String;
+    if (parsedJson is Map<String, dynamic>) {
+      parsedJson["outbounds"] ??= [];
+      parsedJson["routing"] ??= {};
+      parsedJson["routing"]["rules"] ??= [];
+      parsedJson["outbounds"].add({
+        "protocol": "blackhole",
+        "tag": "blockedrule",
+        "settings": {
+          "response": {"type": "http"},
+        },
+      });
+
+      parsedJson["dns"] ??= {};
+      parsedJson["dns"]["servers"] ??= [];
+
+      if (dnsServers.isNotEmpty) {
+        parsedJson["dns"]["servers"] = dnsServers;
+      }
+
+      if (bypassIran == "true") {
+        (parsedJson["routing"]["rules"] as List).add({
+          "type": "field",
+          "ip": ["geoip:ir"],
+          "outboundTag": "direct",
+        });
+      }
+
+      if (childLock) {
+        parsedJson["routing"]["rules"].add({
+          "type": "field",
+          "domain": ["geosite:category-adult"],
+          "outboundTag": "blockedrule",
+        });
+      }
+
+      if (blockTADS == "true") {
+        (parsedJson["routing"]["rules"] as List).add({
+          "type": "field",
+          "domain": [
+            "geosite:category-ads-all",
+            "geosite:category-public-tracker",
+          ],
+          "outboundTag": "blockedrule",
+        });
+      }
+
+      if (mux.trim().isNotEmpty) {
+        try {
+          final muxJson = json.decode(mux);
+          if (muxJson is Map && muxJson["enabled"] == true) {
+            for (var outbound in parsedJson["outbounds"]) {
+              if (outbound is Map<String, dynamic>) {
+                final protocol = outbound["protocol"];
+                if (protocol != 'freedom' &&
+                    protocol != 'blackhole' &&
+                    protocol != 'direct') {
+                  outbound["mux"] = muxJson;
+                }
+              }
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (fragment.trim().isNotEmpty) {
+        try {
+          final fragJson = json.decode(fragment);
+          if (fragJson is Map && fragJson["enabled"] == true) {
+            for (var outbound in parsedJson["outbounds"]) {
+              if (outbound is Map<String, dynamic> &&
+                  outbound["protocol"] == 'freedom') {
+                outbound["settings"] ??= {};
+                (outbound["settings"] as Map<String, dynamic>)["fragment"] =
+                    fragJson;
+              }
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (fakeDns.trim().isNotEmpty) {
+        try {
+          final fakeJson = json.decode(fakeDns);
+          if (fakeJson is Map && fakeJson["enabled"] == true) {
+            parsedJson["fakedns"] = [
+              {
+                "ipPool": fakeJson["ipPool"],
+                "poolSize": fakeJson["lruSize"],
+              }
+            ];
+            (parsedJson["dns"]["servers"] as List).insert(0, "fakedns");
+          }
+        } catch (e) {}
+      }
+    }
+    return jsonEncode(parsedJson);
+  }
+
   Future<int> testConfig(String config, {String type = "normal"}) async {
     try {
       final parser = VibeCore.parseFromURL(config);
-
-      final ping = await vibeCoreMain
-          .getServerDelay(config: parser.getFullConfiguration())
-          .timeout(
+      final parserFinal = await addOptionsToVibe(parser.getFullConfiguration());
+      final ping =
+          await vibeCoreMain.getServerDelay(config: parserFinal).timeout(
         const Duration(seconds: 6),
         onTimeout: () {
           type != "f_link"
