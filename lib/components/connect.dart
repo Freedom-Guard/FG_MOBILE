@@ -74,7 +74,7 @@ class Connect extends Tools {
         try {
           ping = await vibeCoreMain
               .getServerDelay(config: parser)
-              .timeout(Duration(seconds: 4), onTimeout: () => -1);
+              .timeout(Duration(seconds: 2), onTimeout: () => -1);
         } catch (_) {
           ping = -1;
         }

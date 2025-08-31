@@ -214,7 +214,7 @@ class SafeMode {
                     ],
                   ),
                 ));
-        return userConfirmed ?? false;
+        return userConfirmed;
       }
       LogOverlay.showToast(
           "🔒 Configuration secured! Security Score: $securityScore%");

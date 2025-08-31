@@ -65,10 +65,14 @@ class MethodChannelVibeCore extends VibeCorePlatform {
   @override
   Future<int> getServerDelay(
       {required String config, required String url}) async {
-    return await methodChannel.invokeMethod('getServerDelay', {
-      "config": config,
-      "url": url,
-    });
+    try {
+      return await methodChannel.invokeMethod('getServerDelay', {
+        "config": config,
+        "url": url,
+      });
+    } catch (e) {
+      return -1;
+    }
   }
 
   @override

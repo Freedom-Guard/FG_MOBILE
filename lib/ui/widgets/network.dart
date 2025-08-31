@@ -390,7 +390,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
       tween: Tween<double>(begin: 0, end: 1),
       builder: (context, value, _) {
         return Opacity(
-          opacity: value as double,
+          opacity: value,
           child: Transform.translate(
             offset: Offset(0, 20 * (1 - (value))),
             child: child,
