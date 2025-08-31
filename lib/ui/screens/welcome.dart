@@ -1,5 +1,5 @@
-import 'package:Freedom_Guard/components/LOGLOG.dart';
-import 'package:Freedom_Guard/screens/home_screen.dart';
+import 'package:Freedom_Guard/utils/LOGLOG.dart';
+import 'package:Freedom_Guard/ui/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';

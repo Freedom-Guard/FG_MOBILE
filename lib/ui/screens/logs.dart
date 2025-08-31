@@ -2,7 +2,7 @@ import 'package:Freedom_Guard/components/local.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
-import '/components/LOGLOG.dart';
+import '../../utils/LOGLOG.dart';
 
 class LogPage extends StatefulWidget {
   @override

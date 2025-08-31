@@ -1,4 +1,4 @@
-import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:flutter/material.dart';

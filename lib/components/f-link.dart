@@ -1,5 +1,5 @@
-import 'package:Freedom_Guard/components/LOGLOG.dart';
-import 'package:Freedom_Guard/components/global.dart';
+import 'package:Freedom_Guard/utils/LOGLOG.dart';
+import 'package:Freedom_Guard/core/global.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
@@ -121,7 +121,7 @@ Future<bool> donateCONFIG(String config,
     final statsRef =
         FirebaseFirestore.instance.collection('usageStats').doc(ipId);
     final statsSnap =
-        await statsRef.get().timeout(Duration(seconds: 7), onTimeout: () {
+        await statsRef.get().timeout(Duration(seconds: 3), onTimeout: () {
       throw "";
     });
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -342,6 +342,8 @@ Future<void> addISPToConfig(String docId, String isp) async {
     final docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
     await docRef.update({
       'ispList': FieldValue.arrayUnion([isp])
+    }).timeout(Duration(seconds: 3), onTimeout: () {
+      throw "";
     });
     LogOverlay.addLog("ISP added to config: $isp");
   } catch (e) {

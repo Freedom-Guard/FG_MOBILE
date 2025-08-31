@@ -1,5 +1,5 @@
 import 'package:Freedom_Guard/components/local.dart';
-import 'package:Freedom_Guard/widgets/theme/theme.dart';
+import 'package:Freedom_Guard/ui/widgets/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

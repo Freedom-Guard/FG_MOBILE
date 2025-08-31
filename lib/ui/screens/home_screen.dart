@@ -1,21 +1,22 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
-import 'package:Freedom_Guard/components/global.dart';
+import 'package:Freedom_Guard/core/global.dart';
 import 'package:Freedom_Guard/components/services.dart';
-import 'package:Freedom_Guard/widgets/CBar.dart';
-import 'package:Freedom_Guard/widgets/nav.dart';
-import 'package:Freedom_Guard/widgets/network.dart';
-import 'package:Freedom_Guard/widgets/theme/theme.dart';
+import 'package:Freedom_Guard/core/async_runner.dart';
+import 'package:Freedom_Guard/ui/widgets/CBar.dart';
+import 'package:Freedom_Guard/ui/widgets/nav.dart';
+import 'package:Freedom_Guard/ui/widgets/network.dart';
+import 'package:Freedom_Guard/ui/widgets/theme/theme.dart';
 import 'package:Freedom_Guard/components/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
-import 'package:Freedom_Guard/screens/servers.dart';
-import 'package:Freedom_Guard/screens/settings.dart';
+import 'package:Freedom_Guard/ui/screens/servers.dart';
+import 'package:Freedom_Guard/ui/screens/settings.dart';
 import 'package:Freedom_Guard/ui/animations/connect.dart';
-import 'package:Freedom_Guard/widgets/fragment.dart';
+import 'package:Freedom_Guard/ui/widgets/fragment.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -190,11 +191,11 @@ class _HomeContentState extends State<HomeContent>
         }
         if (selectedServer.split("#")[0].isEmpty) {
           LogOverlay.showLog("connecting to FL mode...");
-          connStat =
-              await connectFL().timeout(Duration(seconds: 15), onTimeout: () {
-            LogOverlay.addLog("Connection to FL mode timed out.");
-            return false;
-          });
+          final result = await AsyncRunner.runWithTimeout(
+            () => connectFL(),
+            timeout: Duration(seconds: 20),
+          );
+
           if (!connStat) {
             LogOverlay.showLog(
               "connecting to Repo mode...",

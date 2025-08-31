@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/safe_mode.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';

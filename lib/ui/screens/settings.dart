@@ -1,11 +1,11 @@
 import 'dart:ui';
-import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
-import 'package:Freedom_Guard/screens/f-link.dart';
-import 'package:Freedom_Guard/screens/split.dart';
-import 'package:Freedom_Guard/widgets/about.dart';
-import 'package:Freedom_Guard/widgets/theme/dialog.dart';
+import 'package:Freedom_Guard/ui/screens/f-link.dart';
+import 'package:Freedom_Guard/ui/screens/split.dart';
+import 'package:Freedom_Guard/ui/widgets/about.dart';
+import 'package:Freedom_Guard/ui/widgets/theme/dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

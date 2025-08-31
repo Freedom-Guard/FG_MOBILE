@@ -1,4 +1,4 @@
-import 'package:Freedom_Guard/components/LOGLOG.dart';
+import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/services.dart';
 import 'package:Freedom_Guard/components/settings.dart';
