@@ -1,6 +1,14 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as path;
+
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/local.dart';
@@ -12,15 +20,10 @@ import 'package:Freedom_Guard/services/config.dart';
 import 'package:Freedom_Guard/ui/widgets/encrypt.dart';
 import 'package:Freedom_Guard/ui/widgets/enter_config.dart';
 import 'package:Freedom_Guard/ui/widgets/qr_code.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:path/path.dart' as path;
 
 class ServersPage extends StatefulWidget {
+  const ServersPage({super.key});
+
   @override
   State<ServersPage> createState() => _ServersPageState();
 }
@@ -73,9 +76,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
       await _restoreSelectedServer();
     } finally {
       if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
+        setState(() => isLoading = false);
       }
     }
   }
@@ -176,49 +177,22 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   void _confirmRemoveServer(String serverToRemove) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 15,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Text(
-              tr('are-you-sure-you-want-to-delete-this-server'),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            ),
-          ),
-        ),
-        title: Text(
-          tr('delete-server'),
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-        ),
+      builder: (context) => _buildDialog(
+        title: tr('delete-server'),
+        content: tr('are-you-sure-you-want-to-delete-this-server'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              tr('cancel'),
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
+            child: Text(tr('cancel'),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _removeServer(serverToRemove);
             },
-            child: Text(
-              tr('delete'),
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
+            child: Text(tr('delete'),
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),
@@ -248,50 +222,26 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 15,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: TextField(
-              controller: controller,
-              maxLines: null,
-              keyboardType: TextInputType.multiline,
-              decoration: InputDecoration(
-                hintText: 'Enter server configuration',
-                border: InputBorder.none,
-                hintStyle: TextStyle(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                ),
-              ),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            ),
+      builder: (context) => _buildDialog(
+        title: tr('edit-server'),
+        contentWidget: TextField(
+          controller: controller,
+          maxLines: null,
+          keyboardType: TextInputType.multiline,
+          decoration: InputDecoration(
+            hintText: 'Enter server configuration',
+            border: InputBorder.none,
+            hintStyle: TextStyle(
+                color:
+                    Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
           ),
-        ),
-        title: Text(
-          tr('edit-server'),
           style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              tr('cancel'),
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
+            child: Text(tr('cancel'),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
           ),
           TextButton(
             onPressed: () {
@@ -303,10 +253,8 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
               }
               Navigator.pop(context);
             },
-            child: Text(
-              tr('save'),
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
+            child: Text(tr('save'),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
           ),
         ],
       ),
@@ -363,107 +311,71 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   void _showAddServerDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 15,
-                  spreadRadius: 1,
-                ),
-              ],
+      builder: (context) => _buildDialog(
+        title: tr('add-server'),
+        contentWidget: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: serverController,
+              decoration: InputDecoration(
+                hintText: tr('enter-server-config'),
+                border: InputBorder.none,
+                hintStyle: TextStyle(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.5)),
+              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                TextField(
-                  controller: serverController,
-                  decoration: InputDecoration(
-                    hintText: tr('enter-server-config'),
-                    border: InputBorder.none,
-                    hintStyle: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.5),
-                    ),
-                  ),
-                  style:
-                      TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                _buildIconButton(
+                  icon: Icons.content_paste,
+                  tooltip: 'Paste from clipboard',
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _addFromClipboard();
+                  },
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.content_paste,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      tooltip: 'Paste from clipboard',
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _addFromClipboard();
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.folder_open,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      tooltip: 'Import from file',
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _importConfigFromFile();
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.build_rounded,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      tooltip: 'Add Manual Config',
-                      onPressed: () async {
-                        final config = await showManualConfigDialog(context);
-                        if (config != null) {
-                          _addServer(config);
-                        }
-                      },
-                    ),
-                  ],
+                _buildIconButton(
+                  icon: Icons.folder_open,
+                  tooltip: 'Import from file',
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _importConfigFromFile();
+                  },
+                ),
+                _buildIconButton(
+                  icon: Icons.build_rounded,
+                  tooltip: 'Add Manual Config',
+                  onPressed: () async {
+                    final config = await showManualConfigDialog(context);
+                    if (config != null) {
+                      _addServer(config);
+                    }
+                  },
                 ),
               ],
             ),
-          ),
-        ),
-        title: Text(
-          tr('add-server'),
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              tr('cancel'),
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
+            child: Text(tr('cancel'),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
           ),
           TextButton(
             onPressed: () {
               _addServer(serverController.text);
               Navigator.pop(context);
             },
-            child: Text(
-              tr('add'),
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
+            child: Text(tr('add'),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
           ),
         ],
       ),
@@ -526,40 +438,14 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   void _removeAllServers() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.9),
-                  blurRadius: 15,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Text(
-              tr('are-you-sure-you-want-to-delete-all-servers'),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            ),
-          ),
-        ),
-        title: Text(
-          tr('remove-all-servers'),
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-        ),
+      builder: (context) => _buildDialog(
+        title: tr('remove-all-servers'),
+        content: tr('are-you-sure-you-want-to-delete-all-servers'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              tr('cancel'),
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
+            child: Text(tr('cancel'),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
           ),
           TextButton(
             onPressed: () {
@@ -571,10 +457,8 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
               _saveServers();
               Navigator.pop(context);
             },
-            child: Text(
-              tr('delete'),
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
+            child: Text(tr('delete'),
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
       ),
@@ -582,186 +466,124 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   }
 
   void _showAppBarOptions(BuildContext context) {
-    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: theme.colorScheme.surface.withOpacity(0.05),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      builder: (context) => ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.5),
-                blurRadius: 15,
-                spreadRadius: 1,
-              ),
-            ],
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildBottomSheet(
+        children: [
+          ListTile(
+            leading: Icon(Icons.refresh,
+                color: Theme.of(context).colorScheme.primary),
+            title: Text(tr('refresh'),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+            onTap: () {
+              Navigator.pop(context);
+              _refreshSubscriptions();
+            },
           ),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading:
-                      Icon(Icons.refresh, color: theme.colorScheme.primary),
-                  title: Text(
-                    tr('refresh'),
-                    style: TextStyle(color: theme.colorScheme.onSurface),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _refreshSubscriptions();
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.vpn_key_rounded,
-                      color: theme.colorScheme.secondary),
-                  title: Text(
-                    'Encrypt/Decrypt',
-                    style: TextStyle(color: theme.colorScheme.onSurface),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    showEncryptDecryptDialog(context);
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.delete_forever,
-                      color: theme.colorScheme.error),
-                  title: Text(
-                    tr('delete-all-servers'),
-                    style: TextStyle(color: theme.colorScheme.error),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _removeAllServers();
-                  },
-                ),
-              ],
-            ),
+          ListTile(
+            leading: Icon(Icons.vpn_key_rounded,
+                color: Theme.of(context).colorScheme.secondary),
+            title: Text('Encrypt/Decrypt',
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+            onTap: () {
+              Navigator.pop(context);
+              showEncryptDecryptDialog(context);
+            },
           ),
-        ),
+          ListTile(
+            leading: Icon(Icons.delete_forever,
+                color: Theme.of(context).colorScheme.error),
+            title: Text(tr('delete-all-servers'),
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            onTap: () {
+              Navigator.pop(context);
+              _removeAllServers();
+            },
+          ),
+        ],
       ),
     );
   }
 
   void _showServerOptions(BuildContext context, String server) {
-    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: theme.colorScheme.surface.withOpacity(0.05),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      builder: (context) => ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 15,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: SafeArea(
-              child: Directionality(
-                textDirection:
-                    getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ListTile(
-                      leading:
-                          Icon(Icons.edit, color: theme.colorScheme.primary),
-                      title: Text(
-                        tr('edit'),
-                        style: TextStyle(color: theme.colorScheme.onSurface),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _editServer(server);
-                      },
-                    ),
-                    if (server.startsWith("freedom-guard://") ||
-                        server.startsWith("http"))
-                      ListTile(
-                        leading: Icon(Icons.rocket_launch,
-                            color: theme.colorScheme.primary),
-                        title: Text(
-                          'CFG',
-                          style: TextStyle(color: theme.colorScheme.onSurface),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          settings.setValue("selectedSubLink", server);
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => CFGPage()));
-                        },
-                      ),
-                    ListTile(
-                      leading:
-                          Icon(Icons.share, color: theme.colorScheme.primary),
-                      title: Text(
-                        tr('share'),
-                        style: TextStyle(color: theme.colorScheme.onSurface),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _shareServer(server);
-                      },
-                    ),
-                    ListTile(
-                      leading:
-                          Icon(Icons.qr_code, color: theme.colorScheme.primary),
-                      title: Text(
-                        tr('qr-code'),
-                        style: TextStyle(color: theme.colorScheme.onSurface),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        showQRCode(context, server);
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.volunteer_activism,
-                          color: theme.colorScheme.primary),
-                      title: Text(
-                        tr('donate'),
-                        style: TextStyle(color: theme.colorScheme.onSurface),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        donateCONFIG(server);
-                      },
-                    ),
-                    ListTile(
-                      leading:
-                          Icon(Icons.delete, color: theme.colorScheme.error),
-                      title: Text(
-                        tr('delete'),
-                        style: TextStyle(color: theme.colorScheme.error),
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _confirmRemoveServer(server);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildBottomSheet(
+        children: [
+          ListTile(
+            leading:
+                Icon(Icons.edit, color: Theme.of(context).colorScheme.primary),
+            title: Text(tr('edit'),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+            onTap: () {
+              Navigator.pop(context);
+              _editServer(server);
+            },
           ),
-        ),
+          if (server.startsWith("freedom-guard://") ||
+              server.startsWith("http"))
+            ListTile(
+              leading: Icon(Icons.rocket_launch,
+                  color: Theme.of(context).colorScheme.primary),
+              title: Text('CFG',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface)),
+              onTap: () {
+                Navigator.pop(context);
+                settings.setValue("selectedSubLink", server);
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => CFGPage()));
+              },
+            ),
+          ListTile(
+            leading:
+                Icon(Icons.share, color: Theme.of(context).colorScheme.primary),
+            title: Text(tr('share'),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+            onTap: () {
+              Navigator.pop(context);
+              _shareServer(server);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.qr_code,
+                color: Theme.of(context).colorScheme.primary),
+            title: Text(tr('qr-code'),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+            onTap: () {
+              Navigator.pop(context);
+              showQRCode(context, server);
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.volunteer_activism,
+                color: Theme.of(context).colorScheme.primary),
+            title: Text(tr('donate'),
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+            onTap: () {
+              Navigator.pop(context);
+              donateCONFIG(server);
+            },
+          ),
+          ListTile(
+            leading:
+                Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+            title: Text(tr('delete'),
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            onTap: () {
+              Navigator.pop(context);
+              _confirmRemoveServer(server);
+            },
+          ),
+        ],
       ),
     );
   }
@@ -771,19 +593,16 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
     if (ping == null) {
       return Text(
         server.startsWith("http")
-            ? server.startsWith("freedom-guard")
-                ? 'SUB (FG)'
-                : "SUB"
+            ? (server.startsWith("freedom-guard") ? 'SUB (FG)' : "SUB")
             : 'Not tested',
         style: TextStyle(
-          color: theme.colorScheme.onSurface.withOpacity(0.7),
-        ),
+            color: theme.colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
       );
     }
     if (ping == -1) {
       return Text(
         'Unreachable',
-        style: TextStyle(color: theme.colorScheme.error),
+        style: TextStyle(color: theme.colorScheme.error, fontSize: 12),
       );
     }
 
@@ -812,9 +631,74 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
           '${ping}ms',
           textDirection:
               getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
-          style: TextStyle(color: color, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: color, fontWeight: FontWeight.bold, fontSize: 12),
         ),
       ],
+    );
+  }
+
+  Widget _buildDialog({
+    required String title,
+    String? content,
+    Widget? contentWidget,
+    required List<Widget> actions,
+  }) {
+    return AlertDialog(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      content: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: contentWidget ??
+              Text(content!,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface)),
+        ),
+      ),
+      title: Text(title,
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+      actions: actions,
+    );
+  }
+
+  Widget _buildBottomSheet({required List<Widget> children}) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withOpacity(0.2),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            border: Border.all(
+                color:
+                    Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: children,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconButton(
+      {required IconData icon,
+      required String tooltip,
+      required VoidCallback onPressed}) {
+    return IconButton(
+      icon: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
+      tooltip: tooltip,
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+        padding: const EdgeInsets.all(8),
+      ),
     );
   }
 
@@ -826,8 +710,14 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
       child: Scaffold(
         extendBody: true,
         appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text(tr('manage-servers-page')),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          elevation: 0,
+          title: Text(
+            tr('manage-servers-page'),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           actions: [
             IconButton(
               icon: isPingingAll
@@ -835,11 +725,10 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                       width: 24,
                       height: 24,
                       child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: theme.colorScheme.onPrimary,
-                      ),
+                          strokeWidth: 2, color: theme.colorScheme.onPrimary),
                     )
-                  : const Icon(Icons.network_check),
+                  : Icon(Icons.network_check,
+                      color: theme.colorScheme.onPrimary),
               tooltip: 'Ping All',
               onPressed: isPingingAll ? null : _pingAllServers,
             ),
@@ -854,85 +743,75 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
               onPressed: _toggleSortByPing,
             ),
             IconButton(
-              icon: const Icon(Icons.add),
+              icon: Icon(Icons.add, color: theme.colorScheme.onPrimary),
               tooltip: 'Add Server',
               onPressed: () => _showAddServerDialog(context),
             ),
             IconButton(
-              icon: const Icon(Icons.more_vert),
+              icon: Icon(Icons.more_vert, color: theme.colorScheme.onPrimary),
               tooltip: 'More Options',
               onPressed: () => _showAppBarOptions(context),
             ),
           ],
         ),
-        body: isLoading
-            ? Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
-                          blurRadius: 15,
-                          spreadRadius: 1,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.colorScheme.primary.withOpacity(0.1),
+                theme.colorScheme.secondary.withOpacity(0.1),
+              ],
+            ),
+          ),
+          child: isLoading
+              ? Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                              color:
+                                  theme.colorScheme.onSurface.withOpacity(0.1)),
                         ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: CircularProgressIndicator(
-                      color: theme.colorScheme.primary,
+                        child: CircularProgressIndicator(
+                            color: theme.colorScheme.primary),
+                      ),
                     ),
                   ),
-                ),
-              )
-            : Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Theme.of(context).colorScheme.primary.withOpacity(0.15),
-                      Theme.of(context).colorScheme.secondary.withOpacity(0.15),
-                    ],
-                  ),
-                ),
-                child: Column(
+                )
+              : Column(
                   children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(16),
                         child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                           child: Container(
                             decoration: BoxDecoration(
-                              color:
-                                  theme.colorScheme.surface.withOpacity(0.05),
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.03),
-                                  blurRadius: 15,
-                                  spreadRadius: 1,
-                                ),
-                              ],
+                              color: theme.colorScheme.surface.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                  color: theme.colorScheme.onSurface
+                                      .withOpacity(0.1)),
                             ),
                             child: TextField(
                               controller: searchController,
                               decoration: InputDecoration(
                                 hintText: tr('search-servers'),
-                                prefixIcon: Icon(
-                                  Icons.search,
-                                  color: theme.colorScheme.primary,
-                                ),
+                                prefixIcon: Icon(Icons.search,
+                                    color: theme.colorScheme.primary),
                                 border: InputBorder.none,
                                 hintStyle: TextStyle(
-                                  color: theme.colorScheme.onSurface
-                                      .withOpacity(0.5),
-                                ),
+                                    color: theme.colorScheme.onSurface
+                                        .withOpacity(0.5)),
                               ),
                               style:
                                   TextStyle(color: theme.colorScheme.onSurface),
@@ -945,24 +824,20 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                       child: filteredServers.isEmpty
                           ? Center(
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(16),
                                 child: BackdropFilter(
                                   filter:
-                                      ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                                      ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                                   child: Container(
+                                    padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
                                       color: theme.colorScheme.surface
-                                          .withOpacity(0.05),
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.03),
-                                          blurRadius: 15,
-                                          spreadRadius: 1,
-                                        ),
-                                      ],
+                                          .withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                          color: theme.colorScheme.onSurface
+                                              .withOpacity(0.1)),
                                     ),
-                                    padding: const EdgeInsets.all(16),
                                     child: Text(
                                       'No servers found!',
                                       style:
@@ -976,7 +851,8 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                               ),
                             )
                           : ListView.builder(
-                              padding: const EdgeInsets.only(bottom: 80),
+                              padding: const EdgeInsets.only(
+                                  bottom: 80, left: 16, right: 16),
                               itemCount: filteredServers.length,
                               itemBuilder: (context, index) {
                                 final server = filteredServers[index];
@@ -985,90 +861,96 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                                 final ping = serverPingTimes[server];
 
                                 return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 6, horizontal: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 6),
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.08),
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.03),
-                                            blurRadius: 15,
-                                            spreadRadius: 3,
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                          sigmaX: 10, sigmaY: 10),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.surface
+                                              .withOpacity(0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? theme.colorScheme.primary
+                                                    .withOpacity(0.3)
+                                                : theme.colorScheme.onSurface
+                                                    .withOpacity(0.1),
+                                            width: 2,
                                           ),
-                                        ],
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? theme.colorScheme.primary
-                                                  .withOpacity(0.3)
-                                              : Colors.transparent,
-                                          width: 3.5,
                                         ),
-                                      ),
-                                      child: InkWell(
-                                        onTap: () async {
-                                          await serversManage
-                                              .selectServer(server);
-                                          if (mounted) setState(() {});
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 12),
-                                          child: Row(
-                                            children: [
-                                              const SizedBox(width: 8),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      getNameByConfig(server),
-                                                      style: theme
-                                                          .textTheme.titleMedium
-                                                          ?.copyWith(
-                                                        fontWeight: isSelected
-                                                            ? FontWeight.bold
-                                                            : FontWeight.normal,
-                                                        color: theme.colorScheme
-                                                            .onSurface,
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            onTap: () async {
+                                              await serversManage
+                                                  .selectServer(server);
+                                              if (mounted) setState(() {});
+                                            },
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 16),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          getNameByConfig(
+                                                              server),
+                                                          style: theme.textTheme
+                                                              .titleMedium
+                                                              ?.copyWith(
+                                                            fontWeight:
+                                                                isSelected
+                                                                    ? FontWeight
+                                                                        .bold
+                                                                    : FontWeight
+                                                                        .normal,
+                                                            color: theme
+                                                                .colorScheme
+                                                                .onSurface,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 4),
+                                                        _buildPingIndicator(
+                                                            ping,
+                                                            context,
+                                                            server),
+                                                      ],
                                                     ),
-                                                    const SizedBox(height: 4),
-                                                    _buildPingIndicator(
-                                                        ping, context, server),
-                                                  ],
-                                                ),
+                                                  ),
+                                                  _buildIconButton(
+                                                    icon: Icons.network_check,
+                                                    tooltip: 'Ping Server',
+                                                    onPressed: () =>
+                                                        _pingServer(server),
+                                                  ),
+                                                  _buildIconButton(
+                                                    icon: Icons.more_vert,
+                                                    tooltip: 'Options',
+                                                    onPressed: () =>
+                                                        _showServerOptions(
+                                                            context, server),
+                                                  ),
+                                                ],
                                               ),
-                                              IconButton(
-                                                icon: Icon(
-                                                  Icons.network_check,
-                                                  color:
-                                                      theme.colorScheme.primary,
-                                                ),
-                                                tooltip: 'Ping Server',
-                                                onPressed: () =>
-                                                    _pingServer(server),
-                                              ),
-                                              IconButton(
-                                                icon: Icon(
-                                                  Icons.more_vert,
-                                                  color:
-                                                      theme.colorScheme.primary,
-                                                ),
-                                                tooltip: 'Options',
-                                                onPressed: () =>
-                                                    _showServerOptions(
-                                                        context, server),
-                                              ),
-                                            ],
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -1078,10 +960,9 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                               },
                             ),
                     ),
-                    SizedBox(height: 10),
                   ],
                 ),
-              ),
+        ),
       ),
     );
   }

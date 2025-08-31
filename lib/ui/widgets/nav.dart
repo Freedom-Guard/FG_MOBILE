@@ -51,7 +51,7 @@ class BottomNavBar extends StatelessWidget {
               children: [
                 _buildNavItem(Icons.settings_rounded, 0, context),
                 _buildNavItem(Icons.home_rounded, 1, context),
-                _buildNavItem(Icons.cloud_sync_rounded, 2, context),
+                _buildNavItem(Icons.cloud, 2, context),
               ],
             ),
           ),

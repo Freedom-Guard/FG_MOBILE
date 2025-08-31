@@ -39,14 +39,14 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       extendBody: true,
-      appBar: _currentIndex == 1 // Show AppBar only for HomeContent
+      appBar: _currentIndex == 1
           ? PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: ClipRRect(
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                   child: AppBar(
-                    backgroundColor: Colors.black.withOpacity(0.0),
+                    backgroundColor: Colors.white.withOpacity(0.0),
                     centerTitle: true,
                     leading: IconButton(
                       icon: const Icon(Icons.cable),

@@ -58,10 +58,13 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Scaffold(
         extendBody: true,
         appBar: AppBar(
-          automaticallyImplyLeading: false,
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          elevation: 0,
           title: Text(
-            tr("settings"),
-            style: TextStyle(fontWeight: FontWeight.bold),
+            tr('settings'),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           actions: [
             IconButton(
