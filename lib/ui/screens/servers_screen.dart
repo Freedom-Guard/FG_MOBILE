@@ -917,6 +917,9 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                                         child: Material(
                                           color: Colors.transparent,
                                           child: InkWell(
+                                            splashColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
+                                            hoverColor: Colors.transparent,
                                             borderRadius:
                                                 BorderRadius.circular(16),
                                             onTap: () async {
