@@ -590,51 +590,85 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
 
   Widget _buildPingIndicator(int? ping, BuildContext context, String server) {
     final theme = Theme.of(context);
-    if (ping == null) {
-      return Text(
-        server.startsWith("http")
-            ? (server.startsWith("freedom-guard") ? 'SUB (FG)' : "SUB")
-            : 'Not tested',
-        style: TextStyle(
-            color: theme.colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
-      );
-    }
-    if (ping == -1) {
-      return Text(
-        'Unreachable',
-        style: TextStyle(color: theme.colorScheme.error, fontSize: 12),
-      );
-    }
-
-    Color color;
-    if (ping < 200) {
-      color = Colors.green;
-    } else if (ping < 500) {
-      color = Colors.orange;
+    String label;
+    Color labelColor;
+    if (server.startsWith("http")) {
+      label = "SUB";
+      labelColor = theme.colorScheme.secondary;
+    } else if (server.startsWith("freedom-guard")) {
+      label = "SUB (FG)";
+      labelColor = theme.colorScheme.secondary;
+    } else if (server.split("#")[0].isEmpty) {
+      label = "Mode";
+      labelColor = theme.colorScheme.primary;
+    } else if (ping == null) {
+      label = "Not Tested";
+      labelColor = theme.colorScheme.onSurface.withOpacity(0.7);
+    } else if (ping == -1) {
+      label = "Unreachable";
+      labelColor = theme.colorScheme.error;
     } else {
-      color = Colors.red;
+      Color color;
+      if (ping < 200) {
+        color = Colors.green;
+      } else if (ping < 500) {
+        color = Colors.orange;
+      } else {
+        color = Colors.red;
+      }
+      String protocol = "Unknown";
+      if (server.contains("://")) {
+        protocol = server.split("://")[0].toUpperCase();
+      }
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            ping < 200
+                ? Icons.signal_cellular_4_bar_outlined
+                : (ping < 500
+                    ? Icons.signal_cellular_alt_2_bar
+                    : Icons.signal_cellular_alt_1_bar),
+            color: color,
+            size: 16,
+          ),
+          const SizedBox(width: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: color.withOpacity(0.3)),
+            ),
+            child: Text(
+              '$protocol • ${ping}ms',
+              textDirection:
+                  getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      );
     }
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          ping < 200
-              ? Icons.signal_cellular_4_bar_outlined
-              : (ping < 500
-                  ? Icons.signal_cellular_alt_2_bar
-                  : Icons.signal_cellular_alt_1_bar),
-          color: color,
-          size: 16,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: labelColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: labelColor.withOpacity(0.3)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: labelColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
         ),
-        const SizedBox(width: 4),
-        Text(
-          '${ping}ms',
-          textDirection:
-              getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
-          style: TextStyle(
-              color: color, fontWeight: FontWeight.bold, fontSize: 12),
-        ),
-      ],
+      ),
     );
   }
 
