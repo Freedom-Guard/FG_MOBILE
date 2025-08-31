@@ -299,7 +299,11 @@ class SettingSwitch extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.08),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+              width: 2,
+            ),
+            color: Theme.of(context).colorScheme.surface.withOpacity(0.3),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
