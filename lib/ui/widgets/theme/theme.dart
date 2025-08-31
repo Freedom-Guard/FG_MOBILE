@@ -112,6 +112,7 @@ final neonDevTheme = ThemeData(
   highlightColor: Colors.transparent,
   hoverColor: Colors.transparent,
 );
+
 final blackAndWhiteTheme = ThemeData(
   brightness: Brightness.dark,
   colorScheme: const ColorScheme.dark(
@@ -139,6 +140,7 @@ final blackAndWhiteTheme = ThemeData(
   highlightColor: Colors.transparent,
   hoverColor: Colors.transparent,
 );
+
 final cyberPulseTheme = ThemeData(
   brightness: Brightness.dark,
   colorScheme: const ColorScheme.dark(
@@ -279,6 +281,146 @@ final quantumSparkTheme = ThemeData(
   hoverColor: Colors.transparent,
 );
 
+final twilightVibesTheme = ThemeData(
+  brightness: Brightness.dark,
+  colorScheme: const ColorScheme.dark(
+    primary: Color(0xFF8B5CF6),
+    secondary: Color(0xFF22D3EE),
+    surface: Color(0xFF19192B),
+    background: Color(0xFF0F0F1E),
+    error: Color(0xFFFF4C5B),
+    onPrimary: Colors.white,
+    onSecondary: Colors.black,
+    onSurface: Color(0xFFD4D4D8),
+    onBackground: Color(0xFFE4E4E7),
+    onError: Colors.white,
+  ),
+  scaffoldBackgroundColor: Color(0xFF0F0F1E),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF8B5CF6),
+    foregroundColor: Colors.white,
+    elevation: 0,
+  ),
+  cardColor: Color(0xFF25253A),
+  dividerColor: Color(0xFF3C3C50),
+  dialogBackgroundColor: Color(0xFF19192B),
+  splashColor: Colors.transparent,
+  highlightColor: Colors.transparent,
+  hoverColor: Colors.transparent,
+);
+
+final midnightBloomTheme = ThemeData(
+  brightness: Brightness.dark,
+  colorScheme: const ColorScheme.dark(
+    primary: Color(0xFFD946EF),
+    secondary: Color(0xFF3B82F6),
+    surface: Color(0xFF1C1C2E),
+    background: Color(0xFF0C0C1B),
+    error: Color(0xFFFF4C5B),
+    onPrimary: Colors.white,
+    onSecondary: Colors.black,
+    onSurface: Color(0xFFD1D5DB),
+    onBackground: Color(0xFFE5E7EB),
+    onError: Colors.white,
+  ),
+  scaffoldBackgroundColor: Color(0xFF0C0C1B),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFFD946EF),
+    foregroundColor: Colors.white,
+    elevation: 0,
+  ),
+  cardColor: Color(0xFF27273B),
+  dividerColor: Color(0xFF404055),
+  dialogBackgroundColor: Color(0xFF1C1C2E),
+  splashColor: Colors.transparent,
+  highlightColor: Colors.transparent,
+  hoverColor: Colors.transparent,
+);
+
+final auroraPulseTheme = ThemeData(
+  brightness: Brightness.dark,
+  colorScheme: const ColorScheme.dark(
+    primary: Color(0xFF10B981),
+    secondary: Color(0xFF60A5FA),
+    surface: Color(0xFF1A202C),
+    background: Color(0xFF0D1117),
+    error: Color(0xFFFF4C5B),
+    onPrimary: Colors.white,
+    onSecondary: Colors.black,
+    onSurface: Color(0xFFD1D5DB),
+    onBackground: Color(0xFFE5E7EB),
+    onError: Colors.white,
+  ),
+  scaffoldBackgroundColor: Color(0xFF0D1117),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF10B981),
+    foregroundColor: Colors.white,
+    elevation: 0,
+  ),
+  cardColor: Color(0xFF2D3748),
+  dividerColor: Color(0xFF4A5568),
+  dialogBackgroundColor: Color(0xFF1A202C),
+  splashColor: Colors.transparent,
+  highlightColor: Colors.transparent,
+  hoverColor: Colors.transparent,
+);
+
+final starlightGlowTheme = ThemeData(
+  brightness: Brightness.dark,
+  colorScheme: const ColorScheme.dark(
+    primary: Color(0xFFF472B6),
+    secondary: Color(0xFF38BDF8),
+    surface: Color(0xFF1F1F2D),
+    background: Color(0xFF0F0F1A),
+    error: Color(0xFFFF4C5B),
+    onPrimary: Colors.white,
+    onSecondary: Colors.black,
+    onSurface: Color(0xFFE0E0F0),
+    onBackground: Color(0xFFD0D2E0),
+    onError: Colors.white,
+  ),
+  scaffoldBackgroundColor: Color(0xFF0F0F1A),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFFF472B6),
+    foregroundColor: Colors.white,
+    elevation: 0,
+  ),
+  cardColor: Color(0xFF2A2A3E),
+  dividerColor: Color(0xFF3A3B4D),
+  dialogBackgroundColor: Color(0xFF1F1F2D),
+  splashColor: Colors.transparent,
+  highlightColor: Colors.transparent,
+  hoverColor: Colors.transparent,
+);
+
+final voidNebulaTheme = ThemeData(
+  brightness: Brightness.dark,
+  colorScheme: const ColorScheme.dark(
+    primary: Color(0xFF6366F1),
+    secondary: Color(0xFFEC4899),
+    surface: Color(0xFF1E1E2E),
+    background: Color(0xFF0A0A14),
+    error: Color(0xFFFF4C5B),
+    onPrimary: Colors.white,
+    onSecondary: Colors.black,
+    onSurface: Color(0xFFD4D4D8),
+    onBackground: Color(0xFFE4E4E7),
+    onError: Colors.white,
+  ),
+  scaffoldBackgroundColor: Color(0xFF0A0A14),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF6366F1),
+    foregroundColor: Colors.white,
+    elevation: 0,
+  ),
+  cardColor: Color(0xFF25253A),
+  dividerColor: Color(0xFF3C3C50),
+  dialogBackgroundColor: Color(0xFF1E1E2E),
+  splashColor: Colors.transparent,
+  highlightColor: Colors.transparent,
+  hoverColor: Colors.transparent,
+);
+
 class ThemeNotifier extends ChangeNotifier {
   ThemeData _currentTheme;
   String _currentThemeName;
@@ -299,7 +441,12 @@ class ThemeNotifier extends ChangeNotifier {
     'Galactic Glow': galacticGlowTheme,
     'Quantum Spark': quantumSparkTheme,
     'Black and White': blackAndWhiteTheme,
-    'Reset': defaultDarkTheme
+    'Twilight Vibes': twilightVibesTheme,
+    'Midnight Bloom': midnightBloomTheme,
+    'Aurora Pulse': auroraPulseTheme,
+    'Starlight Glow': starlightGlowTheme,
+    'Void Nebula': voidNebulaTheme,
+    'Reset': defaultDarkTheme,
   };
 
   static Future<ThemeNotifier> init() async {
@@ -318,23 +465,33 @@ class ThemeNotifier extends ChangeNotifier {
   List<Color>? getDisconnectedGradient() {
     switch (_currentThemeName) {
       case 'Default Dark':
-        return [Color(0xFF6B4AB8), Color.fromARGB(255, 74, 13, 218)];
+        return [Color(0xAA3A2A6B), Color.fromARGB(170, 44, 8, 130)];
       case 'Programmer':
-        return [Color(0xFF009966), Color.fromARGB(255, 0, 238, 159)];
+        return [Color(0xAA00533D), Color.fromARGB(170, 0, 143, 95)];
       case 'Matrix':
-        return [Color(0xFF007744), Color.fromARGB(255, 0, 248, 232)];
+        return [Color(0xAA004729), Color.fromARGB(170, 0, 149, 139)];
       case 'Neon Dev':
-        return [Color(0xFFAA00AA), Color.fromARGB(255, 156, 0, 170)];
+        return [Color(0xAA660066), Color.fromARGB(170, 93, 0, 102)];
       case 'Cyber Pulse':
-        return [Color(0xFFAA2244), Color.fromARGB(255, 250, 0, 62)];
+        return [Color(0xAA661428), Color.fromARGB(170, 150, 0, 37)];
       case 'Cosmic Void':
-        return [Color(0xFF3B2A9C), Color.fromARGB(255, 0, 0, 233)];
+        return [Color(0xAA231A5C), Color.fromARGB(170, 0, 0, 140)];
       case 'Neon Abyss':
-        return [Color(0xFFAA0055), Color.fromARGB(255, 255, 0, 128)];
+        return [Color(0xAA660033), Color.fromARGB(170, 153, 0, 77)];
       case 'Galactic Glow':
-        return [Color(0xFFAA4444), Color.fromARGB(255, 170, 57, 23)];
+        return [Color(0xAA662828), Color.fromARGB(170, 102, 34, 14)];
       case 'Quantum Spark':
-        return [Color(0xFF5C2A8C), Color.fromARGB(255, 132, 0, 255)];
+        return [Color(0xAA351A53), Color.fromARGB(170, 79, 0, 153)];
+      case 'Twilight Vibes':
+        return [Color(0xAA4B2E8A), Color.fromARGB(170, 14, 81, 94)];
+      case 'Midnight Bloom':
+        return [Color(0xAA7A2787), Color.fromARGB(170, 27, 46, 94)];
+      case 'Aurora Pulse':
+        return [Color(0xAA086A4B), Color.fromARGB(170, 36, 62, 94)];
+      case 'Starlight Glow':
+        return [Color(0xAA8A3F6A), Color.fromARGB(170, 20, 71, 94)];
+      case 'Void Nebula':
+        return [Color(0xAA372A87), Color.fromARGB(170, 83, 35, 94)];
       default:
         return null;
     }

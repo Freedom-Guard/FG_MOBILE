@@ -385,7 +385,7 @@ class _PrivacyWelcomeScreenState extends State<PrivacyWelcomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Transform.scale(
-                    scale: 0.9,
+                    scale: 1.0,
                     child: Checkbox(
                       value: _acceptedPrivacy,
                       onChanged: (value) {
@@ -438,9 +438,7 @@ class _PrivacyWelcomeScreenState extends State<PrivacyWelcomeScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               color: Theme.of(context).colorScheme.secondary,
-                              decoration: TextDecoration.underline,
-                              decorationColor:
-                                  Theme.of(context).colorScheme.secondary,
+                              fontWeight: FontWeight.bold,
                               fontFamily: _language == 'fa' ? 'Vazir' : null,
                             ),
                           ),

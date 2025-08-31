@@ -74,7 +74,7 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.volunteer_activism, color: Colors.red),
+              icon: const Icon(Icons.volunteer_activism),
               onPressed: () {
                 Navigator.push(
                   context,
