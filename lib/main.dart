@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/ui/screens/home_screen.dart';
-import 'package:Freedom_Guard/ui/screens/welcome.dart';
+import 'package:Freedom_Guard/ui/screens/welcome_screen.dart';
 import 'package:Freedom_Guard/services/quick_connect.dart';
 import 'package:Freedom_Guard/ui/widgets/theme/theme.dart';
 import 'package:Freedom_Guard/components/servers.dart';

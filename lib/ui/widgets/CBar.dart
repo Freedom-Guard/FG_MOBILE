@@ -1,11 +1,11 @@
 import 'dart:ui';
 import 'package:Freedom_Guard/ui/screens/browser.dart';
-import 'package:Freedom_Guard/ui/screens/cfg.dart';
-import 'package:Freedom_Guard/ui/screens/f-link.dart';
+import 'package:Freedom_Guard/ui/screens/cfg_screen.dart';
+import 'package:Freedom_Guard/ui/screens/f-link_screen.dart';
 import 'package:Freedom_Guard/ui/screens/host_checker.dart';
-import 'package:Freedom_Guard/ui/screens/logs.dart';
-import 'package:Freedom_Guard/ui/screens/notif.dart';
-import 'package:Freedom_Guard/ui/screens/speedtest.dart';
+import 'package:Freedom_Guard/ui/screens/logs_screen.dart';
+import 'package:Freedom_Guard/ui/screens/notif_screen.dart';
+import 'package:Freedom_Guard/ui/screens/speedtest_screen.dart';
 import 'package:Freedom_Guard/ui/widgets/dns.dart';
 import 'package:Freedom_Guard/components/local.dart';
 

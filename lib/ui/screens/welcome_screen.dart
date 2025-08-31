@@ -66,20 +66,11 @@ class _PrivacyWelcomeScreenState extends State<PrivacyWelcomeScreen> {
   }
 
   Future<void> _savePreferenceAndNavigate() async {
-    if (_acceptedPrivacy) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('privacy_accepted', true);
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => MainScreen()),
-        );
-      }
-    } else {
-      LogOverlay.showLog(
-        _language == 'fa'
-            ? 'لطفاً سیاست حریم خصوصی را بپذیرید'
-            : 'Please accept the privacy policy',
-        type: "error",
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('privacy_accepted', true);
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => MainScreen()),
       );
     }
   }
@@ -119,14 +110,16 @@ class _PrivacyWelcomeScreenState extends State<PrivacyWelcomeScreen> {
                                   style: TextStyle(
                                       fontFamily: 'Vazir',
                                       fontWeight: FontWeight.w600,
-                                      fontSize: 16)),
+                                      fontSize: 16,
+                                      color: Colors.white)),
                             ),
                             DropdownMenuItem(
                               value: 'en',
                               child: Text('English',
                                   style: TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      fontSize: 16)),
+                                      fontSize: 16,
+                                      color: Colors.white)),
                             ),
                           ],
                           onChanged: (value) {
@@ -146,7 +139,15 @@ class _PrivacyWelcomeScreenState extends State<PrivacyWelcomeScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: _savePreferenceAndNavigate,
+                        onTap: () {
+                          LogOverlay.showLog(
+                            _language == 'fa'
+                                ? 'با ادامه دادن، سیاست حریم خصوصی را می‌پذیرید'
+                                : 'By continuing, you accept the privacy policy',
+                            type: "info",
+                          );
+                          _savePreferenceAndNavigate();
+                        },
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 10),
@@ -222,7 +223,8 @@ class _PrivacyWelcomeScreenState extends State<PrivacyWelcomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
                           _totalPages,
-                          (index) => Container(
+                          (index) => AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
                             margin: const EdgeInsets.symmetric(horizontal: 4),
                             width: _currentPage == index ? 20 : 8,
                             height: 8,
@@ -235,10 +237,11 @@ class _PrivacyWelcomeScreenState extends State<PrivacyWelcomeScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       GestureDetector(
                         onTap: _nextPage,
-                        child: Container(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           decoration: BoxDecoration(
@@ -255,8 +258,8 @@ class _PrivacyWelcomeScreenState extends State<PrivacyWelcomeScreen> {
                                     .colorScheme
                                     .secondary
                                     .withOpacity(0.2),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
@@ -292,159 +295,174 @@ class _PrivacyWelcomeScreenState extends State<PrivacyWelcomeScreen> {
     required String title,
     required String description,
   }) {
-    return Padding(
-      padding: const EdgeInsets.all(36),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 100,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-          const SizedBox(height: 24),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              fontFamily: _language == 'fa' ? 'Vazir' : null,
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(36),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 100,
+              color: Theme.of(context).colorScheme.secondary,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.9),
-              fontFamily: _language == 'fa' ? 'Vazir' : null,
+            const SizedBox(height: 24),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                fontFamily: _language == 'fa' ? 'Vazir' : null,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white.withOpacity(0.9),
+                fontFamily: _language == 'fa' ? 'Vazir' : null,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPrivacyPage() {
-    return Padding(
-      padding: const EdgeInsets.all(36),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.lock_rounded,
-            size: 100,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-          const SizedBox(height: 24),
-          Text(
-            _language == 'fa'
-                ? 'حریم خصوصی، اولویت ماست'
-                : 'Privacy is Our Priority',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              fontFamily: _language == 'fa' ? 'Vazir' : null,
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.all(36),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.lock_rounded,
+              size: 100,
+              color: Theme.of(context).colorScheme.secondary,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _language == 'fa'
-                ? 'داده‌های شما را ردیابی یا ذخیره نمی‌کنیم. آزادی با امنیت کامل.'
-                : 'We don’t track or store your data. True freedom with complete security.',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.9),
-              fontFamily: _language == 'fa' ? 'Vazir' : null,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Transform.scale(
-                scale: 0.9,
-                child: Checkbox(
-                  value: _acceptedPrivacy,
-                  onChanged: (value) {
-                    setState(() {
-                      _acceptedPrivacy = value ?? false;
-                    });
-                  },
-                  activeColor: Theme.of(context).colorScheme.secondary,
-                  checkColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4)),
-                ),
+            const SizedBox(height: 24),
+            Text(
+              _language == 'fa'
+                  ? 'حریم خصوصی، اولویت ماست'
+                  : 'Privacy is Our Priority',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                fontFamily: _language == 'fa' ? 'Vazir' : null,
               ),
-              Expanded(
-                child: Wrap(
-                  alignment: WrapAlignment.start,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 4,
-                  children: [
-                    Text(
-                      _language == 'fa' ? 'من ' : 'I accept the ',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white.withOpacity(0.9),
-                        fontFamily: _language == 'fa' ? 'Vazir' : null,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () async {
-                        final Uri url = Uri.parse(
-                            'https://freedom-guard.github.io/privacy-terms.html');
-                        try {
-                          await launchUrl(url,
-                              mode: LaunchMode.externalApplication);
-                        } catch (e) {
-                          if (mounted) {
-                            LogOverlay.showLog(
-                              _language == 'fa'
-                                  ? 'خطا در باز کردن سیاست حریم خصوصی'
-                                  : 'Error opening privacy policy',
-                              type: "error",
-                            );
-                          }
-                        }
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _language == 'fa'
+                  ? 'داده‌های شما را ردیابی یا ذخیره نمی‌کنیم. آزادی با امنیت کامل.'
+                  : 'We don’t track or store your data. True freedom with complete security.',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white.withOpacity(0.9),
+                fontFamily: _language == 'fa' ? 'Vazir' : null,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Transform.scale(
+                    scale: 0.9,
+                    child: Checkbox(
+                      value: _acceptedPrivacy,
+                      onChanged: (value) {
+                        setState(() {
+                          _acceptedPrivacy = value ?? false;
+                        });
                       },
-                      child: Text(
-                        _language == 'fa'
-                            ? 'سیاست حریم خصوصی'
-                            : 'Privacy Policy',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(context).colorScheme.secondary,
-                          decoration: TextDecoration.underline,
-                          decorationColor:
-                              Theme.of(context).colorScheme.secondary,
-                          fontFamily: _language == 'fa' ? 'Vazir' : null,
+                      activeColor: Theme.of(context).colorScheme.secondary,
+                      checkColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4)),
+                    ),
+                  ),
+                  Expanded(
+                    child: Wrap(
+                      alignment: WrapAlignment.start,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 4,
+                      children: [
+                        Text(
+                          _language == 'fa' ? 'من ' : 'I accept the ',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white.withOpacity(0.9),
+                            fontFamily: _language == 'fa' ? 'Vazir' : null,
+                          ),
                         ),
-                      ),
+                        GestureDetector(
+                          onTap: () async {
+                            final Uri url = Uri.parse(
+                                'https://freedom-guard.github.io/privacy-terms.html');
+                            try {
+                              await launchUrl(url,
+                                  mode: LaunchMode.externalApplication);
+                            } catch (e) {
+                              if (mounted) {
+                                LogOverlay.showLog(
+                                  _language == 'fa'
+                                      ? 'خطا در باز کردن سیاست حریم خصوصی'
+                                      : 'Error opening privacy policy',
+                                  type: "error",
+                                );
+                              }
+                            }
+                          },
+                          child: Text(
+                            _language == 'fa'
+                                ? 'سیاست حریم خصوصی'
+                                : 'Privacy Policy',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).colorScheme.secondary,
+                              decoration: TextDecoration.underline,
+                              decorationColor:
+                                  Theme.of(context).colorScheme.secondary,
+                              fontFamily: _language == 'fa' ? 'Vazir' : null,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          _language == 'fa'
+                              ? ' گارد آزادی را می‌پذیرم'
+                              : ' of Freedom Guard',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white.withOpacity(0.9),
+                            fontFamily: _language == 'fa' ? 'Vazir' : null,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      _language == 'fa'
-                          ? ' گارد آزادی را می‌پذیرم'
-                          : ' of Freedom Guard',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white.withOpacity(0.9),
-                        fontFamily: _language == 'fa' ? 'Vazir' : null,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

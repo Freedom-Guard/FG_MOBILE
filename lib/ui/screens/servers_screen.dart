@@ -7,7 +7,7 @@ import 'package:Freedom_Guard/components/local.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/main.dart';
-import 'package:Freedom_Guard/ui/screens/cfg.dart';
+import 'package:Freedom_Guard/ui/screens/cfg_screen.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:Freedom_Guard/ui/widgets/encrypt.dart';
 import 'package:Freedom_Guard/ui/widgets/enter_config.dart';
