@@ -191,8 +191,10 @@ class _HomeContentState extends State<HomeContent>
         }
         if (selectedServer.split("#")[0].isEmpty) {
           LogOverlay.showLog("connecting to FL mode...");
-          final result = await AsyncRunner.runWithTimeout(
-            () => connectFL(),
+          connStat = await CancellableRunner.runWithTimeout(
+            (token) async {
+              return await connectFL(token);
+            },
             timeout: Duration(seconds: 20),
           );
 

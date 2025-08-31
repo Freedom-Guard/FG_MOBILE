@@ -1,3 +1,4 @@
+import 'package:Freedom_Guard/core/async_runner.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/core/global.dart';
 import 'package:Freedom_Guard/components/settings.dart';
@@ -186,24 +187,6 @@ Future<bool> donateCONFIG(String config,
 Future<List> getConfigsByISP({type = "normal"}) async {
   try {
     final userISP = await getUserISP(type: type);
-    final deviceID = await getDeviceId();
-    final ipId = 'ip-$deviceID';
-    final statsRef =
-        FirebaseFirestore.instance.collection('usageStats').doc(ipId);
-    final statsSnap = await statsRef.get();
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-
-    if (!statsSnap.exists || statsSnap.data()?['lastUpdate'] != today) {
-      await statsRef
-          .set({'createdToday': 0, 'listedToday': 1, 'lastUpdate': today});
-    } else {
-      final listed = statsSnap.data()?['listedToday'] ?? 0;
-      if (listed >= 50) {
-        LogOverlay.showLog("Daily receive limit reached", type: "warning");
-        return [];
-      }
-      await statsRef.update({'listedToday': FieldValue.increment(1)});
-    }
 
     var query = FirebaseFirestore.instance
         .collection('configs')
@@ -347,7 +330,7 @@ Future<void> addISPToConfig(String docId, String isp) async {
     });
     LogOverlay.addLog("ISP added to config: $isp");
   } catch (e) {
-    LogOverlay.showLog("Error adding ISP to config: $e", type: "error");
+    LogOverlay.addLog("Error adding ISP to config: $e");
     await cacheFailedISP(docId, isp);
   }
 }
@@ -400,16 +383,21 @@ Future<void> rating(String docID) async {
   }
 }
 
-Future<bool> connectFL() async {
+Future<bool> connectFL(CancelToken token) async {
   try {
     final configs = await restoreConfigs();
     for (var config in configs) {
+      if (token.isCanceled) return false; // check cancel
+
       final configStr = config['config'] as String;
       final message = config['message'] ?? "";
       final telegramLink = config['telegramLink'] ?? "";
       final docId = config['id'];
+
       final success = await tryConnect(configStr, docId, message, telegramLink);
       if (success) {
+        if (token.isCanceled) return false;
+
         final isp = await SettingsApp().getValue("isp");
         await addISPToConfig(docId, (isp == "" ? await getUserISP() : isp));
         return true;
@@ -418,6 +406,7 @@ Future<bool> connectFL() async {
   } catch (e) {
     LogOverlay.addLog("Error connecting FL: $e");
   }
+
   LogOverlay.addLog("Connection FL failed");
   return false;
 }

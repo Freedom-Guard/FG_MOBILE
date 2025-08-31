@@ -19,7 +19,7 @@ class BottomNavBar extends StatelessWidget {
         left: 42,
         right: 42,
         bottom: MediaQuery.of(context).padding.bottom + 8,
-        top: 12,
+        top: 6,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
