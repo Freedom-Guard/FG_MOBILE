@@ -899,13 +899,10 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                                       const EdgeInsets.symmetric(vertical: 6),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
-                                    child: BackdropFilter(
-                                      filter: ImageFilter.blur(
-                                          sigmaX: 10, sigmaY: 10),
-                                      child: Container(
+                                    child: Container(
                                         decoration: BoxDecoration(
                                           color: theme.colorScheme.surface
-                                              .withOpacity(0.2),
+                                              .withOpacity(0.3),
                                           borderRadius:
                                               BorderRadius.circular(16),
                                           border: Border.all(
@@ -987,7 +984,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                                             ),
                                           ),
                                         ),
-                                      ),
+                                      
                                     ),
                                   ),
                                 );
