@@ -94,7 +94,6 @@ class HomeContent extends StatefulWidget {
 class _HomeContentState extends State<HomeContent>
     with SingleTickerProviderStateMixin {
   bool isConnected = false;
-  String backgroundPath = BackgroundService.getRandomBackground();
   bool isPressed = false;
   bool isConnecting = false;
   late AnimationController _animationController;
@@ -117,8 +116,18 @@ class _HomeContentState extends State<HomeContent>
       ),
     );
     Future.microtask(() async {
-      String bg = await BackgroundService.getSelectedOrDefaultBackground();
-      if (mounted) setState(() => backgroundPath = bg);
+      final bgNotifier =
+          Provider.of<BackgroundNotifier>(context, listen: false);
+      String selectedIMG = await SettingsApp().getValue("selectedIMG");
+      String selectedColor = await SettingsApp().getValue("selectedColor");
+
+      if (selectedIMG != "") {
+        bgNotifier.setBackground(selectedIMG);
+      } else if (selectedColor != "") {
+        bgNotifier.setBackground(selectedColor);
+      } else {
+        bgNotifier.setBackground(BackgroundService.getRandomBackground());
+      }
       Timer.periodic(Duration(seconds: 30), (timer) async {
         final connected = await checker.checkVPN();
         if (mounted) {
