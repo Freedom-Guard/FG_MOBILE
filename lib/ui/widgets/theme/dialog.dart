@@ -1,4 +1,5 @@
 import 'package:Freedom_Guard/core/local.dart';
+import 'package:Freedom_Guard/ui/widgets/background_picker_dialog.dart';
 import 'package:Freedom_Guard/ui/widgets/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -198,7 +199,6 @@ class ThemeDialog extends StatelessWidget {
         'gradient': null,
       },
     ];
-
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -237,7 +237,7 @@ class ThemeDialog extends StatelessWidget {
               ),
             ),
             SizedBox(
-              height: 400,
+              height: 320,
               child: GridView.builder(
                 padding: const EdgeInsets.all(16),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -254,9 +254,7 @@ class ThemeDialog extends StatelessWidget {
                     onTap: () async {
                       await themeNotifier.setTheme(
                           item['theme'] as ThemeData, item['nameB'] as String);
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
+                      if (context.mounted) Navigator.of(context).pop();
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
@@ -339,27 +337,56 @@ class ThemeDialog extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: TextButton.styleFrom(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-                  foregroundColor: Theme.of(context).colorScheme.secondary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.image),
+                      label: const Text("Choose Background"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .secondary
+                            .withOpacity(0.9),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => BackgroundPickerDialog.show(context),
+                    ),
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-                child: Text(
-                  tr('close'),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                    color: Theme.of(context).colorScheme.secondary,
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .secondary
+                            .withOpacity(0.1),
+                        foregroundColor:
+                            Theme.of(context).colorScheme.secondary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        tr('close'),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ],

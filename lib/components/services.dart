@@ -16,6 +16,19 @@ class BackgroundService {
     final random = Random();
     return "assets/${_backgrounds[random.nextInt(_backgrounds.length)]}";
   }
+
+  static Future<String> getSelectedOrDefaultBackground() async {
+    final selected = await SettingsApp().getValue("selectedIMG");
+    final selectedColorStr = await SettingsApp().getValue("selectedColor");
+
+    if (selected != null && selected.isNotEmpty) {
+      return selected;
+    } else if (selectedColorStr == "") {
+      return getRandomBackground();
+    } else {
+      return selectedColorStr;
+    }
+  }
 }
 
 class checker {

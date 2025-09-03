@@ -53,6 +53,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Directionality(
       textDirection: getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
@@ -63,12 +65,13 @@ class _SettingsPageState extends State<SettingsPage> {
           title: Text(
             tr('settings'),
             style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onPrimary),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.color_lens_sharp),
+              icon: Icon(Icons.color_lens_sharp,
+                  color: theme.colorScheme.onPrimary),
               onPressed: () {
                 showDialog(
                   context: context,
@@ -77,7 +80,8 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.volunteer_activism),
+              icon: Icon(Icons.volunteer_activism,
+                  color: theme.colorScheme.onPrimary),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -88,7 +92,8 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.merge_type_sharp),
+              icon: Icon(Icons.merge_type_sharp,
+                  color: theme.colorScheme.onPrimary),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -97,7 +102,8 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.info_outline),
+              icon:
+                  Icon(Icons.info_outline, color: theme.colorScheme.onPrimary),
               onPressed: () {
                 showDialog(
                   context: context,
