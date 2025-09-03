@@ -1,4 +1,4 @@
-import 'package:Freedom_Guard/components/local.dart';
+import 'package:Freedom_Guard/core/local.dart';
 import 'package:Freedom_Guard/ui/widgets/link.dart';
 import 'package:flutter/material.dart';
 

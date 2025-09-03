@@ -7,7 +7,7 @@ import 'package:Freedom_Guard/ui/screens/logs_screen.dart';
 import 'package:Freedom_Guard/ui/screens/notif_screen.dart';
 import 'package:Freedom_Guard/ui/screens/speedtest_screen.dart';
 import 'package:Freedom_Guard/ui/widgets/dns.dart';
-import 'package:Freedom_Guard/components/local.dart';
+import 'package:Freedom_Guard/core/local.dart';
 
 import 'package:flutter/material.dart';
 

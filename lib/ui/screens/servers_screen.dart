@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'dart:io';
+import 'package:Freedom_Guard/ui/widgets/dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +12,7 @@ import 'package:path/path.dart' as path;
 
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
-import 'package:Freedom_Guard/components/local.dart';
+import 'package:Freedom_Guard/core/local.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/main.dart';
@@ -171,13 +172,16 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
       serversManage.selectServer(serverName);
       _saveServers();
       serverController.clear();
+    } else {
+      serversManage.selectServer(serverName);
     }
   }
 
   void _confirmRemoveServer(String serverToRemove) {
     showDialog(
       context: context,
-      builder: (context) => _buildDialog(
+      builder: (context) => AppDialogs.buildDialog(
+        context: context,
         title: tr('delete-server'),
         content: tr('are-you-sure-you-want-to-delete-this-server'),
         actions: [
@@ -222,7 +226,8 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
 
     showDialog(
       context: context,
-      builder: (context) => _buildDialog(
+      builder: (context) => AppDialogs.buildDialog(
+        context: context,
         title: tr('edit-server'),
         contentWidget: TextField(
           controller: controller,
@@ -311,7 +316,8 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   void _showAddServerDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => _buildDialog(
+      builder: (context) => AppDialogs.buildDialog(
+        context: context,
         title: tr('add-server'),
         contentWidget: Column(
           mainAxisSize: MainAxisSize.min,
@@ -438,7 +444,8 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   void _removeAllServers() {
     showDialog(
       context: context,
-      builder: (context) => _buildDialog(
+      builder: (context) => AppDialogs.buildDialog(
+        context: context,
         title: tr('remove-all-servers'),
         content: tr('are-you-sure-you-want-to-delete-all-servers'),
         actions: [
@@ -459,6 +466,63 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
             },
             child: Text(tr('delete'),
                 style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _removeServersWithoutPing() {
+    showDialog(
+      context: context,
+      builder: (context) => AppDialogs.buildDialog(
+        context: context,
+        title: tr('remove-servers-without-ping'),
+        content: tr('are-you-sure-you-want-to-delete-servers-without-ping'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              tr('cancel'),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                final serversToRemove = servers.where((server) {
+                  final hasPing = serverPingTimes.containsKey(server) &&
+                      serverPingTimes[server] != null &&
+                      serverPingTimes[server] != -1;
+                  final isHttp = server.startsWith("http://") ||
+                      server.startsWith("https://");
+                  final isFreedom = server.startsWith("freedom-guard://");
+                  final isEmptyConfig = server.split("#")[0].isEmpty;
+
+                  return !hasPing && !isHttp && !isFreedom && !isEmptyConfig;
+                }).toList();
+
+                if (serversToRemove.isNotEmpty) {
+                  servers.removeWhere((s) => serversToRemove.contains(s));
+                  serverPingTimes
+                      .removeWhere((key, _) => serversToRemove.contains(key));
+
+                  if (!servers.contains(serversManage.oldServers())) {
+                    serversManage.selectServer("#Auto Server");
+                  }
+                  _saveServers();
+                }
+              });
+              Navigator.pop(context);
+            },
+            child: Text(
+              tr('delete'),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
           ),
         ],
       ),
@@ -494,9 +558,19 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
             },
           ),
           ListTile(
+            leading: Icon(Icons.signal_wifi_bad,
+                color: Theme.of(context).colorScheme.error),
+            title: Text(tr('remove-servers-without-ping'),
+                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            onTap: () {
+              Navigator.pop(context);
+              _removeServersWithoutPing();
+            },
+          ),
+          ListTile(
             leading: Icon(Icons.delete_forever,
                 color: Theme.of(context).colorScheme.error),
-            title: Text(tr('delete-all-servers'),
+            title: Text(tr('remove-all-servers'),
                 style: TextStyle(color: Theme.of(context).colorScheme.error)),
             onTap: () {
               Navigator.pop(context);
@@ -669,31 +743,6 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
           fontWeight: FontWeight.w600,
         ),
       ),
-    );
-  }
-
-  Widget _buildDialog({
-    required String title,
-    String? content,
-    Widget? contentWidget,
-    required List<Widget> actions,
-  }) {
-    return AlertDialog(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      content: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: contentWidget ??
-              Text(content!,
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface)),
-        ),
-      ),
-      title: Text(title,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-      actions: actions,
     );
   }
 
@@ -900,94 +949,84 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
                                     child: Container(
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.surface
-                                              .withOpacity(0.3),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.surface
+                                            .withOpacity(0.3),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? theme.colorScheme.primary
+                                                  .withOpacity(0.3)
+                                              : theme.colorScheme.onSurface
+                                                  .withOpacity(0.1),
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          splashColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
+                                          hoverColor: Colors.transparent,
                                           borderRadius:
                                               BorderRadius.circular(16),
-                                          border: Border.all(
-                                            color: isSelected
-                                                ? theme.colorScheme.primary
-                                                    .withOpacity(0.3)
-                                                : theme.colorScheme.onSurface
-                                                    .withOpacity(0.1),
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: Material(
-                                          color: Colors.transparent,
-                                          child: InkWell(
-                                            splashColor: Colors.transparent,
-                                            highlightColor: Colors.transparent,
-                                            hoverColor: Colors.transparent,
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                            onTap: () async {
-                                              await serversManage
-                                                  .selectServer(server);
-                                              if (mounted) setState(() {});
-                                            },
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 16),
-                                              child: Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          getNameByConfig(
-                                                              server),
-                                                          style: theme.textTheme
-                                                              .titleMedium
-                                                              ?.copyWith(
-                                                            fontWeight:
-                                                                isSelected
-                                                                    ? FontWeight
-                                                                        .bold
-                                                                    : FontWeight
-                                                                        .normal,
-                                                            color: theme
-                                                                .colorScheme
-                                                                .onSurface,
-                                                          ),
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
+                                          onTap: () async {
+                                            await serversManage
+                                                .selectServer(server);
+                                            if (mounted) setState(() {});
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 16),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        getNameByConfig(server),
+                                                        style: theme.textTheme
+                                                            .titleMedium
+                                                            ?.copyWith(
+                                                          fontWeight: isSelected
+                                                              ? FontWeight.bold
+                                                              : FontWeight
+                                                                  .normal,
+                                                          color: theme
+                                                              .colorScheme
+                                                              .onSurface,
                                                         ),
-                                                        const SizedBox(
-                                                            height: 4),
-                                                        _buildPingIndicator(
-                                                            ping,
-                                                            context,
-                                                            server),
-                                                      ],
-                                                    ),
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      _buildPingIndicator(ping,
+                                                          context, server),
+                                                    ],
                                                   ),
-                                                  _buildIconButton(
-                                                    icon: Icons.network_check,
-                                                    tooltip: 'Ping Server',
-                                                    onPressed: () =>
-                                                        _pingServer(server),
-                                                  ),
-                                                  _buildIconButton(
-                                                    icon: Icons.more_vert,
-                                                    tooltip: 'Options',
-                                                    onPressed: () =>
-                                                        _showServerOptions(
-                                                            context, server),
-                                                  ),
-                                                ],
-                                              ),
+                                                ),
+                                                _buildIconButton(
+                                                  icon: Icons.network_check,
+                                                  tooltip: 'Ping Server',
+                                                  onPressed: () =>
+                                                      _pingServer(server),
+                                                ),
+                                                _buildIconButton(
+                                                  icon: Icons.more_vert,
+                                                  tooltip: 'Options',
+                                                  onPressed: () =>
+                                                      _showServerOptions(
+                                                          context, server),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),
-                                      
+                                      ),
                                     ),
                                   ),
                                 );

@@ -1,6 +1,6 @@
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
-import 'package:Freedom_Guard/components/local.dart';
+import 'package:Freedom_Guard/core/local.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 

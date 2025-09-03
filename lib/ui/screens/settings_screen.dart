@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
-import 'package:Freedom_Guard/components/local.dart';
+import 'package:Freedom_Guard/core/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/ui/screens/f-link_screen.dart';
 import 'package:Freedom_Guard/ui/screens/split_screen.dart';

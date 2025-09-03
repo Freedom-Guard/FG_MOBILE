@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
-import 'package:Freedom_Guard/components/local.dart';
+import 'package:Freedom_Guard/core/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 
 class DnsInfo {

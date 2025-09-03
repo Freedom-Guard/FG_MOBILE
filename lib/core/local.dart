@@ -59,7 +59,6 @@ Map<String, String> AllTr_fa = {
   'cancel': 'لغو',
   'are-you-sure-you-want-to-delete-all-servers':
       'آیا مطمئن هستید که می‌خواهید همه سرورها را حذف کنید؟',
-  'delete-all-servers': 'حذف همه کانفیگ ها',
   'remove-all-servers': 'حذف همه کانفیگ ها',
   'choose-theme': 'انتخاب قالب',
   'servers': 'سرورها',
@@ -70,6 +69,9 @@ Map<String, String> AllTr_fa = {
   'edit-server': 'ویرایش سرور',
   'search-servers': 'جستجوی سرورها...',
   'delete-server': 'حذف سرور',
+  "are-you-sure-you-want-to-delete-servers-without-ping":
+      "آیا مطمئن هستید که می‌خواهید سرورهای بدون پینگ را حذف کنید؟",
+  "remove-servers-without-ping": "حذف سرورهای بدون پینگ",
   'refresh': "تازه سازی",
   'are-you-sure-you-want-to-delete-this-server':
       'آیا از حذف این سرور مطمئن هستید؟',
@@ -116,7 +118,6 @@ Map<String, String> AllTr_en = {
   'cancel': 'Cancel',
   'are-you-sure-you-want-to-delete-all-servers':
       'Are you sure you want to delete all servers?',
-  'delete-all-servers': 'Delete all servers',
   'remove-all-servers': 'Remove all servers',
   'choose-theme': 'Choose theme',
   'servers': 'Servers',
@@ -126,6 +127,9 @@ Map<String, String> AllTr_en = {
   'donate': 'Donate',
   'edit-server': 'Edit Server',
   'delete-server': 'Delete Server',
+  "are-you-sure-you-want-to-delete-servers-without-ping":
+      "Are you sure you want to delete servers without ping?",
+  "remove-servers-without-ping": "Remove servers without ping",
   'refresh': 'Refresh',
   'search-servers': 'Search servers...',
   'are-you-sure-you-want-to-delete-this-server':
