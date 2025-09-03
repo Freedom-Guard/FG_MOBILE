@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:Freedom_Guard/services/backgroud.dart';
+import 'package:Freedom_Guard/ui/widgets/backgroud.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/core/global.dart';
@@ -26,9 +26,12 @@ class MainScreen extends StatefulWidget {
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
-ss _MainScreenState extends State<MainScreen> {
-  int _currenIndex = 1;
-  fiSettingsPage(),
+
+class _MainScreenState extends State<MainScreen> {
+  int _currentIndex = 1;
+
+  final List<Widget> _pages = [
+    SettingsPage(),
     HomeContent(),
     ServersPage(),
   ];
@@ -292,7 +295,7 @@ class _HomeContentState extends State<HomeContent>
         Container(),
         Container(
           alignment: Alignment.center,
-           decoration: buildBackground(backgroundPath),
+          decoration: buildBackground(backgroundPath),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
