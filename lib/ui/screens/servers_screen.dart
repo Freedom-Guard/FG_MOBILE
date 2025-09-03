@@ -493,15 +493,18 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
             onPressed: () {
               setState(() {
                 final serversToRemove = servers.where((server) {
-                  final hasPing = serverPingTimes.containsKey(server) &&
-                      serverPingTimes[server] != null &&
-                      serverPingTimes[server] != -1;
+                  final ping = serverPingTimes[server];
+
+                  final isUnreachable = ping == -1;
                   final isHttp = server.startsWith("http://") ||
                       server.startsWith("https://");
                   final isFreedom = server.startsWith("freedom-guard://");
                   final isEmptyConfig = server.split("#")[0].isEmpty;
 
-                  return !hasPing && !isHttp && !isFreedom && !isEmptyConfig;
+                  return isUnreachable &&
+                      !isHttp &&
+                      !isFreedom &&
+                      !isEmptyConfig;
                 }).toList();
 
                 if (serversToRemove.isNotEmpty) {
