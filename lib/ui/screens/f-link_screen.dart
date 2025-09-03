@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/core/local.dart';
@@ -30,9 +31,9 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
       duration: const Duration(milliseconds: 1000),
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
             CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _controller.forward();
   }
@@ -46,349 +47,250 @@ class _PremiumDonateConfigPageState extends State<PremiumDonateConfigPage>
     super.dispose();
   }
 
+  Widget buildGlassContainer({required Widget child}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(25),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(25),
+            border:
+                Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
-        textDirection:
-            getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
-        child: Scaffold(
-          body: Container(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height,
-              minWidth: MediaQuery.of(context).size.width,
+      textDirection: getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
+      child: Scaffold(
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF0F2027),
+                Color(0xFF203A43),
+                Color(0xFF2C5364),
+              ],
             ),
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.topLeft,
-                radius: 1.5,
-                colors: [
-                  Colors.deepPurple.shade900,
-                  Colors.purple.shade800,
-                  Colors.blue.shade900,
-                  Colors.cyan.shade400.withOpacity(0.6),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: GestureDetector(
+                          onTapDown: (_) =>
+                              setState(() => isBackButtonHovered = true),
+                          onTapUp: (_) =>
+                              setState(() => isBackButtonHovered = false),
+                          onTapCancel: () =>
+                              setState(() => isBackButtonHovered = false),
+                          onTap: () => Navigator.pop(context),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                            transform: Matrix4.translationValues(
+                                isBackButtonHovered ? -4 : 0, 0, 0),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: isBackButtonHovered
+                                    ? [Colors.pinkAccent, Colors.cyanAccent]
+                                    : [
+                                        Colors.purple.shade700,
+                                        Colors.blue.shade600
+                                      ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.arrow_back_ios_new,
+                                color: Colors.white, size: 26),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Column(
+                        children: [
+                          Icon(Icons.favorite_rounded,
+                              color: Colors.redAccent.shade200, size: 60),
+                          const SizedBox(height: 15),
+                          Text(
+                            "آزادی در دستان توست ✨",
+                            style: GoogleFonts.vazirmatn(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 25,
+                                  color: Colors.black.withOpacity(0.5),
+                                  offset: const Offset(2, 2),
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            "با اهدای کانفیگ، به پایداری گارد آزادی کمک کن",
+                            style: GoogleFonts.vazirmatn(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w300,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 50),
+                  buildGlassContainer(
+                    child: TextField(
+                      controller: configController,
+                      maxLines: 6,
+                      style: GoogleFonts.vazirmatn(
+                          color: Colors.white, fontSize: 16),
+                      decoration: InputDecoration(
+                        hintText: '🔒 کانفیگ را اینجا وارد کن',
+                        hintStyle: GoogleFonts.vazirmatn(
+                            color: Colors.white54, fontSize: 16),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.all(20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  buildGlassContainer(
+                    child: TextField(
+                      controller: messageController,
+                      maxLines: 3,
+                      style: GoogleFonts.vazirmatn(
+                          color: Colors.white, fontSize: 16),
+                      decoration: InputDecoration(
+                        hintText: '💬 پیام تبلیغاتی خود را بنویسید (اختیاری)',
+                        hintStyle: GoogleFonts.vazirmatn(
+                            color: Colors.white54, fontSize: 16),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.all(20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  buildGlassContainer(
+                    child: TextField(
+                      controller: telegramLinkController,
+                      maxLines: 1,
+                      style: GoogleFonts.vazirmatn(
+                          color: Colors.white, fontSize: 16),
+                      decoration: InputDecoration(
+                        hintText: '📢 لینک کانال تلگرام (اختیاری)',
+                        hintStyle: GoogleFonts.vazirmatn(
+                            color: Colors.white54, fontSize: 16),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.all(20),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 60),
+                  GestureDetector(
+                    onTapDown: (_) => setState(() => isButtonHovered = true),
+                    onTapUp: (_) => setState(() => isButtonHovered = false),
+                    onTapCancel: () => setState(() => isButtonHovered = false),
+                    onTap: () async {
+                      if (selectedCore != null &&
+                          configController.text.isNotEmpty) {
+                        bool success = await donateCONFIG(
+                          configController.text,
+                          core: selectedCore!,
+                          message: messageController.text,
+                          telegramLink: telegramLinkController.text,
+                        ).timeout(const Duration(seconds: 14), onTimeout: () {
+                          LogOverlay.showLog("⏳ اتصال زمان‌بر شد!",
+                              type: "error");
+                          return false;
+                        });
+                        if (success) {
+                          LogOverlay.showLog("✅ کانفیگ شما با موفقیت اهدا شد!",
+                              type: "success");
+                        }
+                      } else {
+                        LogOverlay.showLog(
+                            "⚠️ لطفاً ابتدا کانفیگ را وارد کنید.",
+                            type: "warning");
+                      }
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      transform: Matrix4.translationValues(
+                          0, isButtonHovered ? -5 : 0, 0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 70, vertical: 20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: isButtonHovered
+                              ? [Colors.pinkAccent, Colors.cyanAccent]
+                              : [Colors.purpleAccent, Colors.cyan],
+                        ),
+                        borderRadius: BorderRadius.circular(50),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        '🚀 اهدا',
+                        style: GoogleFonts.vazirmatn(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 30.0, vertical: 20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: GestureDetector(
-                            onTapDown: (_) =>
-                                setState(() => isBackButtonHovered = true),
-                            onTapUp: (_) =>
-                                setState(() => isBackButtonHovered = false),
-                            onTapCancel: () =>
-                                setState(() => isBackButtonHovered = false),
-                            onTap: () => Navigator.pop(context),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                              transform: Matrix4.translationValues(
-                                  isBackButtonHovered ? -5 : 0, 0, 0),
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  colors: isBackButtonHovered
-                                      ? [
-                                          Colors.purple.shade400,
-                                          Colors.cyan.shade400
-                                        ]
-                                      : [
-                                          Colors.purple.shade800
-                                              .withOpacity(0.6),
-                                          Colors.cyan.shade600.withOpacity(0.6)
-                                        ],
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.purple.shade400.withOpacity(
-                                        isBackButtonHovered ? 0.7 : 0.4),
-                                    blurRadius: 15,
-                                    spreadRadius: 2,
-                                  ),
-                                ],
-                              ),
-                              child: Icon(Icons.arrow_back_ios_new,
-                                  color: Colors.white, size: 26),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Center(
-                          child: Icon(Icons.volunteer_activism,
-                              color: Colors.redAccent, size: 44)),
-                      const SizedBox(height: 20),
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: Row(
-                            children: [
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    "آزادی در دستان توست",
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.vazirmatn(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      shadows: [
-                                        Shadow(
-                                          blurRadius: 20,
-                                          color: Colors.purple.shade900
-                                              .withOpacity(0.6),
-                                          offset: Offset(3, 3),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Center(
-                          child: SlideTransition(
-                            position: _slideAnimation,
-                            child: Text(
-                              "کانفیگ را وارد کنید و با اهدای آن، به پایداری گارد آزادی کمک کنید",
-                              style: GoogleFonts.vazirmatn(
-                                fontSize: 16,
-                                color: Colors.white.withOpacity(0.85),
-                                fontWeight: FontWeight.w300,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 50),
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            decoration: BoxDecoration(
-                              color: Colors.purple.shade900.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(30),
-                              boxShadow: [
-                                BoxShadow(
-                                    color:
-                                        Colors.purple.shade900.withOpacity(0.5),
-                                    blurRadius: 30,
-                                    spreadRadius: -5),
-                                BoxShadow(
-                                    color:
-                                        Colors.cyan.shade600.withOpacity(0.3),
-                                    blurRadius: 20,
-                                    spreadRadius: -3),
-                              ],
-                              border: Border.all(
-                                  color: Colors.cyan.shade400.withOpacity(0.4),
-                                  width: 2),
-                            ),
-                            child: TextField(
-                              controller: configController,
-                              maxLines: 6,
-                              style: GoogleFonts.vazirmatn(
-                                  color: Colors.white, fontSize: 16),
-                              decoration: InputDecoration(
-                                hintText: 'کانفیگ را اینجا وارد کن',
-                                hintStyle: GoogleFonts.vazirmatn(
-                                    color: Colors.white38, fontSize: 16),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                    borderSide: BorderSide.none),
-                                contentPadding: EdgeInsets.all(20),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            decoration: BoxDecoration(
-                              color: Colors.purple.shade900.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(30),
-                              boxShadow: [
-                                BoxShadow(
-                                    color:
-                                        Colors.purple.shade900.withOpacity(0.5),
-                                    blurRadius: 30,
-                                    spreadRadius: -5),
-                                BoxShadow(
-                                    color:
-                                        Colors.cyan.shade600.withOpacity(0.3),
-                                    blurRadius: 20,
-                                    spreadRadius: -3),
-                              ],
-                              border: Border.all(
-                                  color: Colors.cyan.shade400.withOpacity(0.4),
-                                  width: 2),
-                            ),
-                            child: TextField(
-                              controller: messageController,
-                              maxLines: 3,
-                              style: GoogleFonts.vazirmatn(
-                                  color: Colors.white, fontSize: 16),
-                              decoration: InputDecoration(
-                                hintText:
-                                    'پیام تبلیغاتی خود را وارد کنید (اختیاری)',
-                                hintStyle: GoogleFonts.vazirmatn(
-                                    color: Colors.white38, fontSize: 16),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                    borderSide: BorderSide.none),
-                                contentPadding: EdgeInsets.all(20),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            decoration: BoxDecoration(
-                              color: Colors.purple.shade900.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(30),
-                              boxShadow: [
-                                BoxShadow(
-                                    color:
-                                        Colors.purple.shade900.withOpacity(0.5),
-                                    blurRadius: 30,
-                                    spreadRadius: -5),
-                                BoxShadow(
-                                    color:
-                                        Colors.cyan.shade600.withOpacity(0.3),
-                                    blurRadius: 20,
-                                    spreadRadius: -3),
-                              ],
-                              border: Border.all(
-                                  color: Colors.cyan.shade400.withOpacity(0.4),
-                                  width: 2),
-                            ),
-                            child: TextField(
-                              controller: telegramLinkController,
-                              maxLines: 1,
-                              style: GoogleFonts.vazirmatn(
-                                  color: Colors.white, fontSize: 16),
-                              decoration: InputDecoration(
-                                hintText: 'لینک کانال تلگرام (اختیاری)',
-                                hintStyle: GoogleFonts.vazirmatn(
-                                    color: Colors.white38, fontSize: 16),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                    borderSide: BorderSide.none),
-                                contentPadding: EdgeInsets.all(20),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 60),
-                      Center(
-                        child: GestureDetector(
-                          onTapDown: (_) =>
-                              setState(() => isButtonHovered = true),
-                          onTapUp: (_) =>
-                              setState(() => isButtonHovered = false),
-                          onTapCancel: () =>
-                              setState(() => isButtonHovered = false),
-                          onTap: () async {
-                            if (selectedCore != null &&
-                                configController.text.isNotEmpty) {
-                              bool success = await donateCONFIG(
-                                configController.text,
-                                core: selectedCore!,
-                                message: messageController.text,
-                                telegramLink: telegramLinkController.text,
-                              ).timeout(Duration(seconds: 14), onTimeout: () {
-                                LogOverlay.showLog("Connection timed out",
-                                    type: "error");
-                                return false;
-                              });
-                            } else {}
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                            transform: Matrix4.translationValues(
-                                0, isButtonHovered ? -5 : 0, 0),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 60, vertical: 20),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: isButtonHovered
-                                    ? [
-                                        Colors.purple.shade400,
-                                        Colors.cyan.shade400
-                                      ]
-                                    : [
-                                        Colors.purple.shade700,
-                                        Colors.cyan.shade600
-                                      ],
-                              ),
-                              borderRadius: BorderRadius.circular(50),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.purple.shade400
-                                      .withOpacity(isButtonHovered ? 0.7 : 0.4),
-                                  blurRadius: 25,
-                                  spreadRadius: 3,
-                                ),
-                                BoxShadow(
-                                  color: Colors.cyan.shade400
-                                      .withOpacity(isButtonHovered ? 0.5 : 0.3),
-                                  blurRadius: 15,
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              'اهدا',
-                              style: GoogleFonts.vazirmatn(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
