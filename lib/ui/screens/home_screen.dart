@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:Freedom_Guard/ui/widgets/backgroud.dart';
+import 'package:Freedom_Guard/ui/widgets/background.dart';
+import 'package:Freedom_Guard/ui/widgets/background_picker_dialog.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/core/global.dart';
-import 'package:Freedom_Guard/components/services.dart';
+import 'package:Freedom_Guard/services/services.dart';
 import 'package:Freedom_Guard/core/async_runner.dart';
 import 'package:Freedom_Guard/ui/widgets/CBar.dart';
 import 'package:Freedom_Guard/ui/widgets/nav.dart';
@@ -116,15 +117,13 @@ class _HomeContentState extends State<HomeContent>
       ),
     );
     Future.microtask(() async {
+      String bg = await BackgroundService.getSelectedOrDefaultBackground();
+      if (mounted) setState(() => backgroundPath = bg);
       Timer.periodic(Duration(seconds: 30), (timer) async {
         final connected = await checker.checkVPN();
         if (mounted) {
-          String backgroundPathTemp =
-              await BackgroundService.getSelectedOrDefaultBackground();
-
           setState(() {
             isConnected = connected;
-            backgroundPath = backgroundPathTemp;
           });
         }
       });
@@ -289,13 +288,16 @@ class _HomeContentState extends State<HomeContent>
   @override
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
+    final bgNotifier = Provider.of<BackgroundNotifier>(context);
 
     return Stack(
       children: [
         Container(),
         Container(
           alignment: Alignment.center,
-          decoration: buildBackground(backgroundPath),
+          decoration: buildBackground(bgNotifier.background.isNotEmpty
+              ? bgNotifier.background
+              : BackgroundService.getRandomBackground()),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

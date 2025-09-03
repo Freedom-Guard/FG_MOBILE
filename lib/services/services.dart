@@ -21,7 +21,7 @@ class BackgroundService {
     final selected = await SettingsApp().getValue("selectedIMG");
     final selectedColorStr = await SettingsApp().getValue("selectedColor");
 
-    if (selected != null && selected.isNotEmpty) {
+    if (selected != "") {
       return selected;
     } else if (selectedColorStr == "") {
       return getRandomBackground();

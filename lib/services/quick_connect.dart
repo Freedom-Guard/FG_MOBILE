@@ -1,6 +1,6 @@
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/connect.dart';
-import 'package:Freedom_Guard/components/services.dart';
+import 'package:Freedom_Guard/services/services.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:quick_settings/quick_settings.dart';

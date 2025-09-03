@@ -1,12 +1,10 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 BoxDecoration buildBackground(String pathOrColor) {
   if (pathOrColor.startsWith("#")) {
-    return BoxDecoration(
-      color: Color(int.parse(pathOrColor.substring(1), radix: 16)),
-    );
+    int colorInt = int.tryParse(pathOrColor.substring(1), radix: 16) ?? 0xFF000000;
+    return BoxDecoration(color: Color(colorInt));
   } else if (pathOrColor.startsWith("assets/")) {
     return BoxDecoration(
       image: DecorationImage(

@@ -4,6 +4,7 @@ import 'package:Freedom_Guard/core/local.dart';
 import 'package:Freedom_Guard/ui/screens/home_screen.dart';
 import 'package:Freedom_Guard/ui/screens/welcome_screen.dart';
 import 'package:Freedom_Guard/services/quick_connect.dart';
+import 'package:Freedom_Guard/ui/widgets/background_picker_dialog.dart';
 import 'package:Freedom_Guard/ui/widgets/theme/theme.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
@@ -43,6 +44,9 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: themeNotifier),
         ChangeNotifierProvider(create: (context) => ServersM()),
+        ChangeNotifierProvider(
+          create: (_) => BackgroundNotifier(),
+        ),
         Provider(create: (context) => SettingsApp()),
       ],
       child: Consumer<ThemeNotifier>(
