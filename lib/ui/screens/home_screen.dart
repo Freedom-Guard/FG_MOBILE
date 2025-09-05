@@ -12,7 +12,7 @@ import 'package:Freedom_Guard/ui/widgets/CBar.dart';
 import 'package:Freedom_Guard/ui/widgets/nav.dart';
 import 'package:Freedom_Guard/ui/widgets/network.dart';
 import 'package:Freedom_Guard/ui/widgets/theme/theme.dart';
-import 'package:Freedom_Guard/components/update.dart';
+import 'package:Freedom_Guard/services/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/ui/screens/servers_screen.dart';

@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:Freedom_Guard/components/settings.dart';
-import 'package:Freedom_Guard/components/update.dart';
+import 'package:Freedom_Guard/services/update.dart';
 
 class BackgroundService {
   static final List<String> _backgrounds = [
