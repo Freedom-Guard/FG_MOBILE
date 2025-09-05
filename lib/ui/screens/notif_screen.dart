@@ -210,7 +210,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         extendBodyBehindAppBar: true,
         appBar: AppBar(
           title: const Text('نوتیفیکیشن‌ها'),
-          backgroundColor: Colors.black.withOpacity(0.4),
+          backgroundColor: Theme.of(context).colorScheme.primary,
           elevation: 0,
           actions: [
             IconButton(
