@@ -46,26 +46,23 @@ class _MainScreenState extends State<MainScreen> {
           ? PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: ClipRRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                  child: AppBar(
-                    backgroundColor: Colors.white.withOpacity(0.0),
-                    centerTitle: true,
-                    leading: IconButton(
-                      icon: const Icon(Icons.cable),
+                child: AppBar(
+                  backgroundColor: Colors.transparent,
+                  centerTitle: true,
+                  leading: IconButton(
+                    icon: const Icon(Icons.cable),
+                    onPressed: () {
+                      openXraySettings(context);
+                    },
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: Icon(Icons.grid_view_rounded),
                       onPressed: () {
-                        openXraySettings(context);
+                        showActionsMenu(context);
                       },
                     ),
-                    actions: [
-                      IconButton(
-                        icon: Icon(Icons.grid_view_rounded),
-                        onPressed: () {
-                          showActionsMenu(context);
-                        },
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             )

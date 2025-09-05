@@ -801,8 +801,8 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
           title: Text(
             tr('manage-servers-page'),
             style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onPrimary),
           ),
           actions: [
             IconButton(
