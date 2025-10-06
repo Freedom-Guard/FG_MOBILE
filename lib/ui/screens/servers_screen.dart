@@ -9,7 +9,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as path;
-
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/core/local.dart';
@@ -22,9 +21,10 @@ import 'package:Freedom_Guard/ui/widgets/encrypt.dart';
 import 'package:Freedom_Guard/ui/widgets/enter_config.dart';
 import 'package:Freedom_Guard/ui/widgets/qr_code.dart';
 
+enum ViewMode { list, grid }
+
 class ServersPage extends StatefulWidget {
   const ServersPage({super.key});
-
   @override
   State<ServersPage> createState() => _ServersPageState();
 }
@@ -40,14 +40,15 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   final Map<String, int?> serverPingTimes = {};
   bool isPingingAll = false;
   bool sortByPing = false;
-
+  ViewMode viewMode = ViewMode.list;
+  bool includeMyConfigsInAuto = false;
   @override
   void initState() {
     super.initState();
     settings = SettingsApp();
     serversManage = Provider.of<ServersM>(context, listen: false);
     searchController.addListener(_applyFiltersAndSort);
-    Future.microtask(_loadServersAndInit);
+    Future.microtask(_loadAll);
   }
 
   @override
@@ -69,78 +70,78 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
     _restoreServers();
   }
 
-  Future<void> _loadServersAndInit() async {
+  Future<void> _loadAll() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
       await serversManage.getSelectedServer();
+      includeMyConfigsInAuto = prefs.getBool('includeMyConfigsInAuto') ?? false;
       await _restoreServers(initialLoad: true);
       await _restorePingTimes();
       await _restoreSelectedServer();
     } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
   void _applyFiltersAndSort() {
-    final query = searchController.text.toLowerCase();
-    List<String> tempFilteredServers;
-
-    if (query.isEmpty) {
-      tempFilteredServers = List.from(servers);
-    } else {
-      tempFilteredServers = servers.where((server) {
-        final serverName = getNameByConfig(server).toLowerCase();
-        return serverName.contains(query);
-      }).toList();
+    String query = searchController.text.toLowerCase();
+    List<String> temp = query.isEmpty
+        ? List.from(servers)
+        : servers
+            .where((s) => getNameByConfig(s).toLowerCase().contains(query))
+            .toList();
+    if (!includeMyConfigsInAuto) {
+      temp = temp
+          .where((s) => !s.startsWith('http') && !s.startsWith('freedom-guard'))
+          .toList();
     }
-
     if (sortByPing) {
-      tempFilteredServers.sort((a, b) {
-        final pingA =
+      temp.sort((a, b) {
+        int pingA =
             serverPingTimes[a] == -1 ? 9999 : serverPingTimes[a] ?? 9999;
-        final pingB =
+        int pingB =
             serverPingTimes[b] == -1 ? 9999 : serverPingTimes[b] ?? 9999;
         return pingA.compareTo(pingB);
       });
     }
-
-    setState(() {
-      filteredServers = tempFilteredServers;
-    });
+    if (mounted) setState(() => filteredServers = temp);
   }
 
-  Future<void> _savePingTimes() async {
+  Future<void> _savePrefs(String key, dynamic value) async {
     final prefs = await SharedPreferences.getInstance();
-    final pingMap = serverPingTimes
-        .map((key, value) => MapEntry(key, value?.toString() ?? 'null'));
-    await prefs.setString('pingTimes', jsonEncode(pingMap));
+    if (value is bool)
+      await prefs.setBool(key, value);
+    else if (value is String)
+      await prefs.setString(key, value);
+    else if (value is List<String>)
+      await prefs.setStringList(key, value);
+    else if (value is Map<String, dynamic>)
+      await prefs.setString(key, jsonEncode(value));
   }
 
-  Future<void> _restorePingTimes() async {
+  Future<void> _loadPrefs(String key, {Type? type}) async {
     final prefs = await SharedPreferences.getInstance();
-    final pingData = prefs.getString('pingTimes');
-    if (pingData != null) {
-      final pingMap = jsonDecode(pingData) as Map<String, dynamic>;
-      pingMap.forEach((key, value) {
-        serverPingTimes[key] = value == 'null' ? null : int.tryParse(value);
-      });
+    if (type == bool)
+      includeMyConfigsInAuto = prefs.getBool(key) ?? false;
+    else if (type == Map<String, dynamic>) {
+      final data = prefs.getString(key);
+      if (data != null) {
+        final map = jsonDecode(data) as Map<String, dynamic>;
+        map.forEach((k, v) =>
+            serverPingTimes[k] = v == 'null' ? null : int.tryParse(v));
+      }
     }
   }
 
   Future<void> _restoreServers({bool initialLoad = false}) async {
     final prefs = await SharedPreferences.getInstance();
-    var serverList = prefs.getStringList('servers') ?? [];
-
-    if (initialLoad && serverList.isEmpty) {
+    List<String> list = prefs.getStringList('servers') ?? [];
+    if (initialLoad && list.isEmpty) {
       await _refreshSubscriptions();
-      serverList = prefs.getStringList('servers') ?? [];
+      list = prefs.getStringList('servers') ?? [];
     }
-
     if (mounted) {
-      setState(() {
-        servers = serverList;
-      });
+      setState(() => servers = list);
       _applyFiltersAndSort();
     }
   }
@@ -152,114 +153,106 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
 
   Future<void> _restoreSelectedServer() async {
     final prefs = await SharedPreferences.getInstance();
-    final selectedServer = prefs.getString('selectedServer');
-    if (selectedServer != null && servers.contains(selectedServer)) {
-      await serversManage.selectServer(selectedServer);
-    }
+    final selected = prefs.getString('selectedServer');
+    if (selected != null && servers.contains(selected))
+      await serversManage.selectServer(selected);
   }
 
   Future<void> _saveServers() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('servers', servers);
+    await _savePrefs('servers', servers);
     _applyFiltersAndSort();
   }
 
-  void _addServer(String serverName) {
-    if (serverName.isNotEmpty && !servers.contains(serverName)) {
-      setState(() {
-        servers.insert(0, serverName);
-      });
-      serversManage.selectServer(serverName);
+  Future<void> _restorePingTimes() async =>
+      await _loadPrefs('pingTimes', type: Map<String, dynamic>);
+  Future<void> _savePingTimes() async {
+    final map =
+        serverPingTimes.map((k, v) => MapEntry(k, v?.toString() ?? 'null'));
+    await _savePrefs('pingTimes', map);
+  }
+
+  void _addServer(String name) {
+    if (name.isNotEmpty && !servers.contains(name)) {
+      setState(() => servers.insert(0, name));
+      serversManage.selectServer(name);
       _saveServers();
       serverController.clear();
     } else {
-      serversManage.selectServer(serverName);
+      serversManage.selectServer(name);
     }
   }
 
-  void _confirmRemoveServer(String serverToRemove) {
+  void _confirmRemoveServer(String server) {
     showDialog(
       context: context,
-      builder: (context) => AppDialogs.buildDialog(
-        context: context,
+      builder: (ctx) => AppDialogs.buildDialog(
+        context: ctx,
         title: tr('delete-server'),
         content: tr('are-you-sure-you-want-to-delete-this-server'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(tr('cancel'),
-                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
-          ),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(tr('cancel'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.primary))),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              _removeServer(serverToRemove);
+              Navigator.pop(ctx);
+              _removeServer(server);
             },
             child: Text(tr('delete'),
-                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
           ),
         ],
       ),
     );
   }
 
-  void _removeServer(String serverToRemove) {
+  void _removeServer(String server) {
     setState(() {
-      servers.remove(serverToRemove);
-      serverPingTimes.remove(serverToRemove);
-      if (serversManage.selectedServer == serverToRemove) {
+      servers.remove(server);
+      serverPingTimes.remove(server);
+      if (serversManage.selectedServer == server)
         serversManage.selectServer("#Auto Server");
-      }
     });
     _saveServers();
   }
 
-  void _shareServer(String server) {
-    Share.share(server);
-  }
-
-  void _editServer(String serverToEdit) {
-    final originalIndex = servers.indexOf(serverToEdit);
-    if (originalIndex == -1) return;
-
-    final controller = TextEditingController(text: servers[originalIndex]);
-
+  void _shareServer(String server) => Share.share(server);
+  void _editServer(String server) {
+    int index = servers.indexOf(server);
+    if (index == -1) return;
+    final ctrl = TextEditingController(text: servers[index]);
     showDialog(
       context: context,
-      builder: (context) => AppDialogs.buildDialog(
-        context: context,
+      builder: (ctx) => AppDialogs.buildDialog(
+        context: ctx,
         title: tr('edit-server'),
         contentWidget: TextField(
-          controller: controller,
+          controller: ctrl,
           maxLines: null,
           keyboardType: TextInputType.multiline,
           decoration: InputDecoration(
-            hintText: 'Enter server configuration',
-            border: InputBorder.none,
-            hintStyle: TextStyle(
-                color:
-                    Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
-          ),
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              hintText: 'Enter server configuration',
+              border: InputBorder.none,
+              hintStyle: TextStyle(
+                  color: Theme.of(ctx).colorScheme.onSurface.withOpacity(0.5))),
+          style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(tr('cancel'),
-                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
-          ),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(tr('cancel'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.primary))),
           TextButton(
             onPressed: () {
-              if (controller.text.isNotEmpty) {
-                setState(() {
-                  servers[originalIndex] = controller.text;
-                });
+              if (ctrl.text.isNotEmpty) {
+                setState(() => servers[index] = ctrl.text);
                 _saveServers();
               }
-              Navigator.pop(context);
+              Navigator.pop(ctx);
             },
             child: Text(tr('save'),
-                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.primary)),
           ),
         ],
       ),
@@ -268,56 +261,57 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
 
   Future<void> _pingServer(String server) async {
     if (server.startsWith('http') || server.startsWith('freedom-guard')) {
-      if (mounted) {
-        setState(() => serverPingTimes[server] = null);
-        await _savePingTimes();
-      }
+      if (mounted) setState(() => serverPingTimes[server] = null);
+      await _savePingTimes();
       return;
     }
     setState(() => serverPingTimes[server] = null);
     try {
-      final pingResult = await serversManage.pingC(server);
-      if (mounted) {
-        setState(() => serverPingTimes[server] = pingResult);
-        await _savePingTimes();
-      }
+      int result = await serversManage.pingC(server);
+      if (mounted) setState(() => serverPingTimes[server] = result);
+      await _savePingTimes();
     } catch (e) {
-      if (mounted) {
-        setState(() => serverPingTimes[server] = -1);
-        await _savePingTimes();
-      }
+      if (mounted) setState(() => serverPingTimes[server] = -1);
+      await _savePingTimes();
     }
   }
 
   Future<void> _pingAllServers() async {
     setState(() => isPingingAll = true);
-    final batchSize = 5;
+    int batchSize = 5;
     try {
-      for (var i = 0; i < servers.length; i += batchSize) {
-        final end =
+      for (int i = 0; i < servers.length; i += batchSize) {
+        int end =
             (i + batchSize < servers.length) ? i + batchSize : servers.length;
-        final batch = servers.sublist(i, end);
-        await Future.wait(batch.map((server) => _pingServer(server)));
+        List<String> batch = servers.sublist(i, end);
+        await Future.wait(batch.map((s) => _pingServer(s)));
       }
     } finally {
-      if (mounted) {
-        setState(() => isPingingAll = false);
-      }
+      if (mounted) setState(() => isPingingAll = false);
     }
   }
 
   void _toggleSortByPing() {
-    setState(() {
-      sortByPing = !sortByPing;
-    });
+    setState(() => sortByPing = !sortByPing);
     _applyFiltersAndSort();
   }
 
-  void _showAddServerDialog(BuildContext context) {
+  void _cycleViewMode() {
+    setState(() =>
+        viewMode = viewMode == ViewMode.list ? ViewMode.grid : ViewMode.list);
+  }
+
+  void _toggleIncludeMyConfigs() async {
+    setState(() => includeMyConfigsInAuto = !includeMyConfigsInAuto);
+    await _savePrefs('includeMyConfigsInAuto', includeMyConfigsInAuto);
+    _applyFiltersAndSort();
+  }
+
+  void _showAddServerDialog(BuildContext ctx) {
     showDialog(
-      context: context,
-      builder: (context) => AppDialogs.buildDialog(
-        context: context,
+      context: ctx,
+      builder: (ctx) => AppDialogs.buildDialog(
+        context: ctx,
         title: tr('add-server'),
         contentWidget: Column(
           mainAxisSize: MainAxisSize.min,
@@ -325,64 +319,50 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
             TextField(
               controller: serverController,
               decoration: InputDecoration(
-                hintText: tr('enter-server-config'),
-                border: InputBorder.none,
-                hintStyle: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.5)),
-              ),
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                  hintText: tr('enter-server-config'),
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(
+                      color: Theme.of(ctx)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.5))),
+              style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
             ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 _buildIconButton(
-                  icon: Icons.content_paste,
-                  tooltip: 'Paste from clipboard',
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _addFromClipboard();
-                  },
-                ),
+                    icon: Icons.content_paste,
+                    tooltip: 'Paste from clipboard',
+                    onPressed: () => _addFromClipboard()),
                 _buildIconButton(
-                  icon: Icons.folder_open,
-                  tooltip: 'Import from file',
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _importConfigFromFile();
-                  },
-                ),
+                    icon: Icons.folder_open,
+                    tooltip: 'Import from file',
+                    onPressed: () => _importConfigFromFile()),
                 _buildIconButton(
-                  icon: Icons.build_rounded,
-                  tooltip: 'Add Manual Config',
-                  onPressed: () async {
-                    final config = await showManualConfigDialog(context);
-                    if (config != null) {
-                      _addServer(config);
-                    }
-                  },
-                ),
+                    icon: Icons.build_rounded,
+                    tooltip: 'Add Manual Config',
+                    onPressed: () async {
+                      String? config = await showManualConfigDialog(ctx);
+                      if (config != null) _addServer(config);
+                    }),
               ],
             ),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(tr('cancel'),
-                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
-          ),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(tr('cancel'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.primary))),
           TextButton(
-            onPressed: () {
-              _addServer(serverController.text);
-              Navigator.pop(context);
-            },
-            child: Text(tr('add'),
-                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
-          ),
+              onPressed: () {
+                _addServer(serverController.text);
+                Navigator.pop(ctx);
+              },
+              child: Text(tr('add'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.primary))),
         ],
       ),
     );
@@ -390,24 +370,20 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
 
   void _importConfigFromFile() async {
     try {
-      final result = await FilePicker.platform
+      FilePickerResult? result = await FilePicker.platform
           .pickFiles(type: FileType.custom, allowedExtensions: ['txt', 'conf']);
       if (result == null || result.files.single.path == null) return;
-
-      final file = File(result.files.single.path!);
-      final content = await file.readAsString();
-
+      File file = File(result.files.single.path!);
+      String content = await file.readAsString();
       if (path.extension(file.path).toLowerCase() == '.conf') {
         _addServer('wire:::\n$content');
       } else {
-        final serversFromFile = content
+        List<String> serversFromFile = content
             .split('\n')
             .map((s) => s.trim())
             .where((s) => s.isNotEmpty)
             .toList();
-        for (final server in serversFromFile) {
-          _addServer(server);
-        }
+        for (String server in serversFromFile) _addServer(server);
       }
       LogOverlay.showLog('File imported successfully.');
     } catch (_) {
@@ -417,24 +393,21 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
 
   void _addFromClipboard() async {
     try {
-      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-      final text = clipboardData?.text?.trim();
+      ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+      String? text = data?.text?.trim();
       if (text == null || text.isEmpty) {
         LogOverlay.showLog('Clipboard is empty.');
         return;
       }
-
       if (text.startsWith('[Interface]')) {
         _addServer('wire:::\n$text');
       } else {
-        final serverList = text
+        List<String> serverList = text
             .split('\n')
             .map((s) => s.trim())
             .where((s) => s.isNotEmpty)
             .toList();
-        for (final server in serverList) {
-          _addServer(server);
-        }
+        for (String server in serverList) _addServer(server);
       }
     } catch (_) {
       LogOverlay.showLog('Error reading clipboard.');
@@ -444,16 +417,15 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   void _removeAllServers() {
     showDialog(
       context: context,
-      builder: (context) => AppDialogs.buildDialog(
-        context: context,
+      builder: (ctx) => AppDialogs.buildDialog(
+        context: ctx,
         title: tr('remove-all-servers'),
         content: tr('are-you-sure-you-want-to-delete-all-servers'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(tr('cancel'),
-                style: TextStyle(color: Theme.of(context).colorScheme.primary)),
-          ),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(tr('cancel'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.primary))),
           TextButton(
             onPressed: () {
               setState(() {
@@ -462,10 +434,10 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                 serversManage.selectServer("#Auto Server");
               });
               _saveServers();
-              Navigator.pop(context);
+              Navigator.pop(ctx);
             },
             child: Text(tr('delete'),
-                style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
           ),
         ],
       ),
@@ -475,277 +447,199 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   void _removeServersWithoutPing() {
     showDialog(
       context: context,
-      builder: (context) => AppDialogs.buildDialog(
-        context: context,
+      builder: (ctx) => AppDialogs.buildDialog(
+        context: ctx,
         title: tr('remove-servers-without-ping'),
         content: tr('are-you-sure-you-want-to-delete-servers-without-ping'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              tr('cancel'),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(tr('cancel'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.primary))),
           TextButton(
             onPressed: () {
               setState(() {
-                final serversToRemove = servers.where((server) {
-                  final ping = serverPingTimes[server];
-
-                  final isUnreachable = ping == -1;
-                  final isHttp = server.startsWith("http://") ||
-                      server.startsWith("https://");
-                  final isFreedom = server.startsWith("freedom-guard://");
-                  final isEmptyConfig = server.split("#")[0].isEmpty;
-
-                  return isUnreachable &&
-                      !isHttp &&
-                      !isFreedom &&
-                      !isEmptyConfig;
+                List<String> toRemove = servers.where((s) {
+                  int? ping = serverPingTimes[s];
+                  bool unreachable = ping == -1;
+                  bool isHttp =
+                      s.startsWith('http://') || s.startsWith('https://');
+                  bool isFreedom = s.startsWith('freedom-guard://');
+                  bool emptyConfig = s.split('#')[0].isEmpty;
+                  return unreachable && !isHttp && !isFreedom && !emptyConfig;
                 }).toList();
-
-                if (serversToRemove.isNotEmpty) {
-                  servers.removeWhere((s) => serversToRemove.contains(s));
-                  serverPingTimes
-                      .removeWhere((key, _) => serversToRemove.contains(key));
-
-                  if (!servers.contains(serversManage.oldServers())) {
-                    serversManage.selectServer("#Auto Server");
-                  }
+                if (toRemove.isNotEmpty) {
+                  servers.removeWhere((s) => toRemove.contains(s));
+                  serverPingTimes.removeWhere((k, _) => toRemove.contains(k));
+                  if (!servers.contains(serversManage.oldServers()))
+                    serversManage.selectServer('#Auto Server');
                   _saveServers();
                 }
               });
-              Navigator.pop(context);
+              Navigator.pop(ctx);
             },
-            child: Text(
-              tr('delete'),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-              ),
-            ),
+            child: Text(tr('delete'),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
           ),
         ],
       ),
     );
   }
 
-  void _showAppBarOptions(BuildContext context) {
+  void _showAppBarOptions(BuildContext ctx) {
     showModalBottomSheet(
-      context: context,
+      context: ctx,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildBottomSheet(
+      builder: (ctx) => _buildBottomSheet(
         children: [
           ListTile(
-            leading: Icon(Icons.refresh,
-                color: Theme.of(context).colorScheme.primary),
-            title: Text(tr('refresh'),
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-            onTap: () {
-              Navigator.pop(context);
-              _refreshSubscriptions();
-            },
-          ),
+              leading:
+                  Icon(Icons.refresh, color: Theme.of(ctx).colorScheme.primary),
+              title: Text(tr('refresh'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+              onTap: () => _refreshSubscriptions()),
           ListTile(
-            leading: Icon(Icons.vpn_key_rounded,
-                color: Theme.of(context).colorScheme.secondary),
-            title: Text('Encrypt/Decrypt',
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-            onTap: () {
-              Navigator.pop(context);
-              showEncryptDecryptDialog(context);
-            },
-          ),
+              leading: Icon(Icons.vpn_key_rounded,
+                  color: Theme.of(ctx).colorScheme.secondary),
+              title: Text('Encrypt/Decrypt',
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+              onTap: () => showEncryptDecryptDialog(ctx)),
           ListTile(
             leading: Icon(Icons.signal_wifi_bad,
-                color: Theme.of(context).colorScheme.error),
+                color: Theme.of(ctx).colorScheme.error),
             title: Text(tr('remove-servers-without-ping'),
-                style: TextStyle(color: Theme.of(context).colorScheme.error)),
-            onTap: () {
-              Navigator.pop(context);
-              _removeServersWithoutPing();
-            },
+                style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+            onTap: () => _removeServersWithoutPing(),
           ),
           ListTile(
-            leading: Icon(Icons.delete_forever,
-                color: Theme.of(context).colorScheme.error),
-            title: Text(tr('remove-all-servers'),
-                style: TextStyle(color: Theme.of(context).colorScheme.error)),
-            onTap: () {
-              Navigator.pop(context);
-              _removeAllServers();
-            },
-          ),
+              leading: Icon(Icons.auto_mode,
+                  color: Theme.of(ctx).colorScheme.primary),
+              title: Row(children: [
+                Text('My Configs in Auto Mode',
+                    style:
+                        TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+                Switch(
+                    value: includeMyConfigsInAuto,
+                    onChanged: (_) => _toggleIncludeMyConfigs())
+              ]),
+              onTap: () => _toggleIncludeMyConfigs()),
+          ListTile(
+              leading: Icon(Icons.delete_forever,
+                  color: Theme.of(ctx).colorScheme.error),
+              title: Text(tr('remove-all-servers'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+              onTap: () => _removeAllServers()),
         ],
       ),
     );
   }
 
-  void _showServerOptions(BuildContext context, String server) {
+  void _showServerOptions(BuildContext ctx, String server) {
     showModalBottomSheet(
-      context: context,
+      context: ctx,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildBottomSheet(
+      builder: (ctx) => _buildBottomSheet(
         children: [
           ListTile(
-            leading:
-                Icon(Icons.edit, color: Theme.of(context).colorScheme.primary),
-            title: Text(tr('edit'),
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-            onTap: () {
-              Navigator.pop(context);
-              _editServer(server);
-            },
-          ),
-          if (server.startsWith("freedom-guard://") ||
-              server.startsWith("http"))
+              leading:
+                  Icon(Icons.edit, color: Theme.of(ctx).colorScheme.primary),
+              title: Text(tr('edit'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+              onTap: () => _editServer(server)),
+          if (server.startsWith('freedom-guard://') ||
+              server.startsWith('http'))
             ListTile(
-              leading: Icon(Icons.rocket_launch,
-                  color: Theme.of(context).colorScheme.primary),
-              title: Text('CFG',
-                  style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface)),
-              onTap: () {
-                Navigator.pop(context);
-                settings.setValue("selectedSubLink", server);
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => CFGPage()));
-              },
-            ),
+                leading: Icon(Icons.rocket_launch,
+                    color: Theme.of(ctx).colorScheme.primary),
+                title: Text('CFG',
+                    style:
+                        TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+                onTap: () {
+                  settings.setValue('selectedSubLink', server);
+                  Navigator.push(
+                      ctx, MaterialPageRoute(builder: (ctx) => CFGPage()));
+                }),
           ListTile(
-            leading:
-                Icon(Icons.share, color: Theme.of(context).colorScheme.primary),
-            title: Text(tr('share'),
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-            onTap: () {
-              Navigator.pop(context);
-              _shareServer(server);
-            },
-          ),
+              leading:
+                  Icon(Icons.share, color: Theme.of(ctx).colorScheme.primary),
+              title: Text(tr('share'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+              onTap: () => _shareServer(server)),
           ListTile(
-            leading: Icon(Icons.qr_code,
-                color: Theme.of(context).colorScheme.primary),
-            title: Text(tr('qr-code'),
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-            onTap: () {
-              Navigator.pop(context);
-              showQRCode(context, server);
-            },
-          ),
+              leading:
+                  Icon(Icons.qr_code, color: Theme.of(ctx).colorScheme.primary),
+              title: Text(tr('qr-code'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+              onTap: () => showQRCode(ctx, server)),
           ListTile(
-            leading: Icon(Icons.volunteer_activism,
-                color: Theme.of(context).colorScheme.primary),
-            title: Text(tr('donate'),
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-            onTap: () {
-              Navigator.pop(context);
-              donateCONFIG(server);
-            },
-          ),
+              leading: Icon(Icons.volunteer_activism,
+                  color: Theme.of(ctx).colorScheme.primary),
+              title: Text(tr('donate'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+              onTap: () => donateCONFIG(server)),
           ListTile(
-            leading:
-                Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-            title: Text(tr('delete'),
-                style: TextStyle(color: Theme.of(context).colorScheme.error)),
-            onTap: () {
-              Navigator.pop(context);
-              _confirmRemoveServer(server);
-            },
-          ),
+              leading:
+                  Icon(Icons.delete, color: Theme.of(ctx).colorScheme.error),
+              title: Text(tr('delete'),
+                  style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+              onTap: () => _confirmRemoveServer(server)),
         ],
       ),
     );
   }
 
-  Widget _buildPingIndicator(int? ping, BuildContext context, String server) {
-    final theme = Theme.of(context);
-    String label;
-    Color labelColor;
-    if (server.startsWith("http")) {
-      label = "SUB";
-      labelColor = theme.colorScheme.secondary;
-    } else if (server.startsWith("freedom-guard")) {
-      label = "SUB (FG)";
-      labelColor = theme.colorScheme.secondary;
-    } else if (server.split("#")[0].isEmpty) {
-      label = "Mode";
-      labelColor = theme.colorScheme.primary;
+  Widget _buildPingIndicator(int? ping, BuildContext ctx, String server) {
+    ThemeData theme = Theme.of(ctx);
+    if (server.startsWith('http')) {
+      return _buildLabel(theme, 'SUB', theme.colorScheme.secondary);
+    } else if (server.startsWith('freedom-guard')) {
+      return _buildLabel(theme, 'SUB (FG)', theme.colorScheme.secondary);
+    } else if (server.split('#')[0].isEmpty) {
+      return _buildLabel(theme, 'Mode', theme.colorScheme.primary);
     } else if (ping == null) {
-      label = "Not Tested";
-      labelColor = theme.colorScheme.onSurface.withOpacity(0.7);
+      return _buildLabel(
+          theme, 'Not Tested', theme.colorScheme.onSurface.withOpacity(0.7));
     } else if (ping == -1) {
-      label = "Unreachable";
-      labelColor = theme.colorScheme.error;
-    } else {
-      Color color;
-      if (ping < 200) {
-        color = Colors.green;
-      } else if (ping < 500) {
-        color = Colors.orange;
-      } else {
-        color = Colors.red;
-      }
-      String protocol = "Unknown";
-      if (server.contains("://")) {
-        protocol = server.split("://")[0].toUpperCase();
-      }
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            ping < 200
-                ? Icons.signal_cellular_4_bar_outlined
-                : (ping < 500
-                    ? Icons.signal_cellular_alt_2_bar
-                    : Icons.signal_cellular_alt_1_bar),
-            color: color,
-            size: 16,
-          ),
-          const SizedBox(width: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: color.withOpacity(0.3)),
-            ),
-            child: Text(
-              '$protocol • ${ping}ms',
-              textDirection:
-                  getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-            ),
-          ),
-        ],
-      );
+      return _buildLabel(theme, '-1', theme.colorScheme.error);
     }
+    Color color = ping < 200
+        ? Colors.green
+        : ping < 500
+            ? Colors.orange
+            : Colors.red;
+    IconData icon = ping < 200
+        ? Icons.signal_cellular_4_bar_outlined
+        : ping < 500
+            ? Icons.signal_cellular_alt_2_bar
+            : Icons.signal_cellular_alt_1_bar;
+    String protocol = server.contains('://')
+        ? server.split('://')[0].toUpperCase()
+        : 'Unknown';
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: color, size: 16),
+        const SizedBox(width: 4),
+        _buildLabel(theme, '$protocol • ${ping}ms', color, bold: true),
+      ],
+    );
+  }
+
+  Widget _buildLabel(ThemeData theme, String text, Color color,
+      {bool bold = false}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: labelColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: labelColor.withOpacity(0.3)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: labelColor,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withOpacity(0.3))),
+      child: Text(text,
+          textDirection:
+              getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+          style: TextStyle(
+              color: color,
+              fontWeight: bold ? FontWeight.bold : FontWeight.w600,
+              fontSize: 12)),
     );
   }
 
@@ -756,18 +650,17 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withOpacity(0.2),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            border: Border.all(
-                color:
-                    Theme.of(context).colorScheme.onSurface.withOpacity(0.1)),
-          ),
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.2),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+              border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withOpacity(0.1))),
           child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: children,
-            ),
-          ),
+              child:
+                  Column(mainAxisSize: MainAxisSize.min, children: children)),
         ),
       ),
     );
@@ -782,264 +675,272 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
       tooltip: tooltip,
       onPressed: onPressed,
       style: IconButton.styleFrom(
-        backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-        padding: const EdgeInsets.all(8),
+          backgroundColor:
+              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          padding: const EdgeInsets.all(8)),
+    );
+  }
+
+  Widget _buildServerItem(String server) {
+    ThemeData theme = Theme.of(context);
+    bool selected = serversManage.selectedServer == server;
+    int? ping = serverPingTimes[server];
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: selected
+                    ? theme.colorScheme.primary.withOpacity(0.3)
+                    : theme.colorScheme.onSurface.withOpacity(0.1),
+                width: 2),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+              onTap: () async {
+                await serversManage.selectServer(server);
+                if (mounted) setState(() {});
+              },
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                child: Row(children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(getNameByConfig(server),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: selected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: theme.colorScheme.onSurface),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 4),
+                        _buildPingIndicator(ping, context, server),
+                      ],
+                    ),
+                  ),
+                  _buildIconButton(
+                      icon: Icons.network_check,
+                      tooltip: 'Ping Server',
+                      onPressed: () => _pingServer(server)),
+                  _buildIconButton(
+                      icon: Icons.more_vert,
+                      tooltip: 'Options',
+                      onPressed: () => _showServerOptions(context, server)),
+                ]),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    ThemeData theme = Theme.of(context);
+    IconData viewIcon = viewMode == ViewMode.list ? Icons.list_alt : Icons.apps;
     return Directionality(
-      textDirection: getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
-      child: Scaffold(
-        extendBody: true,
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          elevation: 0,
-          title: Text(
-            tr('manage-servers-page'),
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onPrimary),
-          ),
-          actions: [
-            IconButton(
-              icon: isPingingAll
-                  ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: theme.colorScheme.onPrimary),
-                    )
-                  : Icon(Icons.network_check,
-                      color: theme.colorScheme.onPrimary),
-              tooltip: 'Ping All',
-              onPressed: isPingingAll ? null : _pingAllServers,
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.sort,
-                color: sortByPing
-                    ? theme.colorScheme.secondary
-                    : theme.colorScheme.onPrimary,
-              ),
-              tooltip: 'Sort by Ping',
-              onPressed: _toggleSortByPing,
-            ),
-            IconButton(
-              icon: Icon(Icons.add, color: theme.colorScheme.onPrimary),
-              tooltip: 'Add Server',
-              onPressed: () => _showAddServerDialog(context),
-            ),
-            IconButton(
-              icon: Icon(Icons.more_vert, color: theme.colorScheme.onPrimary),
-              tooltip: 'More Options',
-              onPressed: () => _showAppBarOptions(context),
-            ),
-          ],
-        ),
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                theme.colorScheme.primary.withOpacity(0.1),
-                theme.colorScheme.secondary.withOpacity(0.1),
+        textDirection:
+            getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+        child: Scaffold(
+            extendBody: true,
+            appBar: AppBar(
+              backgroundColor: theme.colorScheme.primary,
+              elevation: 0,
+              title: Text(tr('manage-servers-page'),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onPrimary)),
+              actions: [
+                IconButton(
+                  icon: isPingingAll
+                      ? SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: theme.colorScheme.onPrimary))
+                      : Icon(Icons.network_check,
+                          color: theme.colorScheme.onPrimary),
+                  tooltip: 'Ping All',
+                  onPressed: isPingingAll ? null : _pingAllServers,
+                ),
+                IconButton(
+                  icon: Icon(Icons.sort,
+                      color: sortByPing
+                          ? theme.colorScheme.secondary
+                          : theme.colorScheme.onPrimary),
+                  tooltip: 'Sort by Ping',
+                  onPressed: _toggleSortByPing,
+                ),
+                IconButton(
+                    icon: Icon(Icons.add, color: theme.colorScheme.onPrimary),
+                    tooltip: 'Add Server',
+                    onPressed: () => _showAddServerDialog(context)),
+                IconButton(
+                    icon: Icon(Icons.more_vert,
+                        color: theme.colorScheme.onPrimary),
+                    tooltip: 'More Options',
+                    onPressed: () => _showAppBarOptions(context)),
               ],
             ),
-          ),
-          child: isLoading
-              ? Center(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surface.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                              color:
-                                  theme.colorScheme.onSurface.withOpacity(0.1)),
-                        ),
-                        child: CircularProgressIndicator(
-                            color: theme.colorScheme.primary),
-                      ),
-                    ),
-                  ),
-                )
-              : Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            body: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      theme.colorScheme.primary.withOpacity(0.1),
+                      theme.colorScheme.secondary.withOpacity(0.1)
+                    ]),
+              ),
+              child: isLoading
+                  ? Center(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: BackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                           child: Container(
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.surface.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                  color: theme.colorScheme.onSurface
-                                      .withOpacity(0.1)),
-                            ),
-                            child: TextField(
-                              controller: searchController,
-                              decoration: InputDecoration(
-                                hintText: tr('search-servers'),
-                                prefixIcon: Icon(Icons.search,
-                                    color: theme.colorScheme.primary),
-                                border: InputBorder.none,
-                                hintStyle: TextStyle(
+                                color:
+                                    theme.colorScheme.surface.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
                                     color: theme.colorScheme.onSurface
-                                        .withOpacity(0.5)),
-                              ),
-                              style:
-                                  TextStyle(color: theme.colorScheme.onSurface),
-                            ),
+                                        .withOpacity(0.1))),
+                            child: CircularProgressIndicator(
+                                color: theme.colorScheme.primary),
                           ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: filteredServers.isEmpty
-                          ? Center(
+                    )
+                  : Column(children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        child: Row(
+                          children: [
+                            Expanded(
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(16),
                                 child: BackdropFilter(
                                   filter:
                                       ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                                   child: Container(
-                                    padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
+                                        color: theme.colorScheme.surface
+                                            .withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                            color: theme.colorScheme.onSurface
+                                                .withOpacity(0.1))),
+                                    child: TextField(
+                                      controller: searchController,
+                                      decoration: InputDecoration(
+                                          hintText: tr('search-servers'),
+                                          prefixIcon: Icon(Icons.search,
+                                              color: theme.colorScheme.primary),
+                                          border: InputBorder.none,
+                                          hintStyle: TextStyle(
+                                              color: theme.colorScheme.onSurface
+                                                  .withOpacity(0.5))),
+                                      style: TextStyle(
+                                          color: theme.colorScheme.onSurface),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: BackdropFilter(
+                                filter:
+                                    ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                  decoration: BoxDecoration(
                                       color: theme.colorScheme.surface
                                           .withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(16),
                                       border: Border.all(
                                           color: theme.colorScheme.onSurface
-                                              .withOpacity(0.1)),
-                                    ),
-                                    child: Text(
-                                      'No servers found!',
-                                      style:
-                                          theme.textTheme.titleMedium?.copyWith(
-                                        color: theme.colorScheme.onSurface
-                                            .withOpacity(0.6),
-                                      ),
-                                    ),
+                                              .withOpacity(0.1))),
+                                  child: IconButton(
+                                    icon: Icon(viewIcon,
+                                        color: theme.colorScheme.primary),
+                                    tooltip: 'View Mode',
+                                    onPressed: _cycleViewMode,
                                   ),
                                 ),
                               ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.only(
-                                  bottom: 80, left: 16, right: 16),
-                              itemCount: filteredServers.length,
-                              itemBuilder: (context, index) {
-                                final server = filteredServers[index];
-                                final isSelected =
-                                    serversManage.selectedServer == server;
-                                final ping = serverPingTimes[server];
-
-                                return Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 6),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: filteredServers.isEmpty
+                            ? Center(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                        sigmaX: 10, sigmaY: 10),
                                     child: Container(
+                                      padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
-                                        color: theme.colorScheme.surface
-                                            .withOpacity(0.3),
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? theme.colorScheme.primary
-                                                  .withOpacity(0.3)
-                                              : theme.colorScheme.onSurface
-                                                  .withOpacity(0.1),
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          splashColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          hoverColor: Colors.transparent,
+                                          color: theme.colorScheme.surface
+                                              .withOpacity(0.2),
                                           borderRadius:
                                               BorderRadius.circular(16),
-                                          onTap: () async {
-                                            await serversManage
-                                                .selectServer(server);
-                                            if (mounted) setState(() {});
-                                          },
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 12, vertical: 16),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        getNameByConfig(server),
-                                                        style: theme.textTheme
-                                                            .titleMedium
-                                                            ?.copyWith(
-                                                          fontWeight: isSelected
-                                                              ? FontWeight.bold
-                                                              : FontWeight
-                                                                  .normal,
-                                                          color: theme
-                                                              .colorScheme
-                                                              .onSurface,
-                                                        ),
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                      ),
-                                                      const SizedBox(height: 4),
-                                                      _buildPingIndicator(ping,
-                                                          context, server),
-                                                    ],
-                                                  ),
-                                                ),
-                                                _buildIconButton(
-                                                  icon: Icons.network_check,
-                                                  tooltip: 'Ping Server',
-                                                  onPressed: () =>
-                                                      _pingServer(server),
-                                                ),
-                                                _buildIconButton(
-                                                  icon: Icons.more_vert,
-                                                  tooltip: 'Options',
-                                                  onPressed: () =>
-                                                      _showServerOptions(
-                                                          context, server),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
+                                          border: Border.all(
+                                              color: theme.colorScheme.onSurface
+                                                  .withOpacity(0.1))),
+                                      child: Text('No servers found!',
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                                  color: theme
+                                                      .colorScheme.onSurface
+                                                      .withOpacity(0.6))),
                                     ),
                                   ),
-                                );
-                              },
-                            ),
-                    ),
-                  ],
-                ),
-        ),
-      ),
-    );
+                                ),
+                              )
+                            : viewMode == ViewMode.list
+                                ? ListView.builder(
+                                    padding: const EdgeInsets.only(
+                                        bottom: 80, left: 16, right: 16),
+                                    itemCount: filteredServers.length,
+                                    itemBuilder: (ctx, idx) =>
+                                        _buildServerItem(filteredServers[idx]),
+                                  )
+                                : GridView.builder(
+                                    padding: const EdgeInsets.only(
+                                        bottom: 80, left: 16, right: 16),
+                                    gridDelegate:
+                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            childAspectRatio: 1.2,
+                                            crossAxisSpacing: 16,
+                                            mainAxisSpacing: 16),
+                                    itemCount: filteredServers.length,
+                                    itemBuilder: (ctx, idx) =>
+                                        _buildServerItem(filteredServers[idx]),
+                                  ),
+                      ),
+                    ]),
+            )));
   }
 }
