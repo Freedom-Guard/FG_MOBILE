@@ -400,6 +400,8 @@ Future<bool> connectFL(CancelToken token) async {
 
         final isp = await SettingsApp().getValue("isp");
         await addISPToConfig(docId, (isp == "" ? await getUserISP() : isp));
+        SettingsApp().setValue(
+            "config_backup", "mode=f-link#Auto Server (FL Mode)");
         return true;
       }
     }

@@ -41,7 +41,6 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   bool isPingingAll = false;
   bool sortByPing = false;
   ViewMode viewMode = ViewMode.list;
-  bool includeMyConfigsInAuto = false;
   @override
   void initState() {
     super.initState();
@@ -74,7 +73,6 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
     try {
       final prefs = await SharedPreferences.getInstance();
       await serversManage.getSelectedServer();
-      includeMyConfigsInAuto = prefs.getBool('includeMyConfigsInAuto') ?? false;
       await _restoreServers(initialLoad: true);
       await _restorePingTimes();
       await _restoreSelectedServer();
@@ -90,11 +88,6 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
         : servers
             .where((s) => getNameByConfig(s).toLowerCase().contains(query))
             .toList();
-    if (!includeMyConfigsInAuto) {
-      temp = temp
-          .where((s) => !s.startsWith('http') && !s.startsWith('freedom-guard'))
-          .toList();
-    }
     if (sortByPing) {
       temp.sort((a, b) {
         int pingA =
@@ -121,9 +114,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
 
   Future<void> _loadPrefs(String key, {Type? type}) async {
     final prefs = await SharedPreferences.getInstance();
-    if (type == bool)
-      includeMyConfigsInAuto = prefs.getBool(key) ?? false;
-    else if (type == Map<String, dynamic>) {
+    if (type == Map<String, dynamic>) {
       final data = prefs.getString(key);
       if (data != null) {
         final map = jsonDecode(data) as Map<String, dynamic>;
@@ -299,12 +290,6 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   void _cycleViewMode() {
     setState(() =>
         viewMode = viewMode == ViewMode.list ? ViewMode.grid : ViewMode.list);
-  }
-
-  void _toggleIncludeMyConfigs() async {
-    setState(() => includeMyConfigsInAuto = !includeMyConfigsInAuto);
-    await _savePrefs('includeMyConfigsInAuto', includeMyConfigsInAuto);
-    _applyFiltersAndSort();
   }
 
   void _showAddServerDialog(BuildContext ctx) {
@@ -493,42 +478,53 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
       builder: (ctx) => _buildBottomSheet(
         children: [
           ListTile(
-              leading:
-                  Icon(Icons.refresh, color: Theme.of(ctx).colorScheme.primary),
-              title: Text(tr('refresh'),
-                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
-              onTap: () => _refreshSubscriptions()),
+            leading:
+                Icon(Icons.refresh, color: Theme.of(ctx).colorScheme.primary),
+            title: Text(
+              tr('refresh'),
+              style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
+            ),
+            onTap: () {
+              Navigator.pop(ctx);
+              _refreshSubscriptions();
+            },
+          ),
           ListTile(
-              leading: Icon(Icons.vpn_key_rounded,
-                  color: Theme.of(ctx).colorScheme.secondary),
-              title: Text('Encrypt/Decrypt',
-                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
-              onTap: () => showEncryptDecryptDialog(ctx)),
+            leading: Icon(Icons.vpn_key_rounded,
+                color: Theme.of(ctx).colorScheme.secondary),
+            title: Text(
+              'Encrypt / Decrypt',
+              style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface),
+            ),
+            onTap: () {
+              Navigator.pop(ctx);
+              showEncryptDecryptDialog(ctx);
+            },
+          ),
           ListTile(
             leading: Icon(Icons.signal_wifi_bad,
                 color: Theme.of(ctx).colorScheme.error),
-            title: Text(tr('remove-servers-without-ping'),
-                style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
-            onTap: () => _removeServersWithoutPing(),
+            title: Text(
+              tr('remove-servers-without-ping'),
+              style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+            ),
+            onTap: () {
+              Navigator.pop(ctx);
+              _removeServersWithoutPing();
+            },
           ),
           ListTile(
-              leading: Icon(Icons.auto_mode,
-                  color: Theme.of(ctx).colorScheme.primary),
-              title: Row(children: [
-                Text('My Configs in Auto Mode',
-                    style:
-                        TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
-                Switch(
-                    value: includeMyConfigsInAuto,
-                    onChanged: (_) => _toggleIncludeMyConfigs())
-              ]),
-              onTap: () => _toggleIncludeMyConfigs()),
-          ListTile(
-              leading: Icon(Icons.delete_forever,
-                  color: Theme.of(ctx).colorScheme.error),
-              title: Text(tr('remove-all-servers'),
-                  style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
-              onTap: () => _removeAllServers()),
+            leading: Icon(Icons.delete_forever,
+                color: Theme.of(ctx).colorScheme.error),
+            title: Text(
+              tr('remove-all-servers'),
+              style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+            ),
+            onTap: () {
+              Navigator.pop(ctx);
+              _removeAllServers();
+            },
+          ),
         ],
       ),
     );
@@ -594,7 +590,8 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
       return _buildLabel(theme, 'SUB', theme.colorScheme.secondary);
     } else if (server.startsWith('freedom-guard')) {
       return _buildLabel(theme, 'SUB (FG)', theme.colorScheme.secondary);
-    } else if (server.split('#')[0].isEmpty) {
+    } else if (server.split('#')[0].startsWith("mode=") ||
+        server.split("#")[0].isEmpty) {
       return _buildLabel(theme, 'Mode', theme.colorScheme.primary);
     } else if (ping == null) {
       return _buildLabel(
@@ -620,7 +617,9 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
       children: [
         Icon(icon, color: color, size: 16),
         const SizedBox(width: 4),
-        _buildLabel(theme, '$protocol • ${ping}ms', color, bold: true),
+        (viewMode == ViewMode.list)
+            ? _buildLabel(theme, '$protocol • ${ping}ms', color, bold: true)
+            : _buildLabel(theme, '${ping}ms', color, bold: true),
       ],
     );
   }

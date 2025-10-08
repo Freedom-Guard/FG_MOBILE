@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/services/config.dart';
+import 'package:Freedom_Guard/services/share.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vibe_core/vibe_core.dart';
@@ -190,7 +191,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
                                     ],
                                   ),
                                   const Spacer(),
-                                  _buildRefreshButton(),
+                                  _buildTopButtons(),
                                 ],
                               ),
                               const SizedBox(height: 14),
@@ -362,26 +363,44 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
     );
   }
 
-  Widget _buildRefreshButton() {
-    return AnimatedBuilder(
-      animation: _refreshController,
-      builder: (context, child) {
-        return Transform.rotate(
-          angle: _refreshController.value * 6.3,
-          child: GestureDetector(
-            onTap: isPinging ? null : _fetchPingAndCountry,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.1),
-                border: Border.all(color: Colors.white.withOpacity(0.2)),
+  Widget _buildTopButtons() {
+    return Row(
+      children: [
+        AnimatedBuilder(
+          animation: _refreshController,
+          builder: (context, child) {
+            return Transform.rotate(
+              angle: _refreshController.value * 6.3,
+              child: GestureDetector(
+                onTap: isPinging ? null : _fetchPingAndCountry,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.1),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  child:
+                      const Icon(Icons.refresh, size: 16, color: Colors.white),
+                ),
               ),
-              child: const Icon(Icons.refresh, size: 16, color: Colors.white),
+            );
+          },
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => shareConfig(context),
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.1),
+              border: Border.all(color: Colors.white.withOpacity(0.2)),
             ),
+            child: const Icon(Icons.share, size: 16, color: Colors.white),
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 

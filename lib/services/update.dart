@@ -5,6 +5,17 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+bool isNewerVersion(String latest, String current) {
+  List<int> latestParts = latest.split('.').map(int.parse).toList();
+  List<int> currentParts = current.split('.').map(int.parse).toList();
+
+  for (int i = 0; i < latestParts.length; i++) {
+    if (latestParts[i] > currentParts[i]) return true;
+    if (latestParts[i] < currentParts[i]) return false;
+  }
+  return false;
+}
+
 Future<void> checkForUpdate(BuildContext context) async {
   final response = await http.get(
     Uri.parse(
@@ -17,7 +28,7 @@ Future<void> checkForUpdate(BuildContext context) async {
     final latestVersion = data['version'];
     const currentVersion = '10.0.0';
 
-    if (latestVersion.compareTo(currentVersion) > 0) {
+    if (isNewerVersion(latestVersion, currentVersion)) {
       showDialog(
         context: context,
         builder: (context) => Dialog(

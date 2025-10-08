@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:Freedom_Guard/components/connectMode.dart';
 import 'package:Freedom_Guard/ui/widgets/background.dart';
 import 'package:Freedom_Guard/ui/widgets/background_picker_dialog.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
@@ -95,10 +96,7 @@ class _HomeContentState extends State<HomeContent>
   bool isConnecting = false;
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
-  Map<String, String> defSet = {
-    "fgconfig":
-        "https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/refs/heads/main/config/index.json",
-  };
+
   @override
   void initState() {
     super.initState();
@@ -200,36 +198,15 @@ class _HomeContentState extends State<HomeContent>
             LogOverlay.addLog("Conneting to QUICK mode...");
           }
         }
-        if (selectedServer.split("#")[0].isEmpty) {
-          LogOverlay.showLog("connecting to FL mode...");
-          connStat = await CancellableRunner.runWithTimeout(
-            (token) async {
-              return await connectFL(token);
-            },
-            timeout: Duration(seconds: 20),
-          );
-
-          if (!connStat) {
-            LogOverlay.showLog(
-              "connecting to Repo mode...",
-              backgroundColor: Colors.blueAccent,
-            );
-            var timeout = int.tryParse(
-                  await settings.getValue("timeout_auto").toString(),
-                ) ??
-                110000;
-            connStat = await connect.ConnectFG(
-              defSet["fgconfig"]!,
-              110000,
-            ).timeout(
-              Duration(milliseconds: timeout),
-              onTimeout: () {
-                LogOverlay.showLog("Connection to Auto mode timed out.",
-                    type: "error");
-                return false;
-              },
-            );
-          }
+        if (selectedServer.split("#")[0].startsWith("mode=auto") ||
+            selectedServer.split("#")[0].isEmpty) {
+          connStat = await connectAutoMode(context);
+        } else if (selectedServer.split("#")[0].startsWith("mode=repo")) {
+          connStat = await connectRepoMode(context);
+        } else if (selectedServer.split("#")[0].startsWith("mode=f-link")) {
+          connStat = await connectFlMode(context);
+        } else if (selectedServer.split("#")[0].startsWith("mode=auto-my")) {
+          connStat = await connectAutoMy(context);
         } else {
           LogOverlay.addLog(
             "connecting to config:\n${selectedServer.split("#")[0]}",
