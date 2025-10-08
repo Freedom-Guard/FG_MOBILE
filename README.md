@@ -1,16 +1,16 @@
 <div align="center">
-  <img src="https://gitlab.com/Freedom-Guard/freedom-guard/-/raw/main/src/assets/icon/ico.png" alt="Freedom Guard Mobile Logo" width="150" />
+  <img src="https://raw.githubusercontent.com/Freedom-Guard/FG_MOBILE/refs/heads/main/assets/icon/ico.png" alt="Freedom Guard Mobile Logo" width="150" />
 
   <h1>Freedom Guard <br /> Mobile</h1>
   <p>🕊️ Open-source tool for secure, fast, and truly free internet access</p>
 
-  <a href="https://gitlab.com/Freedom-Guard/FG_MOBILE/releases">
+  <a href="https://github.com/Freedom-Guard/FG_MOBILE/releases">
     <img src="https://img.shields.io/github/v/release/Freedom-Guard/FG_MOBILE?style=for-the-badge&color=3fb950" alt="Latest Release">
   </a>
-  <a href="https://gitlab.com/Freedom-Guard/FG_MOBILE/stargazers">
+  <a href="https://github.com/Freedom-Guard/FG_MOBILE/stargazers">
     <img src="https://img.shields.io/github/stars/Freedom-Guard/FG_MOBILE?style=for-the-badge&color=facc15" alt="Stars">
   </a>
-  <a href="https://gitlab.com/Freedom-Guard/FG_MOBILE/blob/main/LICENSE">
+  <a href="https://github.com/Freedom-Guard/FG_MOBILE/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/Freedom-Guard/FG_MOBILE?style=for-the-badge&color=0ea5e9" alt="License">
   </a>
 
@@ -28,7 +28,7 @@
 
 <div align="center">
   <p>🖥️ Looking for Desktop? <br>
-  👉 <a href="https://gitlab.com/Freedom-Guard/Freedom-Guard/">Freedom Guard Desktop</a></p>
+  👉 <a href="https://github.com/Freedom-Guard/Freedom-Guard/">Freedom Guard Desktop</a></p>
 </div>
 
 ---
