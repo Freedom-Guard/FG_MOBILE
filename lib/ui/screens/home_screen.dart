@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connectMode.dart';
+import 'package:Freedom_Guard/core/is_tv.dart';
 import 'package:Freedom_Guard/ui/widgets/background.dart';
 import 'package:Freedom_Guard/ui/widgets/background_picker_dialog.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/core/global.dart';
 import 'package:Freedom_Guard/services/services.dart';
-import 'package:Freedom_Guard/core/async_runner.dart';
 import 'package:Freedom_Guard/ui/widgets/CBar.dart';
 import 'package:Freedom_Guard/ui/widgets/nav.dart';
 import 'package:Freedom_Guard/ui/widgets/network.dart';
@@ -32,6 +32,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 1;
 
+  final bool _isTV = isTvPlatform;
   final List<Widget> _pages = [
     SettingsPage(),
     HomeContent(),
@@ -67,7 +68,7 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
             )
-          : null, // No AppBar for other pages
+          : null,
       body: IndexedStack(
         index: _currentIndex,
         children: _pages,
@@ -209,7 +210,7 @@ class _HomeContentState extends State<HomeContent>
           connStat = await connectAutoMy(context);
         } else {
           LogOverlay.addLog(
-            "connecting to config:\n${selectedServer.split("#")[0]}",
+            "connecting to config: \n ${selectedServer.split("#")[0]}",
           );
           if (selectedServer.startsWith("http") ||
               selectedServer.startsWith("freedom-guard")) {

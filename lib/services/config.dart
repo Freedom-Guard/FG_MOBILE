@@ -5,6 +5,7 @@ String getNameByConfig(String config) {
   try {
     if (config.startsWith("http") ||
         config.startsWith("freedom-guard") ||
+        config.startsWith("mode=") ||
         config.split("#")[0].trim().replaceAll("vibe,;,", "") == "") {
       final name = config.split("#").last.trim().isNotEmpty
           ? config.split("#").last.trim()

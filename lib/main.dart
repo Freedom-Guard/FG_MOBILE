@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:Freedom_Guard/core/is_tv.dart';
 import 'package:Freedom_Guard/core/local.dart';
 import 'package:Freedom_Guard/ui/screens/home_screen.dart';
 import 'package:Freedom_Guard/ui/screens/welcome_screen.dart';
@@ -21,6 +22,7 @@ final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 void main() async {
   await WidgetsFlutterBinding.ensureInitialized();
+  await checkAndroidTv();
 
   QuickSettings.setup(
     onTileClicked: onTileClicked,

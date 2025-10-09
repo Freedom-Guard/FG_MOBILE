@@ -320,7 +320,10 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                 _buildIconButton(
                     icon: Icons.content_paste,
                     tooltip: 'Paste from clipboard',
-                    onPressed: () => _addFromClipboard()),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _addFromClipboard();
+                    }),
                 _buildIconButton(
                     icon: Icons.folder_open,
                     tooltip: 'Import from file',
@@ -537,11 +540,14 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
       builder: (ctx) => _buildBottomSheet(
         children: [
           ListTile(
-              leading:
-                  Icon(Icons.edit, color: Theme.of(ctx).colorScheme.primary),
-              title: Text(tr('edit'),
-                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
-              onTap: () => _editServer(server)),
+            leading: Icon(Icons.edit, color: Theme.of(ctx).colorScheme.primary),
+            title: Text(tr('edit'),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+            onTap: () {
+              Navigator.pop(ctx);
+              _editServer(server);
+            },
+          ),
           if (server.startsWith('freedom-guard://') ||
               server.startsWith('http'))
             ListTile(
@@ -560,25 +566,39 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                   Icon(Icons.share, color: Theme.of(ctx).colorScheme.primary),
               title: Text(tr('share'),
                   style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
-              onTap: () => _shareServer(server)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _shareServer(server);
+              }),
           ListTile(
-              leading:
-                  Icon(Icons.qr_code, color: Theme.of(ctx).colorScheme.primary),
-              title: Text(tr('qr-code'),
-                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
-              onTap: () => showQRCode(ctx, server)),
+            leading:
+                Icon(Icons.qr_code, color: Theme.of(ctx).colorScheme.primary),
+            title: Text(tr('qr-code'),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+            onTap: () {
+              Navigator.pop(ctx);
+              showQRCode(ctx, server);
+            },
+          ),
           ListTile(
-              leading: Icon(Icons.volunteer_activism,
-                  color: Theme.of(ctx).colorScheme.primary),
-              title: Text(tr('donate'),
-                  style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
-              onTap: () => donateCONFIG(server)),
+            leading: Icon(Icons.volunteer_activism,
+                color: Theme.of(ctx).colorScheme.primary),
+            title: Text(tr('donate'),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+            onTap: () {
+              Navigator.pop(ctx);
+              donateCONFIG(server);
+            },
+          ),
           ListTile(
-              leading:
-                  Icon(Icons.delete, color: Theme.of(ctx).colorScheme.error),
-              title: Text(tr('delete'),
-                  style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
-              onTap: () => _confirmRemoveServer(server)),
+            leading: Icon(Icons.delete, color: Theme.of(ctx).colorScheme.error),
+            title: Text(tr('delete'),
+                style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+            onTap: () {
+              Navigator.pop(ctx);
+              _confirmRemoveServer(server);
+            },
+          ),
         ],
       ),
     );
@@ -599,6 +619,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
     } else if (ping == -1) {
       return _buildLabel(theme, '-1', theme.colorScheme.error);
     }
+
     Color color = ping < 200
         ? Colors.green
         : ping < 500
@@ -612,14 +633,28 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
     String protocol = server.contains('://')
         ? server.split('://')[0].toUpperCase()
         : 'Unknown';
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 16),
+        if (viewMode == ViewMode.list) Icon(icon, color: color, size: 16),
         const SizedBox(width: 4),
-        (viewMode == ViewMode.list)
-            ? _buildLabel(theme, '$protocol • ${ping}ms', color, bold: true)
-            : _buildLabel(theme, '${ping}ms', color, bold: true),
+        Flexible(
+          fit: FlexFit.loose,
+          child: (viewMode == ViewMode.list)
+              ? _buildLabel(
+                  theme,
+                  '$protocol • ${ping}ms',
+                  color,
+                  bold: true,
+                )
+              : _buildLabel(
+                  theme,
+                  '${ping}ms',
+                  color,
+                  bold: true,
+                ),
+        ),
       ],
     );
   }
@@ -853,6 +888,8 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                                           prefixIcon: Icon(Icons.search,
                                               color: theme.colorScheme.primary),
                                           border: InputBorder.none,
+                                          contentPadding: EdgeInsets.symmetric(
+                                              vertical: 12, horizontal: 16),
                                           hintStyle: TextStyle(
                                               color: theme.colorScheme.onSurface
                                                   .withOpacity(0.5))),
