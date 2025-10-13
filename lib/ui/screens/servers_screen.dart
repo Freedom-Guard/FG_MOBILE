@@ -72,6 +72,14 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   Future<void> _loadAll() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      String? modeName = prefs.getString("viewMode");
+      if (modeName != null) {
+        viewMode = ViewMode.values.firstWhere(
+          (v) => v.name == modeName,
+          orElse: () => ViewMode.list,
+        );
+      }
       await serversManage.getSelectedServer();
       await _restoreServers(initialLoad: true);
       await _restorePingTimes();
@@ -290,6 +298,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   void _cycleViewMode() {
     setState(() =>
         viewMode = viewMode == ViewMode.list ? ViewMode.grid : ViewMode.list);
+    SettingsApp().setValue("viewMode", viewMode.name);
   }
 
   void _showAddServerDialog(BuildContext ctx) {
