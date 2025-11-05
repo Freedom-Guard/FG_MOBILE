@@ -462,8 +462,9 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                   bool isHttp =
                       s.startsWith('http://') || s.startsWith('https://');
                   bool isFreedom = s.startsWith('freedom-guard://');
-                  bool emptyConfig = s.split('#')[0].isEmpty;
-                  return unreachable && !isHttp && !isFreedom && !emptyConfig;
+                  bool emptyConfigOrMode =
+                      s.split('#')[0].isEmpty || s.startsWith("mode=");
+                  return unreachable && !isHttp && !isFreedom && !emptyConfigOrMode;
                 }).toList();
                 if (toRemove.isNotEmpty) {
                   servers.removeWhere((s) => toRemove.contains(s));
