@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'dart:async';
 import 'dart:convert';
-
+import 'dart:ui';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
-import 'package:Freedom_Guard/core/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 
 class DnsInfo {
@@ -13,502 +10,350 @@ class DnsInfo {
   final String category;
   final String description;
 
-  DnsInfo({
-    required this.name,
-    required this.addresses,
-    required this.category,
-    required this.description,
-  });
+  DnsInfo(
+      {required this.name,
+      required this.addresses,
+      required this.category,
+      required this.description});
 
-  factory DnsInfo.fromJson(Map<String, dynamic> json) {
-    return DnsInfo(
-      name: json['name'],
-      addresses: List<String>.from(json['addresses']),
-      category: json['category'],
-      description: json['description'],
+  factory DnsInfo.fromJson(Map<String, dynamic> json) => DnsInfo(
+        name: json['name'],
+        addresses: List<String>.from(json['addresses']),
+        category: json['category'],
+        description: json['description'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'addresses': addresses,
+        'category': category,
+        'description': description,
+      };
+}
+
+void showDnsSelectionPopup(BuildContext context) => showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => const DnsSelectionDialog(),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'addresses': addresses,
-      'category': category,
-      'description': description,
-    };
-  }
-}
-
-void showDnsSelectionPopup(BuildContext context) {
-  showDialog(
-    context: context,
-    barrierDismissible: true,
-    builder: (BuildContext context) {
-      return const DnsSelectionDialog();
-    },
-  );
-}
 
 class DnsSelectionDialog extends StatefulWidget {
-  const DnsSelectionDialog({Key? key}) : super(key: key);
-
+  const DnsSelectionDialog({super.key});
   @override
   State<DnsSelectionDialog> createState() => _DnsSelectionDialogState();
 }
 
 class _DnsSelectionDialogState extends State<DnsSelectionDialog> {
-  List<String>? _selectedDnsAddresses;
-  final Map<String, List<DnsInfo>> _groupedDns = {};
-  final _customDnsNameController = TextEditingController();
-  final _customDnsAddress1Controller = TextEditingController();
-  final _customDnsAddress2Controller = TextEditingController();
+  List<String>? selectedDns;
+  final TextEditingController nameCtrl = TextEditingController();
+  final TextEditingController addr1Ctrl = TextEditingController();
+  final TextEditingController addr2Ctrl = TextEditingController();
+  final TextEditingController dohCtrl = TextEditingController();
 
-  final List<DnsInfo> _masterDnsList = [
+  final Map<String, List<DnsInfo>> groups = {};
+  final List<DnsInfo> base = [
     DnsInfo(
         name: 'Cloudflare',
         addresses: ['1.1.1.1', '1.0.0.1'],
-        category: 'عمومی',
-        description: 'سریع و امن'),
+        category: 'Public',
+        description: 'Fast & Secure'),
     DnsInfo(
         name: 'Google',
         addresses: ['8.8.8.8', '8.8.4.4'],
-        category: 'عمومی',
-        description: 'پایدار و قابل اعتماد'),
+        category: 'Public',
+        description: 'Stable & Trusted'),
     DnsInfo(
         name: 'Quad9',
         addresses: ['9.9.9.9', '149.112.112.112'],
-        category: 'عمومی',
-        description: 'مسدودسازی دامنه مخرب'),
+        category: 'Public',
+        description: 'Security Focus'),
     DnsInfo(
         name: 'OpenDNS',
         addresses: ['208.67.222.222', '208.67.220.220'],
-        category: 'عمومی',
-        description: 'قدیمی و پایدار'),
+        category: 'Public',
+        description: 'Reliable'),
     DnsInfo(
         name: 'AdGuard DNS',
         addresses: ['94.140.14.14', '94.140.15.15'],
-        category: 'ضد تبلیغ',
-        description: 'مسدودسازی تبلیغات و ردیاب'),
+        category: 'AdBlock',
+        description: 'Ad & Tracking Block'),
     DnsInfo(
-        name: 'Control D',
-        addresses: ['76.76.2.0', '76.76.10.0'],
-        category: 'ضد تبلیغ',
-        description: 'مسدودسازی بدافزار'),
+        name: 'Cloudflare DoH',
+        addresses: ['https://cloudflare-dns.com/dns-query'],
+        category: 'DoH',
+        description: 'DNS over HTTPS'),
     DnsInfo(
-        name: 'Mullvad',
-        addresses: ['194.242.2.2', '193.19.108.2'],
-        category: 'ضد تبلیغ',
-        description: 'حفظ حریم خصوصی'),
+        name: 'Google DoH',
+        addresses: ['https://dns.google/dns-query'],
+        category: 'DoH',
+        description: 'DNS over HTTPS'),
+    DnsInfo(
+        name: 'AdGuard DoH',
+        addresses: ['https://dns.adguard.com/dns-query'],
+        category: 'DoH',
+        description: 'DNS over HTTPS'),
+    DnsInfo(
+        name: 'Quad9 DoH',
+        addresses: ['https://dns.quad9.net/dns-query'],
+        category: 'DoH',
+        description: 'Secure DoH'),
+    DnsInfo(
+        name: 'Mullvad DoH',
+        addresses: ['https://adblock.mullvad.net/dns-query'],
+        category: 'DoH',
+        description: 'Privacy Focused'),
     DnsInfo(
         name: 'Cloudflare Family',
         addresses: ['1.1.1.3', '1.0.0.3'],
-        category: 'خانواده',
-        description: 'مسدودسازی محتوای بزرگسالان'),
-    DnsInfo(
-        name: 'AdGuard Family',
-        addresses: ['94.140.14.15', '94.140.15.16'],
-        category: 'خانواده',
-        description: 'حالت جستجوی امن'),
-    DnsInfo(
-        name: 'OpenDNS Family',
-        addresses: ['208.67.222.123', '208.67.220.123'],
-        category: 'خانواده',
-        description: 'مناسب برای کودکان'),
+        category: 'Family',
+        description: 'Adult Filter'),
   ];
 
   @override
   void initState() {
     super.initState();
-    _initializeDnsData();
+    init();
   }
 
-  @override
-  void dispose() {
-    _customDnsNameController.dispose();
-    _customDnsAddress1Controller.dispose();
-    _customDnsAddress2Controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _initializeDnsData() async {
-    await _loadAndGroupDnsServers();
-    await _loadCurrentDnsSelection();
-  }
-
-  Future<void> _loadAndGroupDnsServers() async {
-    _groupedDns.clear();
-    for (var dns in _masterDnsList) {
-      _groupedDns.putIfAbsent(dns.category, () => []).add(dns);
+  Future<void> init() async {
+    groups.clear();
+    for (var d in base) {
+      groups.putIfAbsent(d.category, () => []).add(d);
     }
-
-    final customDnsList = await _loadCustomDnsList();
-    _groupedDns['شخصی'] = customDnsList;
-
-    if (mounted) setState(() {});
+    final custom = await loadCustomDns();
+    groups['Custom'] = custom;
+    final saved = await SettingsApp().getList('preferred_dns');
+    if (saved != null && mounted)
+      setState(() => selectedDns = saved.cast<String>());
   }
 
-  Future<List<DnsInfo>> _loadCustomDnsList() async {
-    final jsonString = await SettingsApp().getString('custom_dns_list');
-    if (jsonString != null && jsonString.isNotEmpty) {
-      try {
-        final List<dynamic> decodedList = jsonDecode(jsonString);
-        return decodedList.map((json) => DnsInfo.fromJson(json)).toList();
-      } catch (e) {
-        return [];
-      }
-    }
-    return [];
+  Future<List<DnsInfo>> loadCustomDns() async {
+    final raw = await SettingsApp().getString('custom_dns_list');
+    if (raw == null || raw.isEmpty) return [];
+    return (jsonDecode(raw) as List).map((e) => DnsInfo.fromJson(e)).toList();
   }
 
-  Future<void> _saveCustomDnsList(List<DnsInfo> customDns) async {
-    final List<Map<String, dynamic>> jsonList =
-        customDns.map((dns) => dns.toJson()).toList();
-    await SettingsApp().setString('custom_dns_list', jsonEncode(jsonList));
+  Future saveCustomDns(List<DnsInfo> list) async => SettingsApp().setString(
+      'custom_dns_list', jsonEncode(list.map((e) => e.toJson()).toList()));
+
+  void select(List<String> a) => setState(() => selectedDns = a);
+
+  Future save() async {
+    if (selectedDns == null) return LogOverlay.showLog('No DNS selected');
+    await SettingsApp().setList('preferred_dns', selectedDns!);
+    LogOverlay.showLog('Saved');
+    Navigator.pop(context);
   }
 
-  Future<void> _loadCurrentDnsSelection() async {
-    final dnsList = await SettingsApp().getList('preferred_dns');
-    if (dnsList != null && dnsList.isNotEmpty && mounted) {
-      setState(() {
-        _selectedDnsAddresses = dnsList.cast<String>();
-      });
-    }
-  }
-
-  void _handleSelection(List<String> addresses) {
-    setState(() {
-      _selectedDnsAddresses = addresses;
-    });
-  }
-
-  void _handleDeleteCustomDns(DnsInfo dnsToDelete) async {
-    final customDns = _groupedDns['شخصی']!;
-    customDns.removeWhere((dns) => dns.name == dnsToDelete.name);
-    await _saveCustomDnsList(customDns);
-
-    if (listEquals(_selectedDnsAddresses, dnsToDelete.addresses)) {
-      await _clearSelection(showLog: false, popContext: false);
-    }
-
-    setState(() {});
-    LogOverlay.showLog('DNS شخصی حذف شد.');
-  }
-
-  Future<void> _saveSelection() async {
-    if (_selectedDnsAddresses != null) {
-      await SettingsApp().setList('preferred_dns', _selectedDnsAddresses!);
-      if (mounted) {
-        LogOverlay.showLog('DNS جدید با موفقیت ذخیره شد.');
-        Navigator.of(context).pop();
-      }
-    } else {
-      LogOverlay.showLog('هیچ DNS انتخاب نشده است.');
-    }
-  }
-
-  Future<void> _clearSelection(
-      {bool showLog = true, bool popContext = true}) async {
+  Future clear() async {
     await SettingsApp().setList('preferred_dns', []);
-    if (mounted) {
-      setState(() => _selectedDnsAddresses = null);
-      if (popContext) {
-        Navigator.pop(context);
-      }
-      if (showLog) {
-        LogOverlay.showLog('تنظیمات DNS پاک شد.');
-      }
-    }
+    setState(() => selectedDns = null);
+    LogOverlay.showLog('Cleared');
+    Navigator.pop(context);
   }
 
-  bool _isValidIp(String ip) {
-    return true;
-  }
-
-  void _showAddCustomDnsDialog() {
+  void addCustom() {
     showDialog(
       context: context,
-      builder: (context) {
-        return Directionality(
-          textDirection:
-              getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
-          child: AlertDialog(
-            title: Text('افزودن DNS شخصی'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: _customDnsNameController,
-                    decoration: InputDecoration(labelText: 'نام DNS'),
-                  ),
-                  TextField(
-                    controller: _customDnsAddress1Controller,
-                    decoration: InputDecoration(labelText: 'آدرس اولیه'),
-                    keyboardType: TextInputType.text,
-                  ),
-                  TextField(
-                    controller: _customDnsAddress2Controller,
-                    decoration:
-                        InputDecoration(labelText: 'آدرس ثانویه (اختیاری)'),
-                    keyboardType: TextInputType.text,
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('لغو'),
-              ),
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+          child: SingleChildScrollView(
+            child: Column(children: [
+              TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(labelText: 'Name')),
+              TextField(
+                  controller: addr1Ctrl,
+                  decoration:
+                      const InputDecoration(labelText: 'IPv4 / DoH Link')),
+              TextField(
+                  controller: addr2Ctrl,
+                  decoration:
+                      const InputDecoration(labelText: 'IPv4 (optional)')),
+              const SizedBox(height: 10),
               FilledButton(
                 onPressed: () async {
-                  final name = _customDnsNameController.text.trim();
-                  final address1 = _customDnsAddress1Controller.text.trim();
-                  final address2 = _customDnsAddress2Controller.text.trim();
-
-                  if (name.isEmpty ||
-                      !_isValidIp(address1) ||
-                      (address2.isNotEmpty && !_isValidIp(address2))) {
-                    LogOverlay.showLog('لطفاً نام و آدرس IP معتبر وارد کنید.');
-                    return;
-                  }
-
-                  final customDnsList = _groupedDns['شخصی']!;
-                  if (customDnsList.any((dns) =>
-                      dns.name.toLowerCase() == name.toLowerCase() ||
-                      dns.addresses.contains(address1))) {
-                    LogOverlay.showLog(
-                        'این نام یا آدرس DNS قبلاً اضافه شده است.');
-                    return;
-                  }
-
-                  final addresses = [address1];
-                  if (address2.isNotEmpty) {
-                    addresses.add(address2);
-                  }
-
-                  final newDns = DnsInfo(
-                      name: name,
-                      addresses: addresses,
-                      category: 'شخصی',
-                      description: 'DNS تعریف شده توسط کاربر');
-
-                  customDnsList.add(newDns);
-                  await _saveCustomDnsList(customDnsList);
-
-                  setState(() {
-                    _handleSelection(addresses);
-                  });
-
-                  _customDnsNameController.clear();
-                  _customDnsAddress1Controller.clear();
-                  _customDnsAddress2Controller.clear();
-                  Navigator.of(context).pop();
-                  LogOverlay.showLog('DNS شخصی با موفقیت افزوده شد.');
+                  final n = nameCtrl.text.trim(),
+                      a1 = addr1Ctrl.text.trim(),
+                      a2 = addr2Ctrl.text.trim();
+                  if (n.isEmpty || a1.isEmpty)
+                    return LogOverlay.showLog('Invalid');
+                  final custom = groups['Custom']!;
+                  if (custom
+                      .any((d) => d.name.toLowerCase() == n.toLowerCase()))
+                    return LogOverlay.showLog('Exists');
+                  final l = [a1];
+                  if (a2.isNotEmpty) l.add(a2);
+                  final d = DnsInfo(
+                      name: n,
+                      addresses: l,
+                      category: 'Custom',
+                      description: 'User DNS');
+                  custom.add(d);
+                  await saveCustomDns(custom);
+                  select(l);
+                  nameCtrl.clear();
+                  addr1Ctrl.clear();
+                  addr2Ctrl.clear();
+                  Navigator.pop(context);
+                  LogOverlay.showLog('Added');
                 },
-                child: Text('افزودن'),
-              ),
-            ],
+                child: const Text('Add'),
+              )
+            ]),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final categories = _groupedDns.keys.toList();
-
-    return Directionality(
-        textDirection:
-            getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
-        child: Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(28.0)),
+    final cats = groups.keys.toList();
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
           child: Container(
-            constraints: BoxConstraints(
-              maxWidth: 420,
-              maxHeight: MediaQuery.of(context).size.height * 0.7,
+            width: 420,
+            height: MediaQuery.of(context).size.height * .8,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(.08),
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: Colors.white.withOpacity(.2)),
             ),
             child: DefaultTabController(
-              length: categories.length,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding:
-                          const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 16.0),
-                      child: Text(
-                        'انتخاب سرور DNS',
-                        style: theme.textTheme.headlineSmall,
-                      ),
-                    ),
-                    TabBar(
-                      isScrollable: true,
-                      tabs: categories
-                          .map((category) => Tab(text: category))
-                          .toList(),
-                      labelStyle: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                      unselectedLabelStyle: theme.textTheme.titleSmall,
-                    ),
-                    Flexible(
-                      child: TabBarView(
-                        children: categories.map((category) {
-                          final dnsList = _groupedDns[category]!;
-                          return ListView.builder(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 12.0),
-                            itemCount:
-                                dnsList.length + (category == 'شخصی' ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              if (category == 'شخصی' &&
-                                  index == dnsList.length) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 8.0, horizontal: 4.0),
-                                  child: ElevatedButton.icon(
-                                    icon: Icon(Icons.add),
-                                    label: Text("افزودن DNS جدید"),
-                                    onPressed: _showAddCustomDnsDialog,
-                                    style: ElevatedButton.styleFrom(
-                                      minimumSize: Size(double.infinity, 50),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              final dns = dnsList[index];
-                              final isSelected = listEquals(
-                                  dns.addresses, _selectedDnsAddresses);
-                              return DnsCard(
-                                dnsInfo: dns,
-                                isSelected: isSelected,
-                                onTap: () => _handleSelection(dns.addresses),
-                                onDelete: category == 'شخصی'
-                                    ? () => _handleDeleteCustomDns(dns)
-                                    : null,
-                              );
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton(
-                              onPressed: () => _clearSelection(),
-                              child: const Text('پاکسازی')),
-                          FilledButton.tonal(
-                            onPressed: _saveSelection,
-                            child: const Text('ذخیره و اعمال'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ));
-  }
-}
-
-class DnsCard extends StatelessWidget {
-  final DnsInfo dnsInfo;
-  final bool isSelected;
-  final VoidCallback onTap;
-  final VoidCallback? onDelete;
-
-  const DnsCard({
-    Key? key,
-    required this.dnsInfo,
-    required this.isSelected,
-    required this.onTap,
-    this.onDelete,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final Color cardColor = isSelected
-        ? colorScheme.primaryContainer
-        : colorScheme.surfaceContainerHighest;
-    final Color contentColor = isSelected
-        ? colorScheme.onPrimaryContainer
-        : colorScheme.onSurfaceVariant;
-    final Color titleColor =
-        isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurface;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(16),
-            border: isSelected
-                ? Border.all(color: colorScheme.primary, width: 1.5)
-                : Border.all(color: Colors.transparent),
-          ),
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Row(
-              children: [
-                if (isSelected) ...[
-                  Icon(Icons.check_circle,
-                      color: colorScheme.primary, size: 24),
-                  const SizedBox(width: 12),
-                ],
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(dnsInfo.name,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                              color: titleColor, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text(dnsInfo.description,
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: contentColor)),
-                    ],
+              length: cats.length,
+              child: Column(children: [
+                const SizedBox(height: 14),
+                const Text('DNS Settings',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                TabBar(
+                  isScrollable: true,
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.white70,
+                  indicator: BoxDecoration(
+                    color: Colors.white.withOpacity(.2),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: dnsInfo.addresses
-                      .map((address) => Text(address,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                              color: contentColor,
-                              fontFamily: 'monospace',
-                              letterSpacing: 0.8)))
+                  tabs: cats
+                      .map((e) => Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Tab(text: e),
+                          ))
                       .toList(),
                 ),
-                if (onDelete != null)
-                  IconButton(
-                    icon: Icon(Icons.delete_outline, color: colorScheme.error),
-                    onPressed: onDelete,
-                    tooltip: 'حذف DNS',
+                Expanded(
+                  child: TabBarView(
+                    children: cats.map((c) {
+                      final list = groups[c]!;
+                      return Scrollbar(
+                        thumbVisibility: true,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(25),
+                          itemCount: list.length + (c == 'Custom' ? 1 : 0),
+                          itemBuilder: (_, i) {
+                            if (c == 'Custom' && i == list.length) {
+                              return GestureDetector(
+                                onTap: addCustom,
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  margin: const EdgeInsets.only(top: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(.1),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Center(
+                                    child: Text('+ Add DNS / DoH',
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                              );
+                            }
+                            final d = list[i];
+                            final s = selectedDns != null &&
+                                d.addresses.toString() ==
+                                    selectedDns.toString();
+                            return GestureDetector(
+                              onTap: () => select(d.addresses),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.all(14),
+                                margin: const EdgeInsets.only(bottom: 6),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  color: s
+                                      ? Colors.blue.withOpacity(.3)
+                                      : Colors.white.withOpacity(.08),
+                                  border: Border.all(
+                                      color: s
+                                          ? Colors.blueAccent
+                                          : Colors.transparent,
+                                      width: 1.4),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(d.name,
+                                              style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold)),
+                                          Text(d.description,
+                                              style: const TextStyle(
+                                                  color: Colors.white70,
+                                                  fontSize: 12)),
+                                        ]),
+                                    Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: d.addresses.map((e) {
+                                          return Text(e,
+                                              style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontFamily: 'monospace',
+                                                  fontSize: 12));
+                                        }).toList()),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }).toList(),
                   ),
-              ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                            onPressed: clear,
+                            child: const Text('Clear',
+                                style: TextStyle(color: Colors.redAccent))),
+                        FilledButton(
+                            onPressed: save, child: const Text('Apply')),
+                      ]),
+                )
+              ]),
             ),
           ),
         ),
