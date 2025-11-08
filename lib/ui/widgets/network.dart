@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:Freedom_Guard/services/share.dart';
+import 'package:Freedom_Guard/ui/screens/servers_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vibe_core/vibe_core.dart';
@@ -191,6 +192,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
                                     ],
                                   ),
                                   const Spacer(),
+                                  _buildServerSelectButton(context),
                                   _buildTopButtons(),
                                 ],
                               ),
@@ -359,6 +361,33 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildServerSelectButton(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ServerListPage()),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: const Icon(
+            Icons.swap_horiz_rounded,
+            color: Colors.white70,
+            size: 18,
+          ),
+        ),
       ),
     );
   }

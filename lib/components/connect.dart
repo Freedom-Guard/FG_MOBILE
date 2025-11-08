@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:convert';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/safe_mode.dart';
@@ -6,7 +8,25 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibe_core/vibe_core.dart';
 import 'package:http/http.dart' as http;
-import 'dart:async';
+
+class ConfigPingResult {
+  final String configLink;
+  final int ping;
+
+  ConfigPingResult({required this.configLink, required this.ping});
+
+  Map<String, dynamic> toJson() => {
+        'configLink': configLink,
+        'ping': ping,
+      };
+
+  factory ConfigPingResult.fromJson(Map<String, dynamic> json) {
+    return ConfigPingResult(
+      configLink: json['configLink'],
+      ping: json['ping'],
+    );
+  }
+}
 
 ValueNotifier<V2RayStatus> v2rayStatus =
     ValueNotifier<V2RayStatus>(V2RayStatus());
@@ -14,8 +34,43 @@ ValueNotifier<V2RayStatus> v2rayStatus =
 class Connect extends Tools {
   Timer? _guardModeTimer;
   bool _guardModeActive = false;
+  final String _cachedConfigsKey = 'cached_config_pings';
 
-  // Test Internet
+  Future<void> _saveConfigPings(List<ConfigPingResult> configs) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> jsonList =
+          configs.map((c) => jsonEncode(c.toJson())).toList();
+      await prefs.setStringList(_cachedConfigsKey, jsonList);
+      LogOverlay.addLog("Saved ${configs.length} configs with pings to cache.");
+    } catch (e) {
+      LogOverlay.addLog("Error saving config pings: $e");
+    }
+  }
+
+  Future<List<ConfigPingResult>> loadConfigPings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String>? jsonList = prefs.getStringList(_cachedConfigsKey);
+      if (jsonList == null || jsonList.isEmpty) {
+        return [];
+      }
+      return jsonList
+          .map((s) => ConfigPingResult.fromJson(jsonDecode(s)))
+          .toList();
+    } catch (e) {
+      LogOverlay.addLog("Failed to load cached configs: $e");
+      await _clearConfigPings();
+      return [];
+    }
+  }
+
+  Future<void> _clearConfigPings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_cachedConfigsKey);
+    LogOverlay.addLog("Cleared config ping cache.");
+  }
+
   Future<bool> test() async {
     try {
       final response = await http
@@ -30,7 +85,6 @@ class Connect extends Tools {
     return false;
   }
 
-  // Diconnect VPN
   Future<void> disConnect({typeDis = "normal"}) async {
     try {
       vibeCoreMain.stopV2Ray();
@@ -46,7 +100,6 @@ class Connect extends Tools {
     return VibeCore.parseFromURL(config);
   }
 
-  // Connects to a single V2Ray config
   Future<bool> ConnectVibe(String config, dynamic args,
       {typeDis = "normal"}) async {
     await disConnect(typeDis: typeDis);
@@ -139,7 +192,44 @@ class Connect extends Tools {
   Future<bool> ConnectSub(String config, String type,
       {String typeC = "normal"}) async {
     await disConnect();
-    List configs = [];
+
+    LogOverlay.addLog("Trying cached configs first...");
+    List<ConfigPingResult> cachedConfigs = await loadConfigPings();
+
+    if (cachedConfigs.isNotEmpty) {
+      cachedConfigs.sort((a, b) => a.ping.compareTo(b.ping));
+
+      for (var cachedResult in cachedConfigs) {
+        LogOverlay.addLog(
+            "Testing cached config with ping: ${cachedResult.ping}ms");
+        int currentPing =
+            await testConfig(cachedResult.configLink, type: typeC);
+
+        if (currentPing != -1 && currentPing < 1000) {
+          if (await ConnectVibe(
+              cachedResult.configLink, {"type": type, "link": config})) {
+            final guardModeEnabled =
+                (await settings.getValue("guard_mode")) == "true";
+            if (guardModeEnabled) {
+              List<String> allConfigs =
+                  cachedConfigs.map((c) => c.configLink).toList();
+              _startGuardModeMonitoring(cachedResult.configLink, allConfigs);
+            }
+            LogOverlay.showLog("Connected using cached config.",
+                type: "success");
+            return true;
+          }
+        } else {
+          LogOverlay.addLog(
+              "Cached config failed or ping is too high ($currentPing ms).");
+        }
+      }
+      LogOverlay.addLog("All cached configs failed. Fetching new list.");
+    } else {
+      LogOverlay.addLog("No cached configs found. Fetching new list.");
+    }
+
+    List fetchedConfigs = [];
     const int maxRetries = 6;
     int attempt = 1;
 
@@ -157,7 +247,7 @@ class Connect extends Tools {
             LogOverlay.addLog(
                 "Base64 decode failed, using raw text, Attempt: $attempt");
           }
-          configs = type == "sub" || type == "f_link"
+          fetchedConfigs = type == "sub" || type == "f_link"
               ? decoded.split('\n')
               : jsonDecode(decoded)["MOBILE"];
           break;
@@ -182,46 +272,87 @@ class Connect extends Tools {
       attempt++;
     }
 
-    if (configs.isEmpty) {
+    if (fetchedConfigs.isEmpty) {
       LogOverlay.addLog("No valid configs retrieved after retries");
       return false;
     }
 
-    configs.shuffle();
+    LogOverlay.addLog(
+        "Fetched ${fetchedConfigs.length} new configs. Clearing old cache and testing all...");
 
-    for (String cfg in configs) {
-      cfg = cfg.replaceAll("vibe,;,", "");
-      if (cfg.startsWith("warp")) {
+    await _clearConfigPings();
+
+    List<ConfigPingResult> newPingResults = [];
+    List<String> httpSubConfigs = [];
+    List<Future<ConfigPingResult?>> pingFutures = [];
+
+    for (String cfg in fetchedConfigs) {
+      cfg = cfg.replaceAll("vibe,;,", "").trim();
+      if (cfg.isEmpty || cfg.startsWith("warp")) {
         continue;
-      } else if (cfg.startsWith("http")) {
-        return await ConnectSub(cfg, "sub", typeC: typeC)
-            .timeout(Duration(seconds: 30), onTimeout: () => false);
-      } else if (await testConfig(cfg, type: typeC) != -1) {
-        if (await ConnectVibe(cfg, {})) {
-          final guardModeEnabled =
-              (await settings.getValue("guard_mode")) == "true";
-          if (guardModeEnabled) {
-            _startGuardModeMonitoring(cfg, configs);
-          } else {
-            _stopGuardModeMonitoring();
+      }
+
+      if (cfg.startsWith("http")) {
+        httpSubConfigs.add(cfg);
+      } else {
+        pingFutures.add(testConfig(cfg, type: typeC).then((ping) {
+          if (ping != -1) {
+            LogOverlay.addLog("Ping Success: ${ping}ms");
+            return ConfigPingResult(configLink: cfg, ping: ping);
           }
-          return true;
-        }
+          return null;
+        }).catchError((_) => null));
       }
     }
 
+    final results = await Future.wait(pingFutures);
+    newPingResults = results.whereType<ConfigPingResult>().toList();
+
+    newPingResults.sort((a, b) => a.ping.compareTo(b.ping));
+
+    await _saveConfigPings(newPingResults);
+
+    List<String> allSortedConfigsForGuardMode =
+        newPingResults.map((c) => c.configLink).toList();
+
+    for (var result in newPingResults) {
+      LogOverlay.addLog("Trying new config with ping: ${result.ping}ms");
+      if (await ConnectVibe(
+          result.configLink, {"type": type, "link": config})) {
+        final guardModeEnabled =
+            (await settings.getValue("guard_mode")) == "true";
+        if (guardModeEnabled) {
+          _startGuardModeMonitoring(
+              result.configLink, allSortedConfigsForGuardMode);
+        }
+        LogOverlay.showLog("Connected to new config.", type: "success");
+        return true;
+      }
+    }
+
+    LogOverlay.addLog(
+        "All new direct configs failed. Trying http/sub configs...");
+    for (String httpCfg in httpSubConfigs) {
+      if (await ConnectSub(httpCfg, "sub", typeC: typeC)
+          .timeout(Duration(seconds: 30), onTimeout: () => false)) {
+        return true;
+      }
+    }
+
+    LogOverlay.showLog("Failed to connect to any config from subscription.",
+        type: "error");
     return false;
   }
 
-  void _startGuardModeMonitoring(String currentConfig, List allConfigs) {
+  void _startGuardModeMonitoring(
+      String currentConfig, List<String> allSortedConfigs) {
     _guardModeActive = true;
     int retryCount = 0;
     const int maxRetries = 2;
     String activeConfig = currentConfig;
-    int lastPing = 0;
 
     _guardModeTimer?.cancel();
-    LogOverlay.showLog("Guard mode monitoring started");
+    LogOverlay.showLog("Smart Guard mode monitoring started.");
     _guardModeTimer = Timer.periodic(Duration(seconds: 120), (timer) async {
       if (!_guardModeActive) {
         timer.cancel();
@@ -237,35 +368,37 @@ class Connect extends Tools {
             "Guard mode: bad connection, retry $retryCount/$maxRetries");
 
         if (retryCount >= maxRetries) {
+          LogOverlay.addLog("Guard mode: attempting to find next best config.");
           bool connected = false;
-          allConfigs.shuffle();
-          for (String cfg in allConfigs) {
-            cfg = cfg.replaceAll("vibe,;,", "");
-            if (cfg.startsWith("warp")) continue;
 
-            int newPing = await testConfig(cfg);
-            if (newPing != -1 && newPing < ping) {
+          for (String nextCfg in allSortedConfigs) {
+            if (nextCfg == activeConfig) continue;
+
+            LogOverlay.addLog("Guard mode: testing next config...");
+            int newPing = await testConfig(nextCfg);
+
+            if (newPing != -1 && newPing < 1000) {
               LogOverlay.addLog(
                   "Guard mode: trying better config with ping $newPing");
-              bool result = await ConnectVibe(cfg, {}, typeDis: "guard");
+              bool result = await ConnectVibe(nextCfg, {}, typeDis: "guard");
               if (result) {
-                activeConfig = cfg;
-                lastPing = newPing;
+                activeConfig = nextCfg;
                 retryCount = 0;
                 connected = true;
-                LogOverlay.showLog("Guard mode: switched to better config",
+                LogOverlay.showLog("Guard mode: switched to new config",
                     type: "success");
                 break;
               }
             }
           }
+
           if (!connected) {
-            LogOverlay.addLog("Guard mode: no better config found");
+            LogOverlay.addLog(
+                "Guard mode: no better config found after checking all.");
           }
         }
       } else {
         retryCount = 0;
-        lastPing = ping;
         LogOverlay.addLog("Guard mode: connection healthy");
       }
     });
@@ -277,7 +410,6 @@ class Connect extends Tools {
     _guardModeTimer = null;
   }
 
-  // Fetches configuration list from FG repo and initiates connection setup
   Future<bool> ConnectFG(String fgconfig, int timeout) async {
     try {
       final uri = Uri.parse(fgconfig);
@@ -414,7 +546,6 @@ class Tools {
     });
   }
 
-  // Add Fragment, Mux, ...
   Future<String> addOptionsToVibe(dynamic parsedJson) async {
     final settingsValues = await Future.wait([
       settings.getValue("mux"),
