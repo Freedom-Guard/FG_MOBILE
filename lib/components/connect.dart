@@ -278,13 +278,13 @@ class Connect extends Tools {
     }
 
     LogOverlay.addLog(
-        "Fetched ${fetchedConfigs.length} new configs. Clearing old cache and testing all...");
+        "Fetched ${fetchedConfigs.length} new configs. Clearing old cache and testing all sequentially...");
 
     await _clearConfigPings();
 
     List<ConfigPingResult> newPingResults = [];
     List<String> httpSubConfigs = [];
-    List<Future<ConfigPingResult?>> pingFutures = [];
+    List<String> directConfigs = [];
 
     for (String cfg in fetchedConfigs) {
       cfg = cfg.replaceAll("vibe,;,", "").trim();
@@ -295,18 +295,23 @@ class Connect extends Tools {
       if (cfg.startsWith("http")) {
         httpSubConfigs.add(cfg);
       } else {
-        pingFutures.add(testConfig(cfg, type: typeC).then((ping) {
-          if (ping != -1) {
-            LogOverlay.addLog("Ping Success: ${ping}ms");
-            return ConfigPingResult(configLink: cfg, ping: ping);
-          }
-          return null;
-        }).catchError((_) => null));
+        directConfigs.add(cfg);
       }
     }
 
-    final results = await Future.wait(pingFutures);
-    newPingResults = results.whereType<ConfigPingResult>().toList();
+    LogOverlay.addLog(
+        "Starting sequential ping test on ${directConfigs.length} direct configs.");
+
+    for (String cfg in directConfigs) {
+      int ping = await testConfig(cfg, type: typeC);
+
+      if (ping != -1) {
+        LogOverlay.addLog("Ping Success: ${ping}ms for config: ${cfg}");
+        newPingResults.add(ConfigPingResult(configLink: cfg, ping: ping));
+      } else {
+        LogOverlay.addLog("Ping Failed for config: ${cfg}");
+      }
+    }
 
     newPingResults.sort((a, b) => a.ping.compareTo(b.ping));
 
