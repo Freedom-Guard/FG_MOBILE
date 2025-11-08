@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/core/global.dart';
+import 'package:Freedom_Guard/services/config.dart';
 import 'package:flutter/material.dart';
 import 'package:Freedom_Guard/components/settings.dart'; // برای دسترسی به settings
 import 'package:Freedom_Guard/utils/LOGLOG.dart'; // برای لاگ
@@ -32,20 +33,7 @@ class _ServerListPageState extends State<ServerListPage> {
   }
 
   String _getRemarkFromLink(String link) {
-    try {
-      if (link.contains("#")) {
-        String remark = Uri.decodeComponent(link.split("#").last);
-        if (remark.trim().isNotEmpty) {
-          return remark.trim();
-        }
-      }
-      final uri = Uri.parse(link);
-      if (uri.hasFragment && uri.fragment.trim().isNotEmpty) {
-        return Uri.decodeComponent(uri.fragment.trim());
-      }
-    } catch (_) {
-      // Fallback
-    }
+    link = getNameByConfig(link);
     return link.length > 40 ? link.substring(0, 40) + "..." : link;
   }
 
