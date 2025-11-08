@@ -195,8 +195,11 @@ class Connect extends Tools {
 
     LogOverlay.addLog("Trying cached configs first...");
     List<ConfigPingResult> cachedConfigs = await loadConfigPings();
+    bool isCache = (await settings.getValue("selectedServer")) ==
+        (await settings.getValue("saved_sub"));
+    await settings.setValue("saved_sub", config);
 
-    if (cachedConfigs.isNotEmpty) {
+    if (cachedConfigs.isNotEmpty && isCache) {
       cachedConfigs.sort((a, b) => a.ping.compareTo(b.ping));
 
       for (var cachedResult in cachedConfigs) {
@@ -226,6 +229,7 @@ class Connect extends Tools {
       }
       LogOverlay.addLog("All cached configs failed. Fetching new list.");
     } else {
+      _clearConfigPings();
       LogOverlay.addLog("No cached configs found. Fetching new list.");
     }
 
@@ -311,10 +315,7 @@ class Connect extends Tools {
         newPingResults.add(ConfigPingResult(configLink: cfg, ping: ping));
         if (_isConnected == false)
           await ConnectVibe(cfg, {"type": type, "link": config});
-        if (!guardModeEnabled && newPingResults.length == maxRetries) {
-          await _saveConfigPings(newPingResults);
-          return true;
-        }
+        await _saveConfigPings(newPingResults);
       } else {
         LogOverlay.addLog("Ping Failed for config: ${cfg}");
       }

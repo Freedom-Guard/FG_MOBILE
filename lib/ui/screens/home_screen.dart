@@ -124,7 +124,7 @@ class _HomeContentState extends State<HomeContent>
       } else {
         bgNotifier.setBackground(BackgroundService.getRandomBackground());
       }
-      Timer.periodic(Duration(seconds: 30), (timer) async {
+      Timer.periodic(Duration(seconds: 10), (timer) async {
         final connected = await checker.checkVPN();
         if (mounted) {
           setState(() {
