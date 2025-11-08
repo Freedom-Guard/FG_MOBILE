@@ -307,6 +307,8 @@ class Connect extends Tools {
     LogOverlay.addLog(
         "Starting sequential ping test on ${directConfigs.length} direct configs.");
 
+    directConfigs.shuffle();
+    
     for (String cfg in directConfigs) {
       int ping = await testConfig(cfg, type: typeC);
 

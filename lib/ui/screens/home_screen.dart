@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:Freedom_Guard/components/connectMode.dart';
-import 'package:Freedom_Guard/core/is_tv.dart';
+//import 'package:Freedom_Guard/core/is_tv.dart';
 import 'package:Freedom_Guard/ui/widgets/background.dart';
 import 'package:Freedom_Guard/ui/widgets/background_picker_dialog.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
@@ -32,7 +32,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 1;
 
-  final bool _isTV = isTvPlatform;
+ // final bool _isTV = isTvPlatform;
   final List<Widget> _pages = [
     SettingsPage(),
     HomeContent(),
@@ -273,7 +273,6 @@ class _HomeContentState extends State<HomeContent>
   Widget build(BuildContext context) {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
     final bgNotifier = Provider.of<BackgroundNotifier>(context);
-
     return Stack(
       children: [
         Container(),

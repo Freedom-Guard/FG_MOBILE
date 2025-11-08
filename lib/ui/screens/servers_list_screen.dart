@@ -3,7 +3,6 @@ import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/core/global.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:flutter/material.dart';
-import 'package:Freedom_Guard/components/settings.dart'; // برای دسترسی به settings
 import 'package:Freedom_Guard/utils/LOGLOG.dart'; // برای لاگ
 
 class ServerListPage extends StatefulWidget {
@@ -166,7 +165,7 @@ class _ServerListPageState extends State<ServerListPage> {
             backgroundColor: Colors.blueAccent);
         Navigator.of(context).pop();
         try {
-          String subLink = await connect.settings.getValue("sub_link") ?? "";
+          String subLink = await connect.settings.getValue("saved_sub");
           if (subLink.isEmpty) {
             LogOverlay.showLog("Subscription link not found!", type: "error");
             return;
