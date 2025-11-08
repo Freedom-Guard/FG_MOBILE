@@ -285,6 +285,7 @@ class Connect extends Tools {
     List<ConfigPingResult> newPingResults = [];
     List<String> httpSubConfigs = [];
     List<String> directConfigs = [];
+    final guardModeEnabled = (await settings.getValue("guard_mode")) == "true";
 
     for (String cfg in fetchedConfigs) {
       cfg = cfg.replaceAll("vibe,;,", "").trim();
@@ -308,6 +309,12 @@ class Connect extends Tools {
       if (ping != -1) {
         LogOverlay.addLog("Ping Success: ${ping}ms for config: ${cfg}");
         newPingResults.add(ConfigPingResult(configLink: cfg, ping: ping));
+        if (_isConnected == false)
+          await ConnectVibe(cfg, {"type": type, "link": config});
+        if (!guardModeEnabled && newPingResults.length == maxRetries) {
+          await _saveConfigPings(newPingResults);
+          return true;
+        }
       } else {
         LogOverlay.addLog("Ping Failed for config: ${cfg}");
       }
@@ -324,8 +331,6 @@ class Connect extends Tools {
       LogOverlay.addLog("Trying new config with ping: ${result.ping}ms");
       if (await ConnectVibe(
           result.configLink, {"type": type, "link": config})) {
-        final guardModeEnabled =
-            (await settings.getValue("guard_mode")) == "true";
         if (guardModeEnabled) {
           _startGuardModeMonitoring(
               result.configLink, allSortedConfigsForGuardMode);

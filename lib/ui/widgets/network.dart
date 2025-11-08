@@ -366,26 +366,29 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
   }
 
   Widget _buildServerSelectButton(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ServerListPage()),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: const Icon(
-            Icons.swap_horiz_rounded,
-            color: Colors.white70,
-            size: 18,
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withOpacity(0.2)),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ServerListPage()),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: const Icon(
+              Icons.swap_horiz_rounded,
+              color: Colors.white70,
+              size: 18,
+            ),
           ),
         ),
       ),
