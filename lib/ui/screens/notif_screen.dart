@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:ui';
+import 'package:Freedom_Guard/core/network/network_service.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -26,8 +27,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
       attempt++;
       try {
         LogOverlay.addLog("در حال دریافت نوتیفیکیشن‌ها - تلاش $attempt");
-        final response = await http.get(Uri.parse(
-            'https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/mobile/notif.json'));
+        final response = await NetworkService.get(
+            'https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/mobile/notif.json');
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           if (data is List) {

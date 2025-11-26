@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:Freedom_Guard/components/connect.dart';
+import 'package:Freedom_Guard/core/network/network_service.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -17,16 +17,14 @@ bool isNewerVersion(String latest, String current) {
 }
 
 Future<void> checkForUpdate(BuildContext context) async {
-  final response = await http.get(
-    Uri.parse(
-      'https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/mobile.json',
-    ),
+  final response = await NetworkService.get(
+    'https://raw.githubusercontent.com/Freedom-Guard/Freedom-Guard/main/config/mobile.json',
   );
 
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
     final latestVersion = data['version'];
-    const currentVersion = '10.5.0';
+    const currentVersion = '11.0.0';
 
     if (isNewerVersion(latestVersion, currentVersion)) {
       showDialog(

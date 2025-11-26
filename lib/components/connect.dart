@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'dart:convert';
+import 'package:Freedom_Guard/core/network/network_service.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/safe_mode.dart';
 import 'package:Freedom_Guard/components/settings.dart';
@@ -239,7 +240,7 @@ class Connect extends Tools {
 
     while (attempt <= maxRetries) {
       try {
-        final response = await http.get(Uri.parse(config));
+        final response = await NetworkService.get(config);
         if (response.statusCode == 200) {
           String raw = response.body.trim();
           String decoded;
@@ -308,7 +309,7 @@ class Connect extends Tools {
         "Starting sequential ping test on ${directConfigs.length} direct configs.");
 
     directConfigs.shuffle();
-    
+
     for (String cfg in directConfigs) {
       int ping = await testConfig(cfg, type: typeC);
 
@@ -425,7 +426,7 @@ class Connect extends Tools {
 
   Future<bool> ConnectFG(String fgconfig, int timeout) async {
     try {
-      final uri = Uri.parse(fgconfig);
+      final uri = (fgconfig);
       http.Response? response;
       int attempt = 0;
       int delayMs = 800;
@@ -434,10 +435,10 @@ class Connect extends Tools {
 
       while (attempt < 3) {
         try {
-          response = await http.get(uri).timeout(
-                Duration(milliseconds: timeout),
-                onTimeout: () => throw TimeoutException('Request timed out'),
-              );
+          response = await NetworkService.get(uri).timeout(
+            Duration(milliseconds: timeout),
+            onTimeout: () => throw TimeoutException('Request timed out'),
+          );
           break;
         } catch (e) {
           attempt++;

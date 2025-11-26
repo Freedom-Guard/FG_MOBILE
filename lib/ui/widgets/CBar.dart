@@ -5,6 +5,7 @@ import 'package:Freedom_Guard/ui/screens/f-link_screen.dart';
 import 'package:Freedom_Guard/ui/screens/host_checker.dart';
 import 'package:Freedom_Guard/ui/screens/logs_screen.dart';
 import 'package:Freedom_Guard/ui/screens/notif_screen.dart';
+import 'package:Freedom_Guard/ui/screens/redirect_manager_screen.dart';
 import 'package:Freedom_Guard/ui/screens/speedtest_screen.dart';
 import 'package:Freedom_Guard/ui/widgets/dns.dart';
 import 'package:Freedom_Guard/core/local.dart';
@@ -171,6 +172,15 @@ class _ActionsMenuState extends State<ActionsMenu>
                                   MaterialPageRoute(
                                       builder: (context) =>
                                           HostCheckerScreen()));
+                              _closeMenu();
+                            }),
+                            _buildMenuButton(context, Icons.directions,
+                                ("Redirect"), Colors.deepPurpleAccent, () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          RedirectManagerPage()));
                               _closeMenu();
                             }),
                           ],
