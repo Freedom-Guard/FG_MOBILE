@@ -464,7 +464,10 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                   bool isFreedom = s.startsWith('freedom-guard://');
                   bool emptyConfigOrMode =
                       s.split('#')[0].isEmpty || s.startsWith("mode=");
-                  return unreachable && !isHttp && !isFreedom && !emptyConfigOrMode;
+                  return unreachable &&
+                      !isHttp &&
+                      !isFreedom &&
+                      !emptyConfigOrMode;
                 }).toList();
                 if (toRemove.isNotEmpty) {
                   servers.removeWhere((s) => toRemove.contains(s));
@@ -672,18 +675,23 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   Widget _buildLabel(ThemeData theme, String text, Color color,
       {bool bold = false}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.3))),
-      child: Text(text,
-          textDirection:
-              getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
-          style: TextStyle(
-              color: color,
-              fontWeight: bold ? FontWeight.bold : FontWeight.w600,
-              fontSize: 12)),
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.2), width: 0.8),
+      ),
+      child: Text(
+        text,
+        textDirection:
+            getDir() == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+        style: TextStyle(
+          color: color,
+          fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+          fontSize: 13,
+          letterSpacing: 0.2,
+        ),
+      ),
     );
   }
 
@@ -841,111 +849,91 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                     onPressed: () => _showAppBarOptions(context)),
               ],
             ),
-            body: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      theme.colorScheme.primary.withOpacity(0.1),
-                      theme.colorScheme.secondary.withOpacity(0.1)
-                    ]),
-              ),
-              child: isLoading
-                  ? Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                                color:
-                                    theme.colorScheme.surface.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                    color: theme.colorScheme.onSurface
-                                        .withOpacity(0.1))),
-                            child: CircularProgressIndicator(
-                                color: theme.colorScheme.primary),
+            body: RefreshIndicator(
+                onRefresh: () => _refreshSubscriptions(),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          theme.colorScheme.primary.withOpacity(0.1),
+                          theme.colorScheme.secondary.withOpacity(0.1)
+                        ]),
+                  ),
+                  child: isLoading
+                      ? Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                    color: theme.colorScheme.surface
+                                        .withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                        color: theme.colorScheme.onSurface
+                                            .withOpacity(0.1))),
+                                child: CircularProgressIndicator(
+                                    color: theme.colorScheme.primary),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    )
-                  : Column(children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: BackdropFilter(
-                                  filter:
-                                      ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                        color: theme.colorScheme.surface
-                                            .withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                            color: theme.colorScheme.onSurface
-                                                .withOpacity(0.1))),
-                                    child: TextField(
-                                      controller: searchController,
-                                      decoration: InputDecoration(
-                                          hintText: tr('search-servers'),
-                                          prefixIcon: Icon(Icons.search,
-                                              color: theme.colorScheme.primary),
-                                          border: InputBorder.none,
-                                          contentPadding: EdgeInsets.symmetric(
-                                              vertical: 12, horizontal: 16),
-                                          hintStyle: TextStyle(
-                                              color: theme.colorScheme.onSurface
-                                                  .withOpacity(0.5))),
-                                      style: TextStyle(
-                                          color: theme.colorScheme.onSurface),
+                        )
+                      : Column(children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(
+                                          sigmaX: 10, sigmaY: 10),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            color: theme.colorScheme.surface
+                                                .withOpacity(0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                            border: Border.all(
+                                                color: theme
+                                                    .colorScheme.onSurface
+                                                    .withOpacity(0.1))),
+                                        child: TextField(
+                                          controller: searchController,
+                                          decoration: InputDecoration(
+                                              hintText: tr('search-servers'),
+                                              prefixIcon: Icon(Icons.search,
+                                                  color: theme
+                                                      .colorScheme.primary),
+                                              border: InputBorder.none,
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                      vertical: 12,
+                                                      horizontal: 16),
+                                              hintStyle: TextStyle(
+                                                  color: theme
+                                                      .colorScheme.onSurface
+                                                      .withOpacity(0.5))),
+                                          style: TextStyle(
+                                              color:
+                                                  theme.colorScheme.onSurface),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: BackdropFilter(
-                                filter:
-                                    ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      color: theme.colorScheme.surface
-                                          .withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                          color: theme.colorScheme.onSurface
-                                              .withOpacity(0.1))),
-                                  child: IconButton(
-                                    icon: Icon(viewIcon,
-                                        color: theme.colorScheme.primary),
-                                    tooltip: 'View Mode',
-                                    onPressed: _cycleViewMode,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: filteredServers.isEmpty
-                            ? Center(
-                                child: ClipRRect(
+                                const SizedBox(width: 8),
+                                ClipRRect(
                                   borderRadius: BorderRadius.circular(16),
                                   child: BackdropFilter(
                                     filter: ImageFilter.blur(
                                         sigmaX: 10, sigmaY: 10),
                                     child: Container(
-                                      padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
                                           color: theme.colorScheme.surface
                                               .withOpacity(0.2),
@@ -954,39 +942,72 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                                           border: Border.all(
                                               color: theme.colorScheme.onSurface
                                                   .withOpacity(0.1))),
-                                      child: Text('No servers found!',
-                                          style: theme.textTheme.titleMedium
-                                              ?.copyWith(
-                                                  color: theme
-                                                      .colorScheme.onSurface
-                                                      .withOpacity(0.6))),
+                                      child: IconButton(
+                                        icon: Icon(viewIcon,
+                                            color: theme.colorScheme.primary),
+                                        tooltip: 'View Mode',
+                                        onPressed: _cycleViewMode,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              )
-                            : viewMode == ViewMode.list
-                                ? ListView.builder(
-                                    padding: const EdgeInsets.only(
-                                        bottom: 80, left: 16, right: 16),
-                                    itemCount: filteredServers.length,
-                                    itemBuilder: (ctx, idx) =>
-                                        _buildServerItem(filteredServers[idx]),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: filteredServers.isEmpty
+                                ? Center(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(
+                                            sigmaX: 10, sigmaY: 10),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                              color: theme.colorScheme.surface
+                                                  .withOpacity(0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              border: Border.all(
+                                                  color: theme
+                                                      .colorScheme.onSurface
+                                                      .withOpacity(0.1))),
+                                          child: Text('No servers found!',
+                                              style: theme.textTheme.titleMedium
+                                                  ?.copyWith(
+                                                      color: theme
+                                                          .colorScheme.onSurface
+                                                          .withOpacity(0.6))),
+                                        ),
+                                      ),
+                                    ),
                                   )
-                                : GridView.builder(
-                                    padding: const EdgeInsets.only(
-                                        bottom: 80, left: 16, right: 16),
-                                    gridDelegate:
-                                        SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: 2,
-                                            childAspectRatio: 1.2,
-                                            crossAxisSpacing: 16,
-                                            mainAxisSpacing: 16),
-                                    itemCount: filteredServers.length,
-                                    itemBuilder: (ctx, idx) =>
-                                        _buildServerItem(filteredServers[idx]),
-                                  ),
-                      ),
-                    ]),
-            )));
+                                : viewMode == ViewMode.list
+                                    ? ListView.builder(
+                                        padding: const EdgeInsets.only(
+                                            bottom: 80, left: 16, right: 16),
+                                        itemCount: filteredServers.length,
+                                        itemBuilder: (ctx, idx) =>
+                                            _buildServerItem(
+                                                filteredServers[idx]),
+                                      )
+                                    : GridView.builder(
+                                        padding: const EdgeInsets.only(
+                                            bottom: 80, left: 16, right: 16),
+                                        gridDelegate:
+                                            SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount: 2,
+                                                childAspectRatio: 1.2,
+                                                crossAxisSpacing: 16,
+                                                mainAxisSpacing: 16),
+                                        itemCount: filteredServers.length,
+                                        itemBuilder: (ctx, idx) =>
+                                            _buildServerItem(
+                                                filteredServers[idx]),
+                                      ),
+                          ),
+                        ]),
+                ))));
   }
 }

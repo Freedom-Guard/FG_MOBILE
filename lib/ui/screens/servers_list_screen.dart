@@ -3,7 +3,8 @@ import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/core/global.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:flutter/material.dart';
-import 'package:Freedom_Guard/utils/LOGLOG.dart'; // برای لاگ
+import 'package:Freedom_Guard/utils/LOGLOG.dart';
+import 'package:share_plus/share_plus.dart'; // برای لاگ
 
 class ServerListPage extends StatefulWidget {
   const ServerListPage({Key? key}) : super(key: key);
@@ -42,6 +43,32 @@ class _ServerListPageState extends State<ServerListPage> {
 
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: Icon(Icons.share_rounded),
+            onPressed: () async {
+              try {
+                final configs = await _configsFuture;
+                if (configs.isEmpty) {
+                  LogOverlay.showLog("Nothing to share!", type: "error");
+                  return;
+                }
+
+                final List<String> allLinks =
+                    configs.map((c) => c.configLink).toList();
+
+                final shareText = allLinks.join("\n\n");
+
+                await Share.share(
+                  shareText,
+                  subject: "Freedom Guard - Exported Configs",
+                );
+              } catch (e) {
+                LogOverlay.showLog("Share failed: $e", type: "error");
+              }
+            },
+          )
+        ],
         title: Text("Server List"),
         backgroundColor: Colors.transparent,
         elevation: 0,

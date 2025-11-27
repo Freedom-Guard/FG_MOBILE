@@ -63,6 +63,14 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
     serverNameTemp = serverNameTemp == "Unnamed Server" || serverNameTemp == ""
         ? "FG Server (FL)"
         : serverNameTemp;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxServerNameLength = (screenWidth * 0.85 / 10).floor() - 10;
+    if (serverNameTemp.length > maxServerNameLength &&
+        maxServerNameLength > 0) {
+      serverNameTemp =
+          serverNameTemp.substring(0, maxServerNameLength - 3) + '...';
+    }
+
     while (attempts < maxAttempts) {
       try {
         var pingConnected = await connect.getConnectedDelay();

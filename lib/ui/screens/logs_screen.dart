@@ -193,23 +193,20 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
         onLongPress: () => _copySingle(log),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              margin: EdgeInsets.only(bottom: 12),
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.white.withOpacity(0.15)),
-              ),
-              child: Text(
-                log,
-                style: GoogleFonts.sourceCodePro(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 13,
-                    height: 1.5),
-              ),
+          child: Container(
+            margin: EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white.withOpacity(0.15)),
+            ),
+            child: Text(
+              log,
+              style: GoogleFonts.sourceCodePro(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 13,
+                  height: 1.5),
             ),
           ),
         ),
@@ -221,7 +218,7 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
     return ClipRRect(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           decoration: BoxDecoration(

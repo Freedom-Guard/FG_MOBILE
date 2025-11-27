@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:Freedom_Guard/core/network/network_service.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 class CFGPage extends StatefulWidget {
   @override
@@ -107,8 +107,7 @@ class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
     subLink = subLink.replaceAll("freedom-guard://", "");
     while (retryCount < maxRetries) {
       try {
-        final response = await http
-            .get(Uri.parse(subLink))
+        final response = await NetworkService.get(subLink)
             .timeout(const Duration(seconds: 15));
         if (response.statusCode == 200) {
           String content = response.body;
