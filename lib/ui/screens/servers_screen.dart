@@ -41,6 +41,9 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   bool isPingingAll = false;
   bool sortByPing = false;
   ViewMode viewMode = ViewMode.list;
+  Set<String> selectedServers = {};
+  bool multiSelectMode = false;
+
   @override
   void initState() {
     super.initState();
@@ -735,6 +738,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
 
   Widget _buildServerItem(String server) {
     ThemeData theme = Theme.of(context);
+    bool isSelected = multiSelectMode && selectedServers.contains(server);
     bool selected = serversManage.selectedServer == server;
     int? ping = serverPingTimes[server];
     return Padding(
@@ -746,7 +750,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
             color: theme.colorScheme.surface.withOpacity(0.3),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-                color: selected
+                color: selected || isSelected
                     ? theme.colorScheme.primary.withOpacity(0.3)
                     : theme.colorScheme.onSurface.withOpacity(0.1),
                 width: 2),
@@ -759,8 +763,24 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
               hoverColor: Colors.transparent,
               borderRadius: BorderRadius.circular(16),
               onTap: () async {
-                await serversManage.selectServer(server);
-                if (mounted) setState(() {});
+                if (multiSelectMode) {
+                  setState(() {
+                    if (selectedServers.contains(server)) {
+                      selectedServers.remove(server);
+                    } else {
+                      selectedServers.add(server);
+                    }
+                  });
+                } else {
+                  await serversManage.selectServer(server);
+                  if (mounted) setState(() {});
+                }
+              },
+              onLongPress: () {
+                setState(() {
+                  multiSelectMode = true;
+                  selectedServers.add(server);
+                });
               },
               child: Padding(
                 padding:
@@ -812,42 +832,134 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
             appBar: AppBar(
               backgroundColor: theme.colorScheme.primary,
               elevation: 0,
-              title: Text(tr('manage-servers-page'),
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onPrimary)),
-              actions: [
-                IconButton(
-                  icon: isPingingAll
-                      ? SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: theme.colorScheme.onPrimary))
-                      : Icon(Icons.network_check,
-                          color: theme.colorScheme.onPrimary),
-                  tooltip: 'Ping All',
-                  onPressed: isPingingAll ? null : _pingAllServers,
-                ),
-                IconButton(
-                  icon: Icon(Icons.sort,
-                      color: sortByPing
-                          ? theme.colorScheme.secondary
-                          : theme.colorScheme.onPrimary),
-                  tooltip: 'Sort by Ping',
-                  onPressed: _toggleSortByPing,
-                ),
-                IconButton(
-                    icon: Icon(Icons.add, color: theme.colorScheme.onPrimary),
-                    tooltip: 'Add Server',
-                    onPressed: () => _showAddServerDialog(context)),
-                IconButton(
-                    icon: Icon(Icons.more_vert,
-                        color: theme.colorScheme.onPrimary),
-                    tooltip: 'More Options',
-                    onPressed: () => _showAppBarOptions(context)),
-              ],
+              title: multiSelectMode
+                  ? Text('${selectedServers.length} selected',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onPrimary))
+                  : Text(tr('manage-servers-page'),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onPrimary)),
+              leading: multiSelectMode
+                  ? IconButton(
+                      icon:
+                          Icon(Icons.close, color: theme.colorScheme.onPrimary),
+                      onPressed: () {
+                        setState(() {
+                          multiSelectMode = false;
+                          selectedServers.clear();
+                        });
+                      },
+                    )
+                  : null,
+              actions: multiSelectMode
+                  ? [
+                      IconButton(
+                        icon: Icon(Icons.network_check,
+                            color: theme.colorScheme.onPrimary),
+                        tooltip: 'Ping Selected',
+                        onPressed: selectedServers.isEmpty
+                            ? null
+                            : () async {
+                                setState(() => isPingingAll = true);
+                                try {
+                                  await Future.wait(selectedServers
+                                      .map((s) => _pingServer(s)));
+                                } finally {
+                                  if (mounted)
+                                    setState(() => isPingingAll = false);
+                                }
+                              },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.share,
+                            color: theme.colorScheme.onPrimary),
+                        tooltip: 'Share Selected',
+                        onPressed: selectedServers.isEmpty
+                            ? null
+                            : () {
+                                Share.share(selectedServers.join('\n'));
+                              },
+                      ),
+                      IconButton(
+                        icon:
+                            Icon(Icons.delete, color: theme.colorScheme.error),
+                        tooltip: 'Delete Selected',
+                        onPressed: selectedServers.isEmpty
+                            ? null
+                            : () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => AppDialogs.buildDialog(
+                                    context: ctx,
+                                    title: tr('delete-servers'),
+                                    content: tr(
+                                        'are-you-sure-you-want-to-delete-selected-servers'),
+                                    actions: [
+                                      TextButton(
+                                          onPressed: () => Navigator.pop(ctx),
+                                          child: Text(tr('cancel'),
+                                              style: TextStyle(
+                                                  color: theme
+                                                      .colorScheme.primary))),
+                                      TextButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              servers.removeWhere((s) =>
+                                                  selectedServers.contains(s));
+                                              serverPingTimes.removeWhere((k,
+                                                      _) =>
+                                                  selectedServers.contains(k));
+                                              selectedServers.clear();
+                                              multiSelectMode = false;
+                                            });
+                                            _saveServers();
+                                            Navigator.pop(ctx);
+                                          },
+                                          child: Text(tr('delete'),
+                                              style: TextStyle(
+                                                  color: theme
+                                                      .colorScheme.error))),
+                                    ],
+                                  ),
+                                );
+                              },
+                      ),
+                    ]
+                  : [
+                      IconButton(
+                        icon: isPingingAll
+                            ? SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: theme.colorScheme.onPrimary))
+                            : Icon(Icons.network_check,
+                                color: theme.colorScheme.onPrimary),
+                        tooltip: 'Ping All',
+                        onPressed: isPingingAll ? null : _pingAllServers,
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.sort,
+                            color: sortByPing
+                                ? theme.colorScheme.secondary
+                                : theme.colorScheme.onPrimary),
+                        tooltip: 'Sort by Ping',
+                        onPressed: _toggleSortByPing,
+                      ),
+                      IconButton(
+                          icon: Icon(Icons.add,
+                              color: theme.colorScheme.onPrimary),
+                          tooltip: 'Add Server',
+                          onPressed: () => _showAddServerDialog(context)),
+                      IconButton(
+                          icon: Icon(Icons.more_vert,
+                              color: theme.colorScheme.onPrimary),
+                          tooltip: 'More Options',
+                          onPressed: () => _showAppBarOptions(context)),
+                    ],
             ),
             body: RefreshIndicator(
                 onRefresh: () => _refreshSubscriptions(),
