@@ -209,7 +209,7 @@ class Connect extends Tools {
         int currentPing =
             await testConfig(cachedResult.configLink, type: typeC);
 
-        if (currentPing != -1 && currentPing < 1000) {
+        if (currentPing != -1) {
           if (await ConnectVibe(
               cachedResult.configLink, {"type": type, "link": config})) {
             final guardModeEnabled =
@@ -225,7 +225,7 @@ class Connect extends Tools {
           }
         } else {
           LogOverlay.addLog(
-              "Cached config failed or ping is too high ($currentPing ms).");
+              "Cached config failed or ping is ($currentPing ms).");
         }
       }
       LogOverlay.addLog("All cached configs failed. Fetching new list.");
