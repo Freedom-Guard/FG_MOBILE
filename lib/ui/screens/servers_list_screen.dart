@@ -45,6 +45,7 @@ class _ServerListPageState extends State<ServerListPage> {
       appBar: AppBar(
         actions: [
           IconButton(
+            padding: EdgeInsets.all(8.0),
             icon: Icon(Icons.share_rounded),
             onPressed: () async {
               try {
@@ -57,7 +58,7 @@ class _ServerListPageState extends State<ServerListPage> {
                 final List<String> allLinks =
                     configs.map((c) => c.configLink).toList();
 
-                final shareText = allLinks.join("\n\n");
+                final shareText = allLinks.join("\n");
 
                 await Share.share(
                   shareText,
@@ -111,7 +112,7 @@ class _ServerListPageState extends State<ServerListPage> {
                 final configs = snapshot.data!;
                 configs.sort((a, b) => a.ping.compareTo(b.ping));
 
-                return ListView.builder(
+                return ListView(
                   padding: EdgeInsets.only(
                     top: kToolbarHeight +
                         MediaQuery.of(context).padding.top +
@@ -120,14 +121,13 @@ class _ServerListPageState extends State<ServerListPage> {
                     right: 16,
                     bottom: 20,
                   ),
-                  itemCount: configs.length + 1, // +1 for "Auto Server"
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return _buildAutoServerTile(context);
-                    }
-                    final config = configs[index - 1];
-                    return _buildServerTile(context, config);
-                  },
+                  children: [
+                    ServerStateCard(configs: configs),
+                    _buildAutoServerTile(context),
+                    ...configs
+                        .map((c) => _buildServerTile(context, c))
+                        .toList(),
+                  ],
                 );
               },
             ),
@@ -254,12 +254,28 @@ class _ServerListPageState extends State<ServerListPage> {
               color: theme.colorScheme.onSurface.withOpacity(0.8)),
           SizedBox(width: 16),
           Expanded(
-            child: Text(
-              configName,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurface),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  configName,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                SizedBox(height: 4),
+                Text(
+                  config.configLink.split("://")[0].toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 11,
+                    letterSpacing: 0.5,
+                    color: theme.colorScheme.primary.withOpacity(0.85),
+                  ),
+                ),
+              ],
             ),
           ),
           SizedBox(width: 16),
@@ -273,6 +289,79 @@ class _ServerListPageState extends State<ServerListPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class ServerStateCard extends StatelessWidget {
+  final List<ConfigPingResult> configs;
+  const ServerStateCard({super.key, required this.configs});
+
+  String getProtocol(String link) {
+    try {
+      return link.split("://")[0].toUpperCase();
+    } catch (_) {
+      return "UNKNOWN";
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final pings = configs.map((e) => e.ping).toList();
+    final avgPing = (pings.reduce((a, b) => a + b) / pings.length).round();
+    final bestPing = pings.reduce((a, b) => a < b ? a : b);
+    final healthy = configs.where((c) => c.ping < 800).length;
+
+    return Container(
+      padding: EdgeInsets.all(20),
+      margin: EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.surface.withOpacity(0.35),
+            theme.colorScheme.surface.withOpacity(0.15),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(
+          color: theme.colorScheme.onSurface.withOpacity(0.1),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _item("میانگین", "$avgPing ms", theme),
+              _item("بهترین", "$bestPing ms", theme),
+              _item("سالم", "$healthy", theme),
+              _item("کل", "${configs.length}", theme),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _item(String title, String value, ThemeData theme) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          title,
+          style: theme.textTheme.bodySmall?.copyWith(),
+        ),
+      ],
     );
   }
 }
