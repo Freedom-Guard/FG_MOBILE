@@ -11,7 +11,6 @@ void main() {
   ));
 }
 
-// --- Data Models ---
 class DnsModel {
   final String ip;
   final String provider;
@@ -28,7 +27,6 @@ class DnsModel {
   });
 }
 
-// --- Main Screen ---
 class DnsToolsPage extends StatefulWidget {
   const DnsToolsPage({super.key});
 
@@ -41,7 +39,6 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
   final TextEditingController _customIpController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  // Optimized list of popular providers
   List<DnsModel> _masterList = [
     DnsModel(ip: "1.1.1.1", provider: "Cloudflare Primary"),
     DnsModel(ip: "1.0.0.1", provider: "Cloudflare Secondary"),
@@ -61,8 +58,7 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
   bool _isLoadingIp = false;
   String _publicIp = "";
   String _ispSummary = "Tap to analyze";
-  
-  // Cache for full IP details
+
   Map<String, dynamic>? _fullIpDetails;
 
   @override
@@ -95,13 +91,12 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
     });
   }
 
-  // --- Logic: DNS Latency ---
   Future<void> _checkLatency(DnsModel dns) async {
     setState(() => dns.isScanning = true);
     final stopwatch = Stopwatch()..start();
     try {
-      final socket = await Socket.connect(dns.ip, 53,
-          timeout: const Duration(seconds: 2));
+      final socket =
+          await Socket.connect(dns.ip, 53, timeout: const Duration(seconds: 2));
       socket.destroy();
       stopwatch.stop();
       if (mounted) {
@@ -146,26 +141,24 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
     }
   }
 
-  // --- Logic: IP Analysis ---
   Future<void> _analyzeNetwork({bool showDetails = false}) async {
     setState(() => _isLoadingIp = true);
     try {
-      // Using ipwho.is for free HTTPS JSON response
-      final request = await HttpClient()
-          .getUrl(Uri.parse('https://ipwho.is/'));
+      final request = await HttpClient().getUrl(Uri.parse('https://ipwho.is/'));
       final response = await request.close();
       if (response.statusCode == 200) {
         final jsonString = await response.transform(utf8.decoder).join();
         final data = jsonDecode(jsonString);
-        
+
         if (mounted) {
           setState(() {
             _fullIpDetails = data;
             _publicIp = data['ip'] ?? "Unknown";
-            _ispSummary = "${data['connection']?['isp'] ?? 'ISP'} (${data['country_code']})";
+            _ispSummary =
+                "${data['connection']?['isp'] ?? 'ISP'} (${data['country_code']})";
             _isLoadingIp = false;
           });
-          
+
           if (showDetails) {
             _showIpDetailSheet();
           }
@@ -203,20 +196,32 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
             children: [
               Center(
                 child: Container(
-                  width: 40, height: 4,
+                  width: 40,
+                  height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(color: Colors.grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2)),
+                  decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2)),
                 ),
               ),
-              Text("Network Intelligence", style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+              Text("Network Intelligence",
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
               _detailRow(Icons.public, "IP Address", _fullIpDetails!['ip']),
-              _detailRow(Icons.router, "ISP", _fullIpDetails!['connection']?['isp']),
-              _detailRow(Icons.business, "Organization", _fullIpDetails!['connection']?['org']),
-              _detailRow(Icons.location_city, "Location", "${_fullIpDetails!['city']}, ${_fullIpDetails!['region']}"),
+              _detailRow(
+                  Icons.router, "ISP", _fullIpDetails!['connection']?['isp']),
+              _detailRow(Icons.business, "Organization",
+                  _fullIpDetails!['connection']?['org']),
+              _detailRow(Icons.location_city, "Location",
+                  "${_fullIpDetails!['city']}, ${_fullIpDetails!['region']}"),
               _detailRow(Icons.flag, "Country", _fullIpDetails!['country']),
-              _detailRow(Icons.access_time, "Timezone", _fullIpDetails!['timezone']?['id']),
-              _detailRow(Icons.map, "Coordinates", "${_fullIpDetails!['latitude']}, ${_fullIpDetails!['longitude']}"),
+              _detailRow(Icons.access_time, "Timezone",
+                  _fullIpDetails!['timezone']?['id']),
+              _detailRow(Icons.map, "Coordinates",
+                  "${_fullIpDetails!['latitude']}, ${_fullIpDetails!['longitude']}"),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -243,15 +248,19 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
               color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+            child: Icon(icon,
+                size: 20, color: Theme.of(context).colorScheme.primary),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                Text(value ?? "N/A", style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                Text(label,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(value ?? "N/A",
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w500)),
               ],
             ),
           ),
@@ -287,10 +296,12 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F7FA),
+      backgroundColor:
+          isDark ? const Color(0xFF121212) : const Color(0xFFF5F7FA),
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("DNS Benchmark", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("DNS Benchmark",
+            style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -318,7 +329,11 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _isGlobalScanning ? null : _runFullScan,
         icon: _isGlobalScanning
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2))
             : const Icon(Icons.speed),
         label: Text(_isGlobalScanning ? "Scanning..." : "Start Scan"),
         backgroundColor: theme.colorScheme.primary,
@@ -358,36 +373,53 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
                   children: [
                     Text(
                       "Public IP",
-                      style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _publicIp.isEmpty ? "---.---.---.---" : _publicIp,
-                      style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 1),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _ispSummary,
-                      style: const TextStyle(color: Colors.white70, fontSize: 13),
-                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
               Row(
                 children: [
-                   // Quick Analyze Button
                   IconButton.filled(
-                    style: IconButton.styleFrom(backgroundColor: Colors.white.withOpacity(0.2)),
-                    icon: _isLoadingIp 
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Icon(Icons.analytics_outlined, color: Colors.white),
-                    onPressed: _isLoadingIp ? null : () => _analyzeNetwork(showDetails: false),
+                    style: IconButton.styleFrom(
+                        backgroundColor: Colors.white.withOpacity(0.2)),
+                    icon: _isLoadingIp
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2))
+                        : const Icon(Icons.analytics_outlined,
+                            color: Colors.white),
+                    onPressed: _isLoadingIp
+                        ? null
+                        : () => _analyzeNetwork(showDetails: false),
                   ),
                   const SizedBox(width: 8),
-                  // Full Details Button (New Feature)
                   IconButton.filled(
-                    style: IconButton.styleFrom(backgroundColor: Colors.white, foregroundColor: theme.colorScheme.primary),
+                    style: IconButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: theme.colorScheme.primary),
                     icon: const Icon(Icons.info_outline),
                     onPressed: () {
                       if (_fullIpDetails != null) {
@@ -419,9 +451,14 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: theme.cardColor,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none),
               ),
             ),
           ),
@@ -432,9 +469,15 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: theme.scaffoldBackgroundColor,
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+                shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(24))),
                 builder: (ctx) => Padding(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom + 20, left: 24, right: 24, top: 24),
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+                      left: 24,
+                      right: 24,
+                      top: 24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,11 +489,19 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           labelText: "IP Address",
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                       const SizedBox(height: 20),
-                      SizedBox(width: double.infinity, child: FilledButton(onPressed: () { _addCustomDns(); Navigator.pop(ctx); }, child: const Text("Add to List"))),
+                      SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                              onPressed: () {
+                                _addCustomDns();
+                                Navigator.pop(ctx);
+                              },
+                              child: const Text("Add to List"))),
                     ],
                   ),
                 ),
@@ -458,9 +509,13 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
             },
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              height: 48, width: 48,
-              decoration: BoxDecoration(color: theme.colorScheme.secondaryContainer, borderRadius: BorderRadius.circular(16)),
-              child: Icon(Icons.add, color: theme.colorScheme.onSecondaryContainer),
+              height: 48,
+              width: 48,
+              decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer,
+                  borderRadius: BorderRadius.circular(16)),
+              child: Icon(Icons.add,
+                  color: theme.colorScheme.onSecondaryContainer),
             ),
           ),
         ],
@@ -476,7 +531,8 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
           children: [
             Icon(Icons.dns_outlined, size: 64, color: theme.disabledColor),
             const SizedBox(height: 16),
-            Text("No DNS servers found", style: TextStyle(color: theme.disabledColor)),
+            Text("No DNS servers found",
+                style: TextStyle(color: theme.disabledColor)),
           ],
         ),
       );
@@ -495,47 +551,76 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
               side: BorderSide(
-                  color: dns.isOnline ? _getLatencyColor(dns.latency).withOpacity(0.3) : Colors.transparent,
+                  color: dns.isOnline
+                      ? _getLatencyColor(dns.latency).withOpacity(0.3)
+                      : Colors.transparent,
                   width: 1.5)),
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
             onTap: () {
               Clipboard.setData(ClipboardData(text: dns.ip));
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("IP ${dns.ip} copied"), duration: const Duration(milliseconds: 600)));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text("IP ${dns.ip} copied"),
+                  duration: const Duration(milliseconds: 600)));
             },
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   Container(
-                    width: 44, height: 44,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
-                      color: dns.isOnline ? _getLatencyColor(dns.latency).withOpacity(0.1) : theme.scaffoldBackgroundColor,
+                      color: dns.isOnline
+                          ? _getLatencyColor(dns.latency).withOpacity(0.1)
+                          : theme.scaffoldBackgroundColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Center(child: Icon(Icons.dns, color: dns.isOnline ? _getLatencyColor(dns.latency) : theme.disabledColor)),
+                    child: Center(
+                        child: Icon(Icons.dns,
+                            color: dns.isOnline
+                                ? _getLatencyColor(dns.latency)
+                                : theme.disabledColor)),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(dns.provider, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                        Text(dns.provider,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 15)),
                         const SizedBox(height: 4),
-                        Text(dns.ip, style: TextStyle(fontFamily: 'Monospace', fontSize: 13, color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7))),
+                        Text(dns.ip,
+                            style: TextStyle(
+                                fontFamily: 'Monospace',
+                                fontSize: 13,
+                                color: theme.textTheme.bodyMedium?.color
+                                    ?.withOpacity(0.7))),
                       ],
                     ),
                   ),
                   if (dns.isScanning)
-                    const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2))
                   else
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: dns.isOnline ? _getLatencyColor(dns.latency).withOpacity(0.1) : theme.disabledColor.withOpacity(0.1),
+                        color: dns.isOnline
+                            ? _getLatencyColor(dns.latency).withOpacity(0.1)
+                            : theme.disabledColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(dns.isOnline ? "${dns.latency} ms" : "---", style: TextStyle(fontWeight: FontWeight.bold, color: dns.isOnline ? _getLatencyColor(dns.latency) : theme.disabledColor)),
+                      child: Text(dns.isOnline ? "${dns.latency} ms" : "---",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: dns.isOnline
+                                  ? _getLatencyColor(dns.latency)
+                                  : theme.disabledColor)),
                     ),
                 ],
               ),

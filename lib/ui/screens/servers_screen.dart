@@ -893,9 +893,9 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                                   context: context,
                                   builder: (ctx) => AppDialogs.buildDialog(
                                     context: ctx,
-                                    title: tr('delete-servers'),
+                                    title: tr('delete-server'),
                                     content: tr(
-                                        'are-you-sure-you-want-to-delete-selected-servers'),
+                                        'are-you-sure-you-want-to-delete-selected-server'),
                                     actions: [
                                       TextButton(
                                           onPressed: () => Navigator.pop(ctx),
