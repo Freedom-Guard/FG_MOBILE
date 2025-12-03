@@ -25,7 +25,7 @@ connectFlMode(BuildContext context) async {
     (token) async {
       return await connectFL(token);
     },
-    timeout: Duration(seconds: 20),
+    timeout: Duration(seconds: 120),
   );
   return connStat;
 }
