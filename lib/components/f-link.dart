@@ -249,7 +249,7 @@ Future<bool> tryConnect(String config, String docId, String message_old,
   if (config.startsWith("http")) {
     resPing = (await connect.ConnectSub(config, "f_link", typeC: "f_link")
             .timeout(Duration(seconds: 25), onTimeout: () {
-      return false;
+      return connect.isConnected;
     }))
         ? 999
         : -1;
@@ -386,8 +386,9 @@ Future<void> rating(String docID) async {
 Future<bool> connectFL(CancelToken token) async {
   try {
     final configs = await restoreConfigs();
+    bool isConnected = false;
     for (var config in configs) {
-      if (token.isCanceled) return false; // check cancel
+      if (token.isCanceled) return connect.isConnected;
 
       final configStr = config['config'] as String;
       final message = config['message'] ?? "";
@@ -396,12 +397,12 @@ Future<bool> connectFL(CancelToken token) async {
 
       final success = await tryConnect(configStr, docId, message, telegramLink);
       if (success) {
-        if (token.isCanceled) return false;
+        if (token.isCanceled) return true;
 
         final isp = await SettingsApp().getValue("isp");
         await addISPToConfig(docId, (isp == "" ? await getUserISP() : isp));
-        SettingsApp().setValue(
-            "config_backup", "mode=f-link#Auto Server (FL Mode)");
+        SettingsApp()
+            .setValue("config_backup", "mode=f-link#Auto Server (FL Mode)");
         return true;
       }
     }

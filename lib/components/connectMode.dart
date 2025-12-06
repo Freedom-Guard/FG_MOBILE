@@ -25,7 +25,7 @@ connectFlMode(BuildContext context) async {
     (token) async {
       return await connectFL(token);
     },
-    timeout: Duration(seconds: 120),
+    timeout: Duration(seconds: 1020),
   );
   return connStat;
 }
@@ -48,7 +48,7 @@ connectRepoMode(BuildContext context) async {
     Duration(milliseconds: timeout),
     onTimeout: () {
       LogOverlay.showLog("Connection to Auto mode timed out.", type: "error");
-      return false;
+      return connect.isConnected;
     },
   );
   return connStat;

@@ -350,6 +350,8 @@ class Connect extends Tools {
       if (await ConnectSub(httpCfg, "sub", typeC: typeC)
           .timeout(Duration(seconds: 30), onTimeout: () => false)) {
         return true;
+      } else {
+        return _isConnected;
       }
     }
 
@@ -485,6 +487,7 @@ class Connect extends Tools {
               config.replaceAll("freedom-guard://", ""),
               config.startsWith("freedom-guard") ? "fgAuto" : "sub",
             ).timeout(Duration(seconds: 20), onTimeout: () => false);
+            if (!connStat) return _isConnected;
             if (connStat) return true;
           } else {
             if (await testConfig(config) != -1) {
