@@ -130,7 +130,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
               child: Container(
                 color: Colors.transparent,
               ),

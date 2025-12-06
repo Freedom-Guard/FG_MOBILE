@@ -134,7 +134,7 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(

@@ -297,39 +297,56 @@ class _DnsSelectionDialogState extends State<DnsSelectionDialog> {
                                       ? Colors.blue.withOpacity(.3)
                                       : Colors.white.withOpacity(.08),
                                   border: Border.all(
-                                      color: s
-                                          ? Colors.blueAccent
-                                          : Colors.transparent,
-                                      width: 1.4),
+                                    color: s
+                                        ? Colors.blueAccent
+                                        : Colors.transparent,
+                                    width: 1.4,
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(d.name,
-                                              style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold)),
-                                          Text(d.description,
-                                              style: const TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 12)),
-                                        ]),
-                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          d.name,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          d.description,
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Expanded(
+                                      child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.end,
                                         children: d.addresses.map((e) {
-                                          return Text(e,
-                                              style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontFamily: 'monospace',
-                                                  fontSize: 12));
-                                        }).toList()),
+                                          return Text(
+                                            e,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontFamily: 'monospace',
+                                              fontSize: 12,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                            textAlign: TextAlign.end,
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),

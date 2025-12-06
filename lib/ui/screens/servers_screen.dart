@@ -702,10 +702,10 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
         child: Container(
           decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.2),
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(16)),
               border: Border.all(
@@ -978,12 +978,12 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(16),
                             child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                               child: Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
                                     color: theme.colorScheme.surface
-                                        .withOpacity(0.2),
+                                        .withOpacity(0.5),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
                                         color: theme.colorScheme.onSurface
@@ -1002,39 +1002,33 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                                 Expanded(
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
-                                    child: BackdropFilter(
-                                      filter: ImageFilter.blur(
-                                          sigmaX: 10, sigmaY: 10),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                            color: theme.colorScheme.surface
-                                                .withOpacity(0.2),
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                            border: Border.all(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          color: theme.colorScheme.surface
+                                              .withOpacity(0.5),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          border: Border.all(
+                                              color: theme.colorScheme.onSurface
+                                                  .withOpacity(0.1))),
+                                      child: TextField(
+                                        controller: searchController,
+                                        decoration: InputDecoration(
+                                            hintText: tr('search-servers'),
+                                            prefixIcon: Icon(Icons.search,
+                                                color:
+                                                    theme.colorScheme.primary),
+                                            border: InputBorder.none,
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                                    vertical: 12,
+                                                    horizontal: 16),
+                                            hintStyle: TextStyle(
                                                 color: theme
                                                     .colorScheme.onSurface
-                                                    .withOpacity(0.1))),
-                                        child: TextField(
-                                          controller: searchController,
-                                          decoration: InputDecoration(
-                                              hintText: tr('search-servers'),
-                                              prefixIcon: Icon(Icons.search,
-                                                  color: theme
-                                                      .colorScheme.primary),
-                                              border: InputBorder.none,
-                                              contentPadding:
-                                                  EdgeInsets.symmetric(
-                                                      vertical: 12,
-                                                      horizontal: 16),
-                                              hintStyle: TextStyle(
-                                                  color: theme
-                                                      .colorScheme.onSurface
-                                                      .withOpacity(0.5))),
-                                          style: TextStyle(
-                                              color:
-                                                  theme.colorScheme.onSurface),
-                                        ),
+                                                    .withOpacity(0.5))),
+                                        style: TextStyle(
+                                            color: theme.colorScheme.onSurface),
                                       ),
                                     ),
                                   ),
@@ -1044,11 +1038,11 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                                   borderRadius: BorderRadius.circular(16),
                                   child: BackdropFilter(
                                     filter: ImageFilter.blur(
-                                        sigmaX: 10, sigmaY: 10),
+                                        sigmaX: 6, sigmaY: 6),
                                     child: Container(
                                       decoration: BoxDecoration(
                                           color: theme.colorScheme.surface
-                                              .withOpacity(0.2),
+                                              .withOpacity(0.4),
                                           borderRadius:
                                               BorderRadius.circular(16),
                                           border: Border.all(
@@ -1073,12 +1067,12 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                                       borderRadius: BorderRadius.circular(16),
                                       child: BackdropFilter(
                                         filter: ImageFilter.blur(
-                                            sigmaX: 10, sigmaY: 10),
+                                            sigmaX: 3, sigmaY: 3),
                                         child: Container(
                                           padding: const EdgeInsets.all(16),
                                           decoration: BoxDecoration(
                                               color: theme.colorScheme.surface
-                                                  .withOpacity(0.2),
+                                                  .withOpacity(0.4),
                                               borderRadius:
                                                   BorderRadius.circular(16),
                                               border: Border.all(

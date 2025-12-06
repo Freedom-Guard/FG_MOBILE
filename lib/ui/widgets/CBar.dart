@@ -96,12 +96,12 @@ class _ActionsMenuState extends State<ActionsMenu>
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                       child: Container(
                         width: 250,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
                           border:
                               Border.all(color: Colors.white.withOpacity(0.2)),
@@ -189,8 +189,7 @@ class _ActionsMenuState extends State<ActionsMenu>
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) =>
-                                          DnsToolsPage()));
+                                      builder: (context) => DnsToolsPage()));
                               _closeMenu();
                             }),
                           ],

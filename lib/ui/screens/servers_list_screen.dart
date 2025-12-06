@@ -147,34 +147,31 @@ class _ServerListPageState extends State<ServerListPage> {
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20.0),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  theme.colorScheme.surface.withOpacity(0.25),
-                  theme.colorScheme.surface.withOpacity(0.15),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20.0),
-              border: Border.all(
-                color: theme.colorScheme.onSurface.withOpacity(0.1),
-                width: 1.0,
-              ),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.surface.withOpacity(0.25),
+                theme.colorScheme.surface.withOpacity(0.15),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: onTap,
-                borderRadius: BorderRadius.circular(20.0),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 18.0),
-                  child: child,
-                ),
+            borderRadius: BorderRadius.circular(20.0),
+            border: Border.all(
+              color: theme.colorScheme.onSurface.withOpacity(0.1),
+              width: 1.0,
+            ),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(20.0),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 18.0),
+                child: child,
               ),
             ),
           ),
