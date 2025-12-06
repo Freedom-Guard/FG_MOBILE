@@ -78,16 +78,6 @@ class _ServerListPageState extends State<ServerListPage> {
       extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          // Optional: Add a blurred background image here for full effect
-          // Container(
-          //   decoration: BoxDecoration(
-          //     image: DecorationImage(
-          //       image: AssetImage('assets/your_background.png'),
-          //       fit: BoxFit.cover,
-          //     ),
-          //   ),
-          // ),
-
           RefreshIndicator(
             onRefresh: () async => _refreshData(),
             child: FutureBuilder<List<ConfigPingResult>>(
@@ -114,9 +104,7 @@ class _ServerListPageState extends State<ServerListPage> {
 
                 return ListView(
                   padding: EdgeInsets.only(
-                    top: kToolbarHeight +
-                        MediaQuery.of(context).padding.top +
-                        20,
+                    top: kToolbarHeight + MediaQuery.of(context).padding.top,
                     left: 16,
                     right: 16,
                     bottom: 20,
