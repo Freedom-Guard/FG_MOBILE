@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -119,7 +120,9 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
 
   Future<void> _runFullScan() async {
     setState(() => _isGlobalScanning = true);
-    await Future.wait(_masterList.map((dns) => _checkLatency(dns)));
+    for (final dns in _masterList) {
+      await _checkLatency(dns);
+    }
     if (mounted) {
       setState(() {
         _masterList.sort((a, b) {
@@ -131,13 +134,7 @@ class _DnsToolsPageState extends State<DnsToolsPage> {
         _onSearchChanged();
         _isGlobalScanning = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Scan Complete. Sorted by speed."),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      LogOverlay.showLog("Scan Complete. Sorted by speed.");
     }
   }
 
