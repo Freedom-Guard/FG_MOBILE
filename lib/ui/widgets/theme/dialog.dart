@@ -24,6 +24,21 @@ class ThemeDialog extends StatelessWidget {
         ),
       },
       {
+        'name': '🛡️ Guard',
+        'theme': guardTheme,
+        'nameB': 'Guard',
+        'color': const Color(0xFF9A66FF),
+        'gradient': const LinearGradient(
+          colors: [
+            Color(0xFF00C2FF),
+            Color(0xFF9A66FF),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          stops: [0.0, 1.0],
+        ),
+      },
+      {
         'name': '💻 Programmer',
         'theme': hackerTheme,
         'nameB': 'Programmer',

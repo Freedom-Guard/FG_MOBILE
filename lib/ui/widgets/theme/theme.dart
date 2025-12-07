@@ -29,6 +29,52 @@ final defaultDarkTheme = ThemeData(
   hoverColor: Colors.transparent,
 );
 
+final guardTheme = ThemeData(
+  brightness: Brightness.dark,
+  colorScheme: const ColorScheme.dark(
+    primary: Color(0xFF2D9CFF),
+    secondary: Color(0xFF7A3BFF),
+    surface: Color(0xFF111827),
+    background: Color(0xFF0A0F1A),
+    error: Color(0xFFFF4C5B),
+    onPrimary: Colors.white,
+    onSecondary: Colors.white,
+    onSurface: Color(0xFFE8F1FF),
+    onBackground: Color(0xFFD9E6FF),
+    onError: Colors.white,
+  ),
+  scaffoldBackgroundColor: const Color(0xFF0A0F1A),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF2D9CFF),
+    foregroundColor: Colors.white,
+    elevation: 0,
+  ),
+  cardColor: const Color(0x1FFFFFFF),
+  dividerColor: const Color(0xFF233043),
+  dialogBackgroundColor: const Color(0xFF111827),
+  splashColor: Colors.transparent,
+  highlightColor: Colors.transparent,
+  hoverColor: Colors.transparent,
+  cardTheme: CardThemeData(
+    color: const Color(0x22FFFFFF),
+    elevation: 8,
+    shadowColor: Colors.black.withOpacity(0.3),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(18),
+    ),
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFF2D9CFF),
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+    ),
+  ),
+);
+
 final hackerTheme = ThemeData(
   brightness: Brightness.dark,
   colorScheme: const ColorScheme.dark(

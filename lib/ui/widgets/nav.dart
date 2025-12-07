@@ -14,151 +14,158 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Padding(
       padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        bottom: MediaQuery.of(context).padding.bottom + 16,
+        left: 42,
+        right: 42,
+        bottom: MediaQuery.of(context).padding.bottom + 8,
+        top: 6,
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(35),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                height: 80,
-                width: MediaQuery.of(context).size.width * 0.7,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(35),
-                  color: isDark
-                      ? Colors.black.withOpacity(0.4)
-                      : Colors.white.withOpacity(0.6),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withOpacity(0.1)
-                        : Colors.white.withOpacity(0.6),
-                    width: 1.5,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildNavItem(
-                        context,
-                        index: 0,
-                        icon: Icons.settings_rounded,
-                        label: 'تنظیمات',
-                      ),
-                      _buildNavItem(
-                        context,
-                        index: 1,
-                        icon: Icons.shield_rounded,
-                        label: 'اتصال',
-                      ),
-                      _buildNavItem(
-                        context,
-                        index: 2,
-                        icon: Icons.cloud_sync,
-                        label: 'سرورها',
-                      ),
-                    ],
-                  ),
-                ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            height: 70,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.surface.withOpacity(0.25),
+                  Theme.of(context).colorScheme.surface.withOpacity(0.15),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.12),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildNavItem(Icons.settings_rounded, 0, context),
+                _buildNavItem(Icons.shield, 1, context),
+                _buildNavItem(Icons.dns_outlined, 2, context),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildNavItem(
-    BuildContext context, {
-    required int index,
-    required IconData icon,
-    required String label,
-  }) {
-    final isSelected = index == currentIndex;
+  Widget _buildNavItem(IconData icon, int index, BuildContext context) {
+    final isActive = index == currentIndex;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    final activeColor =
-        isDark ? theme.colorScheme.primary : const Color(0xFF2563EB);
-    final inactiveColor = isDark ? Colors.white38 : Colors.black38;
 
     return GestureDetector(
       onTap: () {
-        HapticFeedback.lightImpact();
+        HapticFeedback.mediumImpact();
         onTap(index);
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutQuint,
-        width: 70,
-        height: 70,
-        decoration: BoxDecoration(
-          color:
-              isSelected ? activeColor.withOpacity(0.15) : Colors.transparent,
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: activeColor.withOpacity(0.4),
-                    blurRadius: 20,
-                    spreadRadius: -5,
-                  )
-                ]
-              : [],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Center(
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(
-                  begin: 0.0,
-                  end: 1.0,
+      child: TweenAnimationBuilder<double>(
+        duration: Duration(milliseconds: 250),
+        curve: Curves.easeInOutCubicEmphasized,
+        tween: Tween(begin: isActive ? 1.0 : 0.0, end: isActive ? 1.0 : 0.0),
+        builder: (context, value, child) {
+          return Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: isActive
+                  ? LinearGradient(
+                      colors: [
+                        theme.colorScheme.primary.withOpacity(0.95),
+                        theme.colorScheme.secondary.withOpacity(0.85),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      stops: [0.3, 1.0],
+                    )
+                  : null,
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withOpacity(0.35),
+                        blurRadius: 14,
+                        spreadRadius: 2,
+                        offset: Offset(0, 4),
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 6,
+                        spreadRadius: 0,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isActive
+                          ? Colors.white.withOpacity(0.4)
+                          : Colors.transparent,
+                      width: 1.5,
+                    ),
+                  ),
                 ),
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutBack,
-                builder: (context, value, child) {
-                  return Transform.translate(
-                    offset: Offset(0, -2 * value),
-                    child: Transform.scale(
-                      scale: 1.0 + (value * 0.1),
-                      child: ShaderMask(
-                        shaderCallback: (bounds) {
-                          return LinearGradient(
-                            colors: isSelected
-                                ? [
-                                    activeColor,
-                                    isDark ? Colors.white : Colors.blueAccent,
-                                  ]
-                                : [inactiveColor, inactiveColor],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ).createShader(bounds);
-                        },
-                        blendMode: BlendMode.srcIn,
-                        child: Icon(
-                          icon,
-                          size: 32,
-                        ),
+                TweenAnimationBuilder<double>(
+                  duration: Duration(milliseconds: 250),
+                  curve: Curves.easeInOutCubicEmphasized,
+                  tween: Tween(
+                      begin: isActive ? 1.2 : 1.0, end: isActive ? 1.2 : 1.0),
+                  builder: (context, scale, child) {
+                    return Transform.scale(
+                      scale: scale,
+                      child: Icon(
+                        icon,
+                        size: isActive ? 32 : 28,
+                        color: isActive
+                            ? Colors.white
+                            : theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    );
+                  },
+                ),
+                AnimatedOpacity(
+                  opacity: isActive ? 0.5 : 0.0,
+                  duration: Duration(milliseconds: 250),
+                  curve: Curves.easeInOutCubicEmphasized,
+                  child: Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          theme.colorScheme.primary.withOpacity(0.5),
+                          Colors.transparent,
+                        ],
+                        radius: 0.6,
+                        center: Alignment.center,
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
