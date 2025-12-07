@@ -705,7 +705,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
         filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
         child: Container(
           decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.7),
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(16)),
               border: Border.all(

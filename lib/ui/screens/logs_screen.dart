@@ -133,24 +133,21 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.06),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.15)),
-            ),
-            child: TextField(
-              controller: searchController,
-              style: TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: "Search logs...",
-                hintStyle: TextStyle(color: Colors.white60),
-                icon: Icon(Icons.search, color: Colors.white70),
-              ),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.15)),
+          ),
+          child: TextField(
+            controller: searchController,
+            style: TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: "Search logs...",
+              hintStyle: TextStyle(color: Colors.white60),
+              icon: Icon(Icons.search, color: Colors.white70),
             ),
           ),
         ),
@@ -217,23 +214,20 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
   Widget _buildBottomMenu() {
     return ClipRRect(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.06),
-            border:
-                Border(top: BorderSide(color: Colors.white.withOpacity(0.15))),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _menuButton(Icons.copy, tr("copy"), Colors.blueAccent, _copyAll),
-              _menuButton(
-                  Icons.delete, tr("clear"), Colors.redAccent, _clearLogs),
-            ],
-          ),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.06),
+          border:
+              Border(top: BorderSide(color: Colors.white.withOpacity(0.15))),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _menuButton(Icons.copy, tr("copy"), Colors.blueAccent, _copyAll),
+            _menuButton(
+                Icons.delete, tr("clear"), Colors.redAccent, _clearLogs),
+          ],
         ),
       ),
     );
