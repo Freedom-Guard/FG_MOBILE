@@ -17,7 +17,7 @@ dependencies:
   ffi: ^2.1.3
   vibe_core:
     git:
-      url: https://github.com/username/vibe-core.git
+      url: https://github.com/Freedom-Guard/vibe-core.git
   http: ^1.3.0
   synchronized: ^3.3.0+3
   clipboard: ^0.1.3
