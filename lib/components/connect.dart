@@ -98,7 +98,7 @@ class Connect extends Tools {
   }
 
   getJson(config) {
-    return VibeCore.parseFromURL(config);
+    return V2ray.parseFromURL(config);
   }
 
   Future<bool> ConnectVibe(String config, dynamic args,
@@ -116,7 +116,7 @@ class Connect extends Tools {
           typeDis != "quick" ? await vibeCoreMain.requestPermission() : true;
       if (requestPermission) {
         try {
-          var parsedConfig = VibeCore.parseFromURL(config);
+          var parsedConfig = V2ray.parseFromURL(config);
           parser = parsedConfig != null
               ? parsedConfig.getFullConfiguration()
               : config;
@@ -513,10 +513,10 @@ class Tools {
   bool _isConnected = false;
   bool get isConnected => _isConnected;
   SettingsApp settings = new SettingsApp();
-  late final VibeCore vibeCoreMain;
+  late final V2ray vibeCoreMain;
 
   Tools() {
-    vibeCoreMain = VibeCore(
+    vibeCoreMain = V2ray(
       onStatusChanged: (status) {
         v2rayStatus.value = status;
         _isConnected = status.state == "CONNECTED";
@@ -526,7 +526,7 @@ class Tools {
   }
   Future<void> _initializeV2RayOnce() async {
     try {
-      await vibeCoreMain.initializeV2Ray();
+      await vibeCoreMain.initialize();
     } catch (e, stackTrace) {
       _log("خطا در مقداردهی اولیه VIBE: $e\nStackTrace: $stackTrace",
           type: "add");
@@ -680,7 +680,7 @@ class Tools {
 
   Future<int> testConfig(String config, {String type = "normal"}) async {
     try {
-      final parser = VibeCore.parseFromURL(config);
+      final parser = V2ray.parseFromURL(config);
       final ping = await vibeCoreMain
           .getServerDelay(config: parser.getFullConfiguration())
           .timeout(

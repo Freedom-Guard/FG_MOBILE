@@ -13,7 +13,7 @@ String getNameByConfig(String config) {
       return Uri.decodeComponent(name);
     }
 
-    final decodedConfig = VibeCore.parseFromURL(
+    final decodedConfig = V2ray.parseFromURL(
         config.startsWith("vmess") ? config.split("#")[0] : config);
     try {
       return Uri.decodeComponent(
