@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/core/network/network_service.dart';
+import 'package:Freedom_Guard/constants/app_info.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -24,7 +25,7 @@ Future<void> checkForUpdate(BuildContext context) async {
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
     final latestVersion = data['version'];
-    const currentVersion = '11.0.0';
+    const currentVersion = AppInfo.version;
 
     if (isNewerVersion(latestVersion, currentVersion)) {
       showDialog(

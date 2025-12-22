@@ -1,4 +1,5 @@
 import 'package:Freedom_Guard/core/local.dart';
+import 'package:Freedom_Guard/constants/app_info.dart';
 import 'package:Freedom_Guard/ui/widgets/link.dart';
 import 'package:flutter/material.dart';
 
@@ -24,7 +25,7 @@ class AboutDialogWidget extends StatelessWidget {
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             Text(
-              "11.0.0",
+              AppInfo.version,
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 25),
