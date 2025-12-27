@@ -1,26 +1,37 @@
 import 'dart:ui';
-import 'package:Freedom_Guard/utils/LOGLOG.dart';
+import 'package:Freedom_Guard/ui/widgets/settings/setting_input.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Freedom_Guard/core/local.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/ui/screens/f-link_screen.dart';
 import 'package:Freedom_Guard/ui/screens/split_screen.dart';
 import 'package:Freedom_Guard/ui/widgets/about.dart';
 import 'package:Freedom_Guard/ui/widgets/theme/dialog.dart';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:Freedom_Guard/ui/widgets/settings/setting_switch.dart';
+import 'package:Freedom_Guard/ui/widgets/settings/setting_selector.dart';
+import 'package:Freedom_Guard/ui/widgets/settings/language_selector.dart';
+import 'package:Freedom_Guard/ui/widgets/settings/system_settings_link.dart';
 
 class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _isSettingEnabled = false;
-  bool isLoading = false;
-  SettingsApp settings = SettingsApp();
-  Map settingsJson = {};
+  final SettingsApp settings = SettingsApp();
+  final Map<String, dynamic> settingsJson = {};
+  bool manualMode = false;
 
-  _initSettingJson() async {
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
     settingsJson["f_link"] = await settings.getValue("f_link");
     settingsJson["fast_connect"] = await settings.getValue("fast_connect");
     settingsJson["block_ads_trackers"] =
@@ -29,87 +40,73 @@ class _SettingsPageState extends State<SettingsPage> {
     settingsJson["guard_mode"] = await settings.getValue("guard_mode");
     settingsJson["proxy_mode"] = await settings.getBool("proxy_mode");
     settingsJson["safe_mode"] = await settings.getBool("safe_mode");
+
+    final prefs = await SharedPreferences.getInstance();
+    manualMode = prefs.getBool("setting_key") ?? false;
+
     if (mounted) setState(() {});
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadSettings();
-  }
-
-  Future<void> _loadSettings() async {
-    await _initSettingJson();
+  Future<void> _saveManual(bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isSettingEnabled = prefs.getBool('setting_key') ?? false;
-    });
-  }
-
-  Future<void> _saveSetting(String key, bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(key, value);
+    await prefs.setBool("setting_key", value);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final c = theme.colorScheme;
 
     return Directionality(
       textDirection: getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         extendBody: true,
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
           elevation: 0,
+          backgroundColor: c.primary,
           title: Text(
-            tr('settings'),
+            tr("settings"),
             style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onPrimary),
+              fontWeight: FontWeight.bold,
+              color: c.onPrimary,
+            ),
           ),
           actions: [
             IconButton(
-              icon: Icon(Icons.color_lens_sharp,
-                  color: theme.colorScheme.onPrimary),
+              icon: Icon(Icons.color_lens, color: c.onPrimary),
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder: (context) => ThemeDialog(),
+                  builder: (_) => ThemeDialog(),
                 );
               },
             ),
             IconButton(
-              icon: Icon(Icons.volunteer_activism,
-                  color: theme.colorScheme.onPrimary),
+              icon: Icon(Icons.volunteer_activism, color: c.onPrimary),
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PremiumDonateConfigPage(),
+                    builder: (_) => PremiumDonateConfigPage(),
                   ),
                 );
               },
             ),
             IconButton(
-              icon: Icon(Icons.merge_type_sharp,
-                  color: theme.colorScheme.onPrimary),
+              icon: Icon(Icons.merge_type, color: c.onPrimary),
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SplitPage()),
+                  MaterialPageRoute(builder: (_) => SplitPage()),
                 );
               },
             ),
             IconButton(
-              icon:
-                  Icon(Icons.info_outline, color: theme.colorScheme.onPrimary),
+              icon: Icon(Icons.info_outline, color: c.onPrimary),
               onPressed: () {
                 showDialog(
                   context: context,
-                  builder: (BuildContext context) {
-                    return AboutDialogWidget();
-                  },
+                  builder: (_) => AboutDialogWidget(),
                 );
               },
             ),
@@ -123,456 +120,135 @@ class _SettingsPageState extends State<SettingsPage> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Theme.of(context).colorScheme.primary.withOpacity(0.15),
-                    Theme.of(context).colorScheme.secondary.withOpacity(0.15),
+                    c.primary.withOpacity(0.18),
+                    c.secondary.withOpacity(0.18),
                   ],
                 ),
               ),
             ),
             BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-              child: Container(
-                color: Colors.transparent,
-              ),
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: Container(color: Colors.transparent),
             ),
             SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    SettingSwitch(
-                      title: tr("freedom-link"),
-                      value: bool.tryParse(settingsJson["f_link"].toString()) ??
-                          false,
-                      onChanged: (bool value) {
-                        if (mounted) {
-                          setState(() {
-                            settingsJson["f_link"] = value.toString();
-                          });
-                          settings.setValue("f_link", value.toString());
-                        }
-                      },
-                      icon: Icons.link,
-                    ),
-                    SettingSwitch(
-                      title: tr("block-ads-trackers"),
-                      value: bool.tryParse(
-                              settingsJson["block_ads_trackers"].toString()) ??
-                          false,
-                      onChanged: (bool value) {
-                        if (mounted) {
-                          setState(() {
-                            settingsJson["block_ads_trackers"] =
-                                value.toString();
-                          });
-                          settings.setValue(
-                              "block_ads_trackers", value.toString());
-                        }
-                      },
-                      icon: Icons.block,
-                    ),
-                    SettingSwitch(
-                      title: tr("safe-mode"),
-                      value: settingsJson["safe_mode"] ?? false,
-                      onChanged: (bool value) {
-                        if (mounted) {
-                          setState(() {
-                            settingsJson["safe_mode"] = value;
-                          });
-                          settings.setBool("safe_mode", value);
-                        }
-                      },
-                      icon: Icons.lock,
-                    ),
-                    SettingSwitch(
-                      title: tr("proxy-mode"),
-                      value: settingsJson["proxy_mode"] ?? false,
-                      onChanged: (bool value) {
-                        if (mounted) {
-                          setState(() {
-                            settingsJson["proxy_mode"] = value;
-                          });
-                          settings.setBool("proxy_mode", value);
-                        }
-                      },
-                      icon: Icons.swap_horiz,
-                    ),
-                    SettingSwitch(
-                      title: tr("bypass-lan"),
-                      value: bool.tryParse(
-                              settingsJson["bypass_lan"].toString()) ??
-                          false,
-                      onChanged: (bool value) {
-                        if (mounted) {
-                          setState(() {
-                            settingsJson["bypass_lan"] = value.toString();
-                          });
-                          settings.setValue("bypass_lan", value.toString());
-                        }
-                      },
-                      icon: Icons.lan,
-                    ),
-                    SettingSwitch(
-                      title: tr("guard-mode"),
-                      value: bool.tryParse(
-                              settingsJson["guard_mode"].toString()) ??
-                          false,
-                      onChanged: (bool value) {
-                        if (mounted) {
-                          setState(() {
-                            settingsJson["guard_mode"] = value.toString();
-                          });
-                          settings.setValue("guard_mode", value.toString());
-                        }
-                      },
-                      icon: Icons.shield_outlined,
-                    ),
-                    SettingSwitch(
-                      title: tr("quick-connect-sub"),
-                      value: bool.tryParse(
-                              settingsJson["fast_connect"].toString()) ??
-                          false,
-                      onChanged: (bool value) {
-                        if (mounted) {
-                          setState(() {
-                            settingsJson["fast_connect"] = value.toString();
-                          });
-                          settings.setValue("fast_connect", value.toString());
-                        }
-                      },
-                      icon: Icons.speed_sharp,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  SettingSwitch(
+                    title: tr("freedom-link"),
+                    value: bool.tryParse(
+                            settingsJson["f_link"]?.toString() ?? "") ??
+                        false,
+                    icon: Icons.link,
+                    onChanged: (v) {
+                      setState(() => settingsJson["f_link"] = v.toString());
+                      settings.setValue("f_link", v.toString());
+                    },
+                  ),
+                  SettingSwitch(
+                    title: tr("block-ads-trackers"),
+                    value: bool.tryParse(
+                            settingsJson["block_ads_trackers"]?.toString() ??
+                                "") ??
+                        false,
+                    icon: Icons.block,
+                    onChanged: (v) {
+                      setState(() =>
+                          settingsJson["block_ads_trackers"] = v.toString());
+                      settings.setValue("block_ads_trackers", v.toString());
+                    },
+                  ),
+                  SettingSwitch(
+                    title: tr("safe-mode"),
+                    value: settingsJson["safe_mode"] ?? false,
+                    icon: Icons.lock,
+                    onChanged: (v) {
+                      setState(() => settingsJson["safe_mode"] = v);
+                      settings.setBool("safe_mode", v);
+                    },
+                  ),
+                  SettingSwitch(
+                    title: tr("proxy-mode"),
+                    value: settingsJson["proxy_mode"] ?? false,
+                    icon: Icons.swap_horiz,
+                    onChanged: (v) {
+                      setState(() => settingsJson["proxy_mode"] = v);
+                      settings.setBool("proxy_mode", v);
+                    },
+                  ),
+                  SettingSwitch(
+                    title: tr("bypass-lan"),
+                    value: bool.tryParse(
+                            settingsJson["bypass_lan"]?.toString() ?? "") ??
+                        false,
+                    icon: Icons.lan,
+                    onChanged: (v) {
+                      setState(() => settingsJson["bypass_lan"] = v.toString());
+                      settings.setValue("bypass_lan", v.toString());
+                    },
+                  ),
+                  SettingSwitch(
+                    title: tr("guard-mode"),
+                    value: bool.tryParse(
+                            settingsJson["guard_mode"]?.toString() ?? "") ??
+                        false,
+                    icon: Icons.shield_outlined,
+                    onChanged: (v) {
+                      setState(() => settingsJson["guard_mode"] = v.toString());
+                      settings.setValue("guard_mode", v.toString());
+                    },
+                  ),
+                  SettingSwitch(
+                    title: tr("quick-connect-sub"),
+                    value: bool.tryParse(
+                            settingsJson["fast_connect"]?.toString() ?? "") ??
+                        false,
+                    icon: Icons.speed,
+                    onChanged: (v) {
+                      setState(
+                          () => settingsJson["fast_connect"] = v.toString());
+                      settings.setValue("fast_connect", v.toString());
+                    },
+                  ),
+                  LanguageSelector(
+                    title: tr("language"),
+                    prefKey: "lang",
+                    languages: const {
+                      "en": "English",
+                      "fa": "فارسی",
+                    },
+                  ),
+                  SystemSettingsLink(
+                    title: tr("kill-switch-settings"),
+                    icon: Icons.security,
+                  ),
+                  SettingSwitch(
+                    title: tr("manual-mode"),
+                    value: manualMode,
+                    onChanged: (v) {
+                      setState(() => manualMode = v);
+                      _saveManual(v);
+                    },
+                  ),
+                  if (manualMode) ...[
+                    SettingInput(
+                      title: tr("auto-mode-timeout"),
+                      prefKey: "timeout_auto",
+                      hintText: "110000",
                     ),
                     SettingSelector(
-                      title: tr("language"),
-                      prefKey: "lang",
-                      options: ["en", "fa"],
+                      title: tr("core-vpn"),
+                      prefKey: "core_vpn",
+                      options: const ["auto", "vibe"],
                     ),
-                    SettingSwitch(
-                      title: tr("manual-mode"),
-                      value: _isSettingEnabled,
-                      onChanged: (bool value) {
-                        if (mounted) {
-                          setState(() => _isSettingEnabled = value);
-                          _saveSetting("setting_key", value);
-                        }
-                      },
-                    ),
-                    if (_isSettingEnabled)
-                      Column(
-                        children: [
-                          SettingInput(
-                            title: tr("auto-mode-timeout"),
-                            prefKey: "timeout_auto",
-                            hintText: "110000",
-                          ),
-                          SettingSelector(
-                            title: tr("core-vpn"),
-                            prefKey: "core_vpn",
-                            options: ["auto", "vibe"],
-                          ),
-                        ],
-                      ),
-                    SizedBox(height: 80),
                   ],
-                ),
+                  const SizedBox(height: 80),
+                ],
               ),
             ),
           ],
         ),
       ),
     );
-  }
-}
-
-class SettingSwitch extends StatelessWidget {
-  final String title;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-  final IconData? icon;
-
-  const SettingSwitch({
-    required this.title,
-    required this.value,
-    required this.onChanged,
-    this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
-              width: 2,
-            ),
-            color: Theme.of(context).colorScheme.surface.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 15,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-          child: SwitchListTile(
-            title: Row(
-              children: [
-                if (icon != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(0.15),
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 24,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                ],
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-            value: value,
-            onChanged: onChanged,
-            inactiveTrackColor: Colors.white.withOpacity(0.01),
-            activeColor: Theme.of(context).colorScheme.primary,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            hoverColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class SettingSelector extends StatefulWidget {
-  final String title;
-  final String prefKey;
-  final List<String> options;
-
-  const SettingSelector({
-    required this.title,
-    required this.prefKey,
-    required this.options,
-  });
-
-  @override
-  State<SettingSelector> createState() => _SettingSelectorState();
-}
-
-class _SettingSelectorState extends State<SettingSelector> {
-  String? _selectedValue;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadValue();
-  }
-
-  Future<void> _loadValue() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        _selectedValue = prefs.getString(widget.prefKey) ?? widget.options[0];
-      });
-    }
-  }
-
-  Future<void> _saveValue(String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(widget.prefKey, value);
-    if (widget.prefKey == "lang") {
-      LogOverlay.showLog(tr('change-language'));
-      await initTranslations();
-      Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 15,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: DropdownButton<String>(
-                  isExpanded: true,
-                  value: _selectedValue ?? widget.options[0],
-                  items: widget.options.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        value,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      setState(() => _selectedValue = newValue);
-                      _saveValue(newValue);
-                    }
-                  },
-                  underline: Container(),
-                  dropdownColor:
-                      Theme.of(context).colorScheme.surface.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class SettingInput extends StatefulWidget {
-  final String title;
-  final String prefKey;
-  final String hintText;
-
-  const SettingInput({
-    required this.title,
-    required this.prefKey,
-    required this.hintText,
-  });
-
-  @override
-  State<SettingInput> createState() => _SettingInputState();
-}
-
-class _SettingInputState extends State<SettingInput> {
-  final TextEditingController _controller = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadValue();
-  }
-
-  Future<void> _loadValue() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        _controller.text = prefs.getString(widget.prefKey) ?? "";
-      });
-    }
-  }
-
-  Future<void> _saveValue(String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(widget.prefKey, value);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 15,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                TextField(
-                  controller: _controller,
-                  decoration: InputDecoration(
-                    hintText: widget.hintText,
-                    hintStyle: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.5),
-                    ),
-                    border: InputBorder.none,
-                  ),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  onChanged: _saveValue,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }
