@@ -11,6 +11,7 @@ class XraySettingsDialog {
     required Function(Map<String, dynamic>) onConfigChanged,
   }) async {
     SettingsApp settings = SettingsApp();
+
     bool fragmentEnabled = initialConfig['fragment']?['enabled'] ?? true;
     TextEditingController packetsController = TextEditingController(
       text: initialConfig['fragment']?['packets']?.toString() ?? '1-3',
@@ -21,17 +22,25 @@ class XraySettingsDialog {
     TextEditingController intervalController = TextEditingController(
       text: initialConfig['fragment']?['interval']?.toString() ?? '10-20',
     );
+
     bool muxEnabled = initialConfig['mux']?['enabled'] ?? false;
     TextEditingController concurrencyController = TextEditingController(
       text: initialConfig['mux']?['concurrency']?.toString() ?? '8',
     );
+
     bool bypassIranEnabled = await settings.getValue("bypass_iran") == "true";
+
     bool fakeDnsEnabled = initialConfig['fakedns']?['enabled'] ?? false;
     TextEditingController ipPoolController = TextEditingController(
       text: initialConfig['fakedns']?['ipPool']?.toString() ?? '198.18.0.0/15',
     );
     TextEditingController poolSizeController = TextEditingController(
       text: initialConfig['fakedns']?['lruSize']?.toString() ?? '65535',
+    );
+
+    bool sniEnabled = initialConfig['sni']?['enabled'] ?? false;
+    TextEditingController sniController = TextEditingController(
+      text: initialConfig['sni']?['serverName']?.toString() ?? '',
     );
 
     showDialog(
@@ -170,6 +179,38 @@ class XraySettingsDialog {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
+                            'SNI',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFE0E0E0),
+                            ),
+                          ),
+                          Switch(
+                            value: sniEnabled,
+                            activeColor: Theme.of(context).colorScheme.primary,
+                            activeTrackColor: const Color(0xFF2A2A2A),
+                            inactiveThumbColor: Colors.grey[700],
+                            inactiveTrackColor: const Color(0xFF424242),
+                            onChanged: (value) {
+                              setState(() {
+                                sniEnabled = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      if (sniEnabled) ...[
+                        _buildTextField(
+                          controller: sniController,
+                          label: 'Server Name (SNI)',
+                          hint: 'e.g. www.cloudflare.com',
+                        ),
+                      ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
                             'Bypass Iran',
                             style: TextStyle(
                               fontSize: 20,
@@ -208,8 +249,9 @@ class XraySettingsDialog {
                           const SizedBox(width: 16),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
                               foregroundColor: const Color(0xFF121212),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -230,10 +272,16 @@ class XraySettingsDialog {
                                     'interval': intervalController.text,
                                   },
                                 },
+                                'sni': {
+                                  'enabled': sniEnabled,
+                                  if (sniEnabled)
+                                    'serverName': sniController.text.trim(),
+                                },
                                 'mux': {
                                   'enabled': muxEnabled,
                                   if (muxEnabled)
-                                    'concurrency': int.tryParse(
+                                    'concurrency':
+                                        int.tryParse(
                                           concurrencyController.text,
                                         ) ??
                                         8,
@@ -242,9 +290,8 @@ class XraySettingsDialog {
                                   'enabled': fakeDnsEnabled,
                                   if (fakeDnsEnabled) ...{
                                     'ipPool': ipPoolController.text,
-                                    'lruSize': int.tryParse(
-                                          poolSizeController.text,
-                                        ) ??
+                                    'lruSize':
+                                        int.tryParse(poolSizeController.text) ??
                                         65535,
                                   },
                                 },
@@ -260,6 +307,10 @@ class XraySettingsDialog {
                               settings.setValue(
                                 'fakedns',
                                 jsonEncode(newConfig['fakedns']),
+                              );
+                              settings.setValue(
+                                'sni',
+                                jsonEncode(newConfig['sni']),
                               );
                               settings.setValue(
                                 'bypass_iran',
@@ -335,6 +386,7 @@ Future<void> openXraySettings(BuildContext context) async {
       'length': '100-200',
       'interval': '10-20',
     },
+    'sni': {'enabled': false, 'serverName': ''},
     'mux': {'enabled': false, 'concurrency': 8},
     'fakedns': {'enabled': false, 'ipPool': '198.18.0.0/15', 'lruSize': 65535},
   };
@@ -346,6 +398,9 @@ Future<void> openXraySettings(BuildContext context) async {
   }
   if (await settings.getValue("fakedns") != "") {
     initialConfig["fakedns"] = jsonDecode(await settings.getValue("fakedns"));
+  }
+  if (await settings.getValue("sni") != "") {
+    initialConfig["sni"] = jsonDecode(await settings.getValue("sni"));
   }
   XraySettingsDialog.show(
     context,

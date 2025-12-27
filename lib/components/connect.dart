@@ -16,21 +16,16 @@ class ConfigPingResult {
 
   ConfigPingResult({required this.configLink, required this.ping});
 
-  Map<String, dynamic> toJson() => {
-        'configLink': configLink,
-        'ping': ping,
-      };
+  Map<String, dynamic> toJson() => {'configLink': configLink, 'ping': ping};
 
   factory ConfigPingResult.fromJson(Map<String, dynamic> json) {
-    return ConfigPingResult(
-      configLink: json['configLink'],
-      ping: json['ping'],
-    );
+    return ConfigPingResult(configLink: json['configLink'], ping: json['ping']);
   }
 }
 
-ValueNotifier<V2RayStatus> v2rayStatus =
-    ValueNotifier<V2RayStatus>(V2RayStatus());
+ValueNotifier<V2RayStatus> v2rayStatus = ValueNotifier<V2RayStatus>(
+  V2RayStatus(),
+);
 
 class Connect extends Tools {
   Timer? _guardModeTimer;
@@ -40,8 +35,9 @@ class Connect extends Tools {
   Future<void> _saveConfigPings(List<ConfigPingResult> configs) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      List<String> jsonList =
-          configs.map((c) => jsonEncode(c.toJson())).toList();
+      List<String> jsonList = configs
+          .map((c) => jsonEncode(c.toJson()))
+          .toList();
       await prefs.setStringList(_cachedConfigsKey, jsonList);
       LogOverlay.addLog("Saved ${configs.length} configs with pings to cache.");
     } catch (e) {
@@ -101,8 +97,11 @@ class Connect extends Tools {
     return V2ray.parseFromURL(config);
   }
 
-  Future<bool> ConnectVibe(String config, dynamic args,
-      {typeDis = "normal"}) async {
+  Future<bool> ConnectVibe(
+    String config,
+    dynamic args, {
+    typeDis = "normal",
+  }) async {
     await disConnect(typeDis: typeDis);
     final stopwatch = Stopwatch()..start();
     LogOverlay.showLog(
@@ -112,8 +111,9 @@ class Connect extends Tools {
 
     try {
       String parser = "";
-      bool requestPermission =
-          typeDis != "quick" ? await vibeCoreMain.requestPermission() : true;
+      bool requestPermission = typeDis != "quick"
+          ? await vibeCoreMain.requestPermission()
+          : true;
       if (requestPermission) {
         try {
           var parsedConfig = V2ray.parseFromURL(config);
@@ -174,13 +174,15 @@ class Connect extends Tools {
         return true;
       } else {
         LogOverlay.showLog(
-            "Permission Denied: Please grant necessary permissions to establish a connection.",
-            type: "error");
+          "Permission Denied: Please grant necessary permissions to establish a connection.",
+          type: "error",
+        );
       }
     } catch (e, stackTrace) {
       LogOverlay.showLog(
-          "Failed to connect to VIBE \n ${e.toString()}\nStackTrace: ${stackTrace.toString()}",
-          type: "error");
+        "Failed to connect to VIBE \n ${e.toString()}\nStackTrace: ${stackTrace.toString()}",
+        type: "error",
+      );
       return false;
     } finally {
       stopwatch.stop();
@@ -190,13 +192,17 @@ class Connect extends Tools {
     return false;
   }
 
-  Future<bool> ConnectSub(String config, String type,
-      {String typeC = "normal"}) async {
+  Future<bool> ConnectSub(
+    String config,
+    String type, {
+    String typeC = "normal",
+  }) async {
     await disConnect();
 
     LogOverlay.addLog("Trying cached configs first...");
     List<ConfigPingResult> cachedConfigs = await loadConfigPings();
-    bool isCache = (await settings.getValue("selectedServer")) ==
+    bool isCache =
+        (await settings.getValue("selectedServer")) ==
         (await settings.getValue("saved_sub"));
     await settings.setValue("saved_sub", config);
 
@@ -205,27 +211,36 @@ class Connect extends Tools {
 
       for (var cachedResult in cachedConfigs) {
         LogOverlay.addLog(
-            "Testing cached config with ping: ${cachedResult.ping}ms");
-        int currentPing =
-            await testConfig(cachedResult.configLink, type: typeC);
+          "Testing cached config with ping: ${cachedResult.ping}ms",
+        );
+        int currentPing = await testConfig(
+          cachedResult.configLink,
+          type: typeC,
+        );
 
         if (currentPing != -1) {
-          if (await ConnectVibe(
-              cachedResult.configLink, {"type": type, "link": config})) {
+          if (await ConnectVibe(cachedResult.configLink, {
+            "type": type,
+            "link": config,
+          })) {
             final guardModeEnabled =
                 (await settings.getValue("guard_mode")) == "true";
             if (guardModeEnabled) {
-              List<String> allConfigs =
-                  cachedConfigs.map((c) => c.configLink).toList();
+              List<String> allConfigs = cachedConfigs
+                  .map((c) => c.configLink)
+                  .toList();
               _startGuardModeMonitoring(cachedResult.configLink, allConfigs);
             }
-            LogOverlay.showLog("Connected using cached config.",
-                type: "success");
+            LogOverlay.showLog(
+              "Connected using cached config.",
+              type: "success",
+            );
             return true;
           }
         } else {
           LogOverlay.addLog(
-              "Cached config failed or ping is ($currentPing ms).");
+            "Cached config failed or ping is ($currentPing ms).",
+          );
         }
       }
       LogOverlay.addLog("All cached configs failed. Fetching new list.");
@@ -250,7 +265,8 @@ class Connect extends Tools {
           } catch (e) {
             decoded = raw;
             LogOverlay.addLog(
-                "Base64 decode failed, using raw text, Attempt: $attempt");
+              "Base64 decode failed, using raw text, Attempt: $attempt",
+            );
           }
           fetchedConfigs = type == "sub" || type == "f_link"
               ? decoded.split('\n')
@@ -258,7 +274,8 @@ class Connect extends Tools {
           break;
         } else {
           LogOverlay.addLog(
-              "Request failed with status ${response.statusCode}, Attempt: $attempt");
+            "Request failed with status ${response.statusCode}, Attempt: $attempt",
+          );
           if (attempt == maxRetries) {
             LogOverlay.addLog("Max retries reached, giving up");
             return false;
@@ -283,7 +300,8 @@ class Connect extends Tools {
     }
 
     LogOverlay.addLog(
-        "Fetched ${fetchedConfigs.length} new configs. Clearing old cache and testing all sequentially...");
+      "Fetched ${fetchedConfigs.length} new configs. Clearing old cache and testing all sequentially...",
+    );
 
     await _clearConfigPings();
 
@@ -306,7 +324,8 @@ class Connect extends Tools {
     }
 
     LogOverlay.addLog(
-        "Starting sequential ping test on ${directConfigs.length} direct configs.");
+      "Starting sequential ping test on ${directConfigs.length} direct configs.",
+    );
 
     directConfigs.shuffle();
 
@@ -328,16 +347,21 @@ class Connect extends Tools {
 
     await _saveConfigPings(newPingResults);
 
-    List<String> allSortedConfigsForGuardMode =
-        newPingResults.map((c) => c.configLink).toList();
+    List<String> allSortedConfigsForGuardMode = newPingResults
+        .map((c) => c.configLink)
+        .toList();
 
     for (var result in newPingResults) {
       LogOverlay.addLog("Trying new config with ping: ${result.ping}ms");
-      if (await ConnectVibe(
-          result.configLink, {"type": type, "link": config})) {
+      if (await ConnectVibe(result.configLink, {
+        "type": type,
+        "link": config,
+      })) {
         if (guardModeEnabled) {
           _startGuardModeMonitoring(
-              result.configLink, allSortedConfigsForGuardMode);
+            result.configLink,
+            allSortedConfigsForGuardMode,
+          );
         }
         LogOverlay.showLog("Connected to new config.", type: "success");
         return true;
@@ -345,23 +369,31 @@ class Connect extends Tools {
     }
 
     LogOverlay.addLog(
-        "All new direct configs failed. Trying http/sub configs...");
+      "All new direct configs failed. Trying http/sub configs...",
+    );
     for (String httpCfg in httpSubConfigs) {
-      if (await ConnectSub(httpCfg, "sub", typeC: typeC)
-          .timeout(Duration(seconds: 30), onTimeout: () => false)) {
+      if (await ConnectSub(
+        httpCfg,
+        "sub",
+        typeC: typeC,
+      ).timeout(Duration(seconds: 30), onTimeout: () => false)) {
         return true;
       } else {
         return _isConnected;
       }
     }
 
-    LogOverlay.showLog("Failed to connect to any config from subscription.",
-        type: "error");
+    LogOverlay.showLog(
+      "Failed to connect to any config from subscription.",
+      type: "error",
+    );
     return false;
   }
 
   void _startGuardModeMonitoring(
-      String currentConfig, List<String> allSortedConfigs) {
+    String currentConfig,
+    List<String> allSortedConfigs,
+  ) {
     _guardModeActive = true;
     int retryCount = 0;
     const int maxRetries = 2;
@@ -381,7 +413,8 @@ class Connect extends Tools {
       if (ping == -1 || ping > 1000) {
         retryCount++;
         LogOverlay.addLog(
-            "Guard mode: bad connection, retry $retryCount/$maxRetries");
+          "Guard mode: bad connection, retry $retryCount/$maxRetries",
+        );
 
         if (retryCount >= maxRetries) {
           LogOverlay.addLog("Guard mode: attempting to find next best config.");
@@ -395,14 +428,17 @@ class Connect extends Tools {
 
             if (newPing != -1 && newPing < 1000) {
               LogOverlay.addLog(
-                  "Guard mode: trying better config with ping $newPing");
+                "Guard mode: trying better config with ping $newPing",
+              );
               bool result = await ConnectVibe(nextCfg, {}, typeDis: "guard");
               if (result) {
                 activeConfig = nextCfg;
                 retryCount = 0;
                 connected = true;
-                LogOverlay.showLog("Guard mode: switched to new config",
-                    type: "success");
+                LogOverlay.showLog(
+                  "Guard mode: switched to new config",
+                  type: "success",
+                );
                 break;
               }
             }
@@ -410,7 +446,8 @@ class Connect extends Tools {
 
           if (!connected) {
             LogOverlay.addLog(
-                "Guard mode: no better config found after checking all.");
+              "Guard mode: no better config found after checking all.",
+            );
           }
         }
       } else {
@@ -467,8 +504,9 @@ class Connect extends Tools {
       } else {
         if (response == null || response.statusCode != 200) {
           LogOverlay.showLog(
-              'Failed to load config: ${response?.statusCode ?? "unknown"}',
-              type: "error");
+            'Failed to load config: ${response?.statusCode ?? "unknown"}',
+            type: "error",
+          );
           return false;
         }
         data = jsonDecode(response.body);
@@ -528,15 +566,14 @@ class Tools {
     try {
       await vibeCoreMain.initialize();
     } catch (e, stackTrace) {
-      _log("خطا در مقداردهی اولیه VIBE: $e\nStackTrace: $stackTrace",
-          type: "add");
+      _log(
+        "خطا در مقداردهی اولیه VIBE: $e\nStackTrace: $stackTrace",
+        type: "add",
+      );
     }
   }
 
-  void _log(
-    dynamic message, {
-    String type = "info",
-  }) {
+  void _log(dynamic message, {String type = "info"}) {
     if (type == "add") {
       LogOverlay.addLog(message.toString());
       return;
@@ -556,11 +593,12 @@ class Tools {
   }
 
   Future<int> getConnectedDelay() async {
-    return await vibeCoreMain
-        .getConnectedServerDelay()
-        .timeout(Duration(seconds: 7), onTimeout: () {
-      return -1;
-    });
+    return await vibeCoreMain.getConnectedServerDelay().timeout(
+      Duration(seconds: 7),
+      onTimeout: () {
+        return -1;
+      },
+    );
   }
 
   Future<String> addOptionsToVibe(dynamic parsedJson) async {
@@ -572,7 +610,9 @@ class Tools {
       settings.getValue("block_ads_trackers"),
       settings.getList("preferred_dns"),
       settings.getValue("fakedns"),
+      settings.getValue("sni"),
     ]);
+
     String mux = settingsValues[0] as String;
     String fragment = settingsValues[1] as String;
     String bypassIran = settingsValues[2] as String;
@@ -580,6 +620,8 @@ class Tools {
     String blockTADS = settingsValues[4] as String;
     List dnsServers = settingsValues[5] as List;
     String fakeDns = settingsValues[6] as String;
+    String sni = settingsValues[7] as String;
+
     if (parsedJson is Map<String, dynamic>) {
       parsedJson["outbounds"] ??= [];
       parsedJson["routing"] ??= {};
@@ -665,14 +707,44 @@ class Tools {
           final fakeJson = json.decode(fakeDns);
           if (fakeJson is Map && fakeJson["enabled"] == true) {
             parsedJson["fakedns"] = [
-              {
-                "ipPool": fakeJson["ipPool"],
-                "poolSize": fakeJson["lruSize"],
-              }
+              {"ipPool": fakeJson["ipPool"], "poolSize": fakeJson["lruSize"]},
             ];
             (parsedJson["dns"]["servers"] as List).insert(0, "fakedns");
           }
         } catch (e) {}
+      }
+      if (sni.trim().isNotEmpty) {
+        try {
+          final sniJson = jsonDecode(sni);
+          if (sniJson is Map &&
+              sniJson["enabled"] == true &&
+              sniJson["serverName"] != null &&
+              sniJson["serverName"].toString().isNotEmpty) {
+            for (var outbound in parsedJson["outbounds"]) {
+              if (outbound is Map<String, dynamic>) {
+                final stream = outbound["streamSettings"];
+                if (stream is Map<String, dynamic>) {
+                  final security = stream["security"];
+
+                  // TLS
+                  if (security == "tls") {
+                    stream["tlsSettings"] ??= {};
+                    stream["tlsSettings"]["serverName"] = sniJson["serverName"];
+                  }
+
+                  // Reality
+                  if (security == "reality") {
+                    stream["realitySettings"] ??= {};
+                    stream["realitySettings"]["serverName"] =
+                        sniJson["serverName"];
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          LogOverlay.addLog("SNI apply failed: $e");
+        }
       }
     }
     return jsonEncode(parsedJson);
@@ -684,14 +756,14 @@ class Tools {
       final ping = await vibeCoreMain
           .getServerDelay(config: parser.getFullConfiguration())
           .timeout(
-        const Duration(seconds: 6),
-        onTimeout: () {
-          type != "f_link"
-              ? debugPrint('Ping timeout for config: $config')
-              : null;
-          return -1;
-        },
-      );
+            const Duration(seconds: 6),
+            onTimeout: () {
+              type != "f_link"
+                  ? debugPrint('Ping timeout for config: $config')
+                  : null;
+              return -1;
+            },
+          );
       if (ping > 0) {
         return ping;
       } else {
