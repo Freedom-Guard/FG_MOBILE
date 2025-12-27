@@ -37,80 +37,139 @@ class _LanguageSelectorState extends State<LanguageSelector> {
   }
 
   Future<void> _select(String value) async {
+    if (current == value) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(widget.prefKey, value);
     LogOverlay.showLog(tr('change-language'));
     await initTranslations();
+    if (!mounted) return;
     Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final c = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(32),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
           child: Container(
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: c.surfaceContainerHighest.withOpacity(0.55),
-              borderRadius: BorderRadius.circular(28),
+              color: colorScheme.surface.withOpacity(0.7),
+              borderRadius: BorderRadius.circular(32),
               border: Border.all(
-                color: c.outlineVariant.withOpacity(0.3),
+                color: colorScheme.outlineVariant.withOpacity(0.4),
+                width: 1.5,
               ),
             ),
-            padding: const EdgeInsets.all(18),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: c.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 14),
                 Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      widget.title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 2.2,
                   children: widget.languages.entries.map((e) {
-                    final selected = e.key == current;
-                    return Expanded(
-                      child: GestureDetector(
+                    final isSelected = e.key == current;
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
                         onTap: () => _select(e.key),
+                        borderRadius: BorderRadius.circular(20),
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          margin: const EdgeInsets.symmetric(horizontal: 6),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
-                            color: selected
-                                ? c.primary.withOpacity(0.2)
-                                : c.onSurface.withOpacity(0.06),
-                            border: Border.all(
-                              color: selected ? c.primary : Colors.transparent,
-                            ),
+                            gradient: isSelected
+                                ? LinearGradient(
+                                    colors: [
+                                      colorScheme.primary,
+                                      colorScheme.primary.withBlue(200),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  )
+                                : null,
+                            color: isSelected
+                                ? null
+                                : colorScheme.onSurface.withOpacity(0.05),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color:
+                                          colorScheme.primary.withOpacity(0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    )
+                                  ]
+                                : [],
                           ),
-                          child: Column(
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
                               Text(
                                 e.value,
                                 style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color:
-                                      selected ? c.primary : c.onSurfaceVariant,
+                                  fontSize: 15,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w500,
+                                  color: isSelected
+                                      ? colorScheme.onPrimary
+                                      : colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                              if (selected)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
+                              if (isSelected)
+                                Positioned(
+                                  right: 12,
                                   child: Icon(
                                     Icons.check_circle,
-                                    size: 18,
-                                    color: c.primary,
+                                    size: 16,
+                                    color:
+                                        colorScheme.onPrimary.withOpacity(0.8),
                                   ),
                                 ),
                             ],

@@ -216,6 +216,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     languages: const {
                       "en": "English",
                       "fa": "فارسی",
+                      "es": "Español",
+                      "ru": "Русский",
+                      "zh": "中文",
                     },
                   ),
                   SystemSettingsLink(

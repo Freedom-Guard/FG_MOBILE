@@ -3,6 +3,7 @@ import 'package:Freedom_Guard/components/settings.dart';
 final SettingsApp _settings = SettingsApp();
 Map<String, String> _translate = AllTr_en;
 String _dir = 'ltr';
+
 String tr(String key) {
   return _translate[key] ?? key;
 }
@@ -14,24 +15,27 @@ String getDir() {
 Future<void> initTranslations() async {
   final lang = await _settings.getValue('lang');
   final langCode = lang.isEmpty ? 'en' : lang;
-  _dir = langCode == 'fa' ? 'rtl' : 'ltr';
+  _dir = (langCode == 'fa' || langCode == 'ru' || langCode == 'zh') ? 'rtl' : 'ltr';
   _translate = _allTranslations[langCode] ?? AllTr_en;
 }
 
 Map<String, Map<String, String>> _allTranslations = {
   'fa': AllTr_fa,
   'en': AllTr_en,
+  'es': AllTr_es,
+  'ru': AllTr_ru,
+  'zh': AllTr_zh,
 };
 
 Map<String, String> AllTr_fa = {
   'freedom-guard': 'گارد آزادی',
   'freedom-link': 'پیوند آزادی',
+  'split-tunneling': 'تقسیم تونل',
   'proxy-mode': 'حالت پراکسی',
-  'safe-mode': 'حالت ایمن',
+  'safe-mode': "حالت ایمن",
   'browser': 'مرورگر',
   'Host Checker': 'بررسی هاست',
   'notifications': 'آگاهی‌ها',
-  'split-tunneling': 'تقسیم تونل',
   'guard-mode': 'حالت نگهبان',
   'manual-mode': 'حالت دستی',
   'bypass-lan': 'دور زدن لن',
@@ -67,19 +71,20 @@ Map<String, String> AllTr_fa = {
   'qr-code': 'کد QR',
   'donate': 'حمایت',
   'edit-server': 'ویرایش سرور',
-  'search-servers': 'جستجوی سرورها...',
   'delete-server': 'حذف سرور',
-  "are-you-sure-you-want-to-delete-servers-without-ping":
-      "آیا مطمئن هستید که می‌خواهید سرورهای بدون پینگ را حذف کنید؟",
-  "remove-servers-without-ping": "حذف سرورهای بدون پینگ",
+  'are-you-sure-you-want-to-delete-servers-without-ping':
+      'آیا مطمئن هستید که می‌خواهید سرورهای بدون پینگ را حذف کنید؟',
+  'remove-servers-without-ping': 'حذف سرورهای بدون پینگ',
   'refresh': "تازه سازی",
+  'search-servers': 'جستجوی سرورها...',
   'are-you-sure-you-want-to-delete-this-server':
       'آیا از حذف این سرور مطمئن هستید؟',
   'more-options': 'گزینه‌های بیشتر',
   'refresh-subscription': 'به‌روزرسانی اشتراک',
   'encrypt-decrypt': 'رمزگذاری/رمزگشایی',
   'show-system-apps': 'نمایش برنامه های سیستمی',
-  'about-app': 'گارد آزادی ابزاری متن باز برای عبور از فیلترینگ اینترنت است'
+  'about-app':
+      'گارد آزادی ابزاری متن باز برای عبور از فیلترینگ اینترنت است'
 };
 
 Map<String, String> AllTr_en = {
@@ -127,9 +132,9 @@ Map<String, String> AllTr_en = {
   'donate': 'Donate',
   'edit-server': 'Edit Server',
   'delete-server': 'Delete Server',
-  "are-you-sure-you-want-to-delete-servers-without-ping":
-      "Are you sure you want to delete servers without ping?",
-  "remove-servers-without-ping": "Remove servers without ping",
+  'are-you-sure-you-want-to-delete-servers-without-ping':
+      'Are you sure you want to delete servers without ping?',
+  'remove-servers-without-ping': 'Remove servers without ping',
   'refresh': 'Refresh',
   'search-servers': 'Search servers...',
   'are-you-sure-you-want-to-delete-this-server':
@@ -140,4 +145,180 @@ Map<String, String> AllTr_en = {
   'show-system-apps': 'Show system Apps',
   'about-app':
       'Freedom Guard is an open-source tool to bypass internet censorship.'
+};
+
+Map<String, String> AllTr_es = {
+  'freedom-guard': 'Guardia de Libertad',
+  'freedom-link': 'Enlace de Libertad',
+  'split-tunneling': 'Túnel Dividido',
+  'proxy-mode': 'Modo Proxy',
+  'safe-mode': 'Modo Seguro',
+  'browser': 'Navegador',
+  'Host Checker': 'Verificador de Host',
+  'notifications': 'Notificaciones',
+  'guard-mode': 'Modo Guardián',
+  'manual-mode': 'Modo Manual',
+  'bypass-lan': 'Saltar LAN',
+  'block-ads-trackers': 'Bloquear Anuncios y Rastreo',
+  'quick-connect-sub': 'Conexión Rápida',
+  'manage-servers-page': 'Administrar Servidores',
+  'settings': 'Configuración',
+  'language': 'Idioma',
+  'close': 'Cerrar',
+  'change-language': '¡Idioma cambiado!',
+  'speed-test-net': 'Prueba de Velocidad de Internet',
+  'start-test': 'Iniciar Prueba',
+  'speed-test': 'Prueba de Velocidad',
+  'add-server': 'Agregar Servidor',
+  'add': 'Agregar',
+  'enter-server-config': 'Ingresar configuración del servidor',
+  'add-server-clipboard': 'Agregar desde Portapapeles',
+  'add-server-file': 'Agregar desde Archivo',
+  'add-server-text': 'Agregar Manualmente',
+  'copy': 'Copiar',
+  'clear': 'Borrar',
+  'logs': 'Registros',
+  'delete': 'Eliminar',
+  'save': 'Guardar',
+  'cancel': 'Cancelar',
+  'are-you-sure-you-want-to-delete-all-servers':
+      '¿Está seguro que desea eliminar todos los servidores?',
+  'remove-all-servers': 'Eliminar todos los servidores',
+  'choose-theme': 'Elegir Tema',
+  'servers': 'Servidores',
+  'edit': 'Editar',
+  'share': 'Compartir',
+  'qr-code': 'Código QR',
+  'donate': 'Donar',
+  'edit-server': 'Editar Servidor',
+  'delete-server': 'Eliminar Servidor',
+  'are-you-sure-you-want-to-delete-servers-without-ping':
+      '¿Está seguro que desea eliminar los servidores sin ping?',
+  'remove-servers-without-ping': 'Eliminar servidores sin ping',
+  'refresh': 'Actualizar',
+  'search-servers': 'Buscar servidores...',
+  'are-you-sure-you-want-to-delete-this-server':
+      '¿Está seguro que desea eliminar este servidor?',
+  'more-options': 'Más Opciones',
+  'refresh-subscription': 'Actualizar Suscripción',
+  'encrypt-decrypt': 'Encriptar/Desencriptar',
+  'show-system-apps': 'Mostrar Apps del Sistema',
+  'about-app':
+      'Freedom Guard es una herramienta de código abierto para evitar la censura de internet.'
+};
+
+Map<String, String> AllTr_ru = {
+  'freedom-guard': 'Защитник Свободы',
+  'freedom-link': 'Свободная Ссылка',
+  'split-tunneling': 'Разделённый Туннель',
+  'proxy-mode': 'Режим Прокси',
+  'safe-mode': 'Безопасный Режим',
+  'browser': 'Браузер',
+  'Host Checker': 'Проверка Хоста',
+  'notifications': 'Уведомления',
+  'guard-mode': 'Режим Охраны',
+  'manual-mode': 'Ручной Режим',
+  'bypass-lan': 'Обход LAN',
+  'block-ads-trackers': 'Блокировка Рекламы и Трекеров',
+  'quick-connect-sub': 'Быстрое Подключение',
+  'manage-servers-page': 'Управление Серверами',
+  'settings': 'Настройки',
+  'language': 'Язык',
+  'close': 'Закрыть',
+  'change-language': 'Язык изменён!',
+  'speed-test-net': 'Тест Скорости Интернета',
+  'start-test': 'Начать Тест',
+  'speed-test': 'Тест Скорости',
+  'add-server': 'Добавить Сервер',
+  'add': 'Добавить',
+  'enter-server-config': 'Введите конфигурацию сервера',
+  'add-server-clipboard': 'Добавить из Буфера',
+  'add-server-file': 'Добавить из Файла',
+  'add-server-text': 'Добавить Вручную',
+  'copy': 'Копировать',
+  'clear': 'Очистить',
+  'logs': 'Логи',
+  'delete': 'Удалить',
+  'save': 'Сохранить',
+  'cancel': 'Отмена',
+  'are-you-sure-you-want-to-delete-all-servers':
+      'Вы уверены, что хотите удалить все серверы?',
+  'remove-all-servers': 'Удалить все серверы',
+  'choose-theme': 'Выбрать Тему',
+  'servers': 'Серверы',
+  'edit': 'Редактировать',
+  'share': 'Поделиться',
+  'qr-code': 'QR Код',
+  'donate': 'Пожертвовать',
+  'edit-server': 'Редактировать Сервер',
+  'delete-server': 'Удалить Сервер',
+  'are-you-sure-you-want-to-delete-servers-without-ping':
+      'Вы уверены, что хотите удалить серверы без пинга?',
+  'remove-servers-without-ping': 'Удалить серверы без пинга',
+  'refresh': 'Обновить',
+  'search-servers': 'Поиск серверов...',
+  'are-you-sure-you-want-to-delete-this-server':
+      'Вы уверены, что хотите удалить этот сервер?',
+  'more-options': 'Больше Опций',
+  'refresh-subscription': 'Обновить Подписку',
+  'encrypt-decrypt': 'Шифровать/Дешифровать',
+  'show-system-apps': 'Показать Системные Приложения',
+  'about-app':
+      'Freedom Guard — это открытый инструмент для обхода интернет-цензуры.'
+};
+
+Map<String, String> AllTr_zh = {
+  'freedom-guard': '自由守护',
+  'freedom-link': '自由链接',
+  'split-tunneling': '分割隧道',
+  'proxy-mode': '代理模式',
+  'safe-mode': '安全模式',
+  'browser': '浏览器',
+  'Host Checker': '主机检查',
+  'notifications': '通知',
+  'guard-mode': '守护模式',
+  'manual-mode': '手动模式',
+  'bypass-lan': '绕过局域网',
+  'block-ads-trackers': '阻止广告和跟踪',
+  'quick-connect-sub': '快速连接',
+  'manage-servers-page': '管理服务器',
+  'settings': '设置',
+  'language': '语言',
+  'close': '关闭',
+  'change-language': '语言已更改！',
+  'speed-test-net': '网络速度测试',
+  'start-test': '开始测试',
+  'speed-test': '速度测试',
+  'add-server': '添加服务器',
+  'add': '添加',
+  'enter-server-config': '输入服务器配置',
+  'add-server-clipboard': '从剪贴板添加',
+  'add-server-file': '从文件添加',
+  'add-server-text': '手动添加',
+  'copy': '复制',
+  'clear': '清除',
+  'logs': '日志',
+  'delete': '删除',
+  'save': '保存',
+  'cancel': '取消',
+  'are-you-sure-you-want-to-delete-all-servers': '您确定要删除所有服务器吗？',
+  'remove-all-servers': '删除所有服务器',
+  'choose-theme': '选择主题',
+  'servers': '服务器',
+  'edit': '编辑',
+  'share': '分享',
+  'qr-code': '二维码',
+  'donate': '捐赠',
+  'edit-server': '编辑服务器',
+  'delete-server': '删除服务器',
+  'are-you-sure-you-want-to-delete-servers-without-ping': '您确定要删除无响应的服务器吗？',
+  'remove-servers-without-ping': '删除无响应服务器',
+  'refresh': '刷新',
+  'search-servers': '搜索服务器...',
+  'are-you-sure-you-want-to-delete-this-server': '您确定要删除此服务器吗？',
+  'more-options': '更多选项',
+  'refresh-subscription': '刷新订阅',
+  'encrypt-decrypt': '加密/解密',
+  'show-system-apps': '显示系统应用',
+  'about-app': '自由守护是一款开源工具，用于绕过互联网审查。'
 };
