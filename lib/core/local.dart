@@ -15,7 +15,9 @@ String getDir() {
 Future<void> initTranslations() async {
   final lang = await _settings.getValue('lang');
   final langCode = lang.isEmpty ? 'en' : lang;
-  _dir = (langCode == 'fa' || langCode == 'ru' || langCode == 'zh') ? 'rtl' : 'ltr';
+  _dir = (langCode == 'fa' || langCode == 'ru' || langCode == 'zh')
+      ? 'rtl'
+      : 'ltr';
   _translate = _allTranslations[langCode] ?? AllTr_en;
 }
 
@@ -79,12 +81,12 @@ Map<String, String> AllTr_fa = {
   'search-servers': 'جستجوی سرورها...',
   'are-you-sure-you-want-to-delete-this-server':
       'آیا از حذف این سرور مطمئن هستید؟',
+  'kill-switch-settings': 'تنظیمات Kill Switch',
   'more-options': 'گزینه‌های بیشتر',
   'refresh-subscription': 'به‌روزرسانی اشتراک',
   'encrypt-decrypt': 'رمزگذاری/رمزگشایی',
   'show-system-apps': 'نمایش برنامه های سیستمی',
-  'about-app':
-      'گارد آزادی ابزاری متن باز برای عبور از فیلترینگ اینترنت است'
+  'about-app': 'گارد آزادی ابزاری متن باز برای عبور از فیلترینگ اینترنت است'
 };
 
 Map<String, String> AllTr_en = {
@@ -140,6 +142,7 @@ Map<String, String> AllTr_en = {
   'are-you-sure-you-want-to-delete-this-server':
       'Are you sure you want to delete this server?',
   'more-options': 'More Options',
+  'kill-switch-settings': 'Kill Switch Settings',
   'refresh-subscription': 'Refresh Subscription',
   'encrypt-decrypt': 'Encrypt/Decrypt',
   'show-system-apps': 'Show system Apps',
@@ -199,6 +202,7 @@ Map<String, String> AllTr_es = {
   'search-servers': 'Buscar servidores...',
   'are-you-sure-you-want-to-delete-this-server':
       '¿Está seguro que desea eliminar este servidor?',
+  'kill-switch-settings': 'Configuración de Kill Switch',
   'more-options': 'Más Opciones',
   'refresh-subscription': 'Actualizar Suscripción',
   'encrypt-decrypt': 'Encriptar/Desencriptar',
@@ -259,6 +263,7 @@ Map<String, String> AllTr_ru = {
   'search-servers': 'Поиск серверов...',
   'are-you-sure-you-want-to-delete-this-server':
       'Вы уверены, что хотите удалить этот сервер?',
+  'kill-switch-settings': 'Настройки Kill Switch',
   'more-options': 'Больше Опций',
   'refresh-subscription': 'Обновить Подписку',
   'encrypt-decrypt': 'Шифровать/Дешифровать',
@@ -316,6 +321,7 @@ Map<String, String> AllTr_zh = {
   'refresh': '刷新',
   'search-servers': '搜索服务器...',
   'are-you-sure-you-want-to-delete-this-server': '您确定要删除此服务器吗？',
+  'kill-switch-settings': 'Kill Switch 设置',
   'more-options': '更多选项',
   'refresh-subscription': '刷新订阅',
   'encrypt-decrypt': '加密/解密',

@@ -104,14 +104,19 @@ class _LanguageSelectorState extends State<LanguageSelector> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                GridView.count(
+                GridView.builder(
+                  padding: EdgeInsets.zero,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 2.2,
-                  children: widget.languages.entries.map((e) {
+                  itemCount: widget.languages.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 3,
+                  ),
+                  itemBuilder: (context, index) {
+                    final e = widget.languages.entries.elementAt(index);
                     final isSelected = e.key == current;
                     return Material(
                       color: Colors.transparent,
@@ -147,6 +152,7 @@ class _LanguageSelectorState extends State<LanguageSelector> {
                                   ]
                                 : [],
                           ),
+                          alignment: Alignment.center,
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
@@ -177,7 +183,7 @@ class _LanguageSelectorState extends State<LanguageSelector> {
                         ),
                       ),
                     );
-                  }).toList(),
+                  },
                 ),
               ],
             ),
