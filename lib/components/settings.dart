@@ -40,4 +40,9 @@ class SettingsApp {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(key, value);
   }
+
+  Future<List<String>> getAllKeys() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getKeys().toList();
+  }
 }

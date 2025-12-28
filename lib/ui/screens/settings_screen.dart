@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:Freedom_Guard/ui/screens/backup_screen.dart';
 import 'package:Freedom_Guard/ui/widgets/settings/setting_input.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,6 +73,15 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           actions: [
+            IconButton(
+              icon: Icon(Icons.backup, color: c.onPrimary),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => BackupPage(),
+                );
+              },
+            ),
             IconButton(
               icon: Icon(Icons.color_lens, color: c.onPrimary),
               onPressed: () {
