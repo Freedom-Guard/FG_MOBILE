@@ -1,655 +1,334 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:Freedom_Guard/services/config.dart';
+import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:Freedom_Guard/core/network/network_service.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
-import 'package:Freedom_Guard/services/config.dart';
-import 'package:flutter/material.dart';
 
 class CFGPage extends StatefulWidget {
+  const CFGPage({super.key});
+
   @override
   State<CFGPage> createState() => _CFGPageState();
 }
 
-class _CFGPageState extends State<CFGPage> with TickerProviderStateMixin {
+class _CFGPageState extends State<CFGPage> with SingleTickerProviderStateMixin {
+  final settings = SettingsApp();
+  final serversM = ServersM();
+
   List<String> subLinks = [];
-  String? selectedSubLink;
-  String? selectedConfig;
   List<String> configs = [];
   List<Map<String, dynamic>> testedConfigs = [];
+
+  String? selectedSubLink;
+  String? selectedConfig;
+
   bool isLoading = false;
   bool isTesting = false;
-  SettingsApp settings = SettingsApp();
-  ServersM serversM = new ServersM();
-  late AnimationController _fadeController;
-  late Animation<double> _fadeAnimation;
-  final Map<String, bool> _configLoading = {};
 
-  @override
+  final Map<String, bool> testingItem = {};
+
+  late final AnimationController animCtrl = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 400));
+  late final Animation<double> fade =
+      CurvedAnimation(parent: animCtrl, curve: Curves.easeOutCubic);
+  late final Animation<double> slide =
+      Tween(begin: 20.0, end: 0.0).animate(fade);
+
   @override
   void initState() {
     super.initState();
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    );
-    _fadeController.forward();
+    _init();
+  }
 
-    Future.microtask(() async {
-      await loadSubLinks();
-      await loadSelectedSubLink();
-    });
+  Future<void> _init() async {
+    await loadSubLinks();
+    await loadSelectedSubLink();
+    animCtrl.forward();
   }
 
   @override
   void dispose() {
-    _fadeController.dispose();
+    animCtrl.dispose();
     super.dispose();
   }
 
   Future<void> loadSubLinks() async {
     setState(() => isLoading = true);
     try {
-      List<String> links = await getSubLinks();
-      setState(() {
-        subLinks = links
-            .where((link) =>
-                link.startsWith('http') || link.startsWith('freedom-guard://'))
-            .toList();
-        isLoading = false;
-      });
+      final links = await serversM.oldServers();
+      subLinks = links
+          .where(
+              (e) => e.startsWith('http') || e.startsWith('freedom-guard://'))
+          .toList();
     } catch (e) {
-      setState(() => isLoading = false);
-      LogOverlay.showLog('Failed to load sub-links: $e');
-    }
-  }
-
-  Future<void> loadSelectedSubLink() async {
-    try {
-      String? savedLink = await settings.getValue('selectedSubLink');
-      if (savedLink != null && subLinks.contains(savedLink)) {
-        setState(() {
-          selectedSubLink = savedLink;
-        });
-        fetchConfigs(savedLink);
-        return;
-      }
-      if (subLinks.isNotEmpty && selectedSubLink == null) {
-        setState(() {
-          selectedSubLink = subLinks[0];
-        });
-        await settings.setValue('selectedSubLink', subLinks[0]);
-        fetchConfigs(subLinks[0]);
-      }
-    } catch (e) {
-      LogOverlay.showLog('Failed to load saved sub-link: $e');
-    }
-  }
-
-  Future<List<String>> getSubLinks() async {
-    return await ServersM().oldServers();
-  }
-
-  Future<void> fetchConfigs(String subLink) async {
-    setState(() {
-      isLoading = true;
-      testedConfigs.clear();
-      configs.clear();
-      _configLoading.clear();
-    });
-    int maxRetries = 3;
-    int retryCount = 0;
-    subLink = subLink.replaceAll("freedom-guard://", "");
-    while (retryCount < maxRetries) {
-      try {
-        final response = await NetworkService.get(subLink)
-            .timeout(const Duration(seconds: 15));
-        if (response.statusCode == 200) {
-          String content = response.body;
-          if (content.isEmpty) {
-            throw Exception('Empty response from server');
-          }
-          List<String> decodedConfigs = [];
-          if (content.contains('\n')) {
-            decodedConfigs = content
-                .split('\n')
-                .where((line) =>
-                    line.trim().isNotEmpty && !(line.startsWith("//")))
-                .toList();
-          } else {
-            try {
-              decodedConfigs = utf8
-                  .decode(base64Decode(content))
-                  .split('\n')
-                  .where((line) =>
-                      line.trim().isNotEmpty && !line.trim().startsWith("//"))
-                  .toList();
-            } catch (e) {
-              decodedConfigs = [content];
-            }
-          }
-          try {
-            var jsonData = jsonDecode(content);
-            if (jsonData is Map && jsonData.containsKey("MOBILE")) {
-              decodedConfigs = jsonData["MOBILE"];
-            }
-          } catch (e) {
-            LogOverlay.addLog("error on json cfg: " + e.toString());
-          }
-          if (decodedConfigs.isEmpty) {
-            throw Exception('No valid configs found');
-          }
-          setState(() {
-            configs = decodedConfigs;
-            isLoading = false;
-          });
-          _fadeController.forward(from: 0);
-          loadTestedConfigs();
-          return;
-        } else {
-          throw Exception('HTTP ${response.statusCode}');
-        }
-      } catch (e) {
-        retryCount++;
-        if (retryCount == maxRetries) {
-          LogOverlay.showLog('Failed to fetch configs: $e');
-        }
-        await Future.delayed(const Duration(seconds: 2));
-      }
+      LogOverlay.showLog(e.toString());
     }
     setState(() => isLoading = false);
   }
 
-  Future<void> loadTestedConfigs() async {
-    try {
-      String? savedConfigs = await settings.getValue('testedConfigs');
-      if (savedConfigs != null) {
-        setState(() {
-          testedConfigs =
-              List<Map<String, dynamic>>.from(jsonDecode(savedConfigs));
-        });
-      }
-    } catch (e) {
-      LogOverlay.addLog('Failed to load tested configs: $e');
+  Future<void> loadSelectedSubLink() async {
+    final saved = await settings.getValue('selectedSubLink');
+    selectedSubLink = (saved != null && subLinks.contains(saved))
+        ? saved
+        : subLinks.firstOrNull;
+    if (selectedSubLink != null) {
+      await settings.setValue('selectedSubLink', selectedSubLink!);
+      await fetchConfigs(selectedSubLink!);
     }
   }
 
-  Future<int> _pingServer(String config) async {
-    final pingResult = await serversM.pingC(config);
-    return pingResult;
+  Future<void> fetchConfigs(String link) async {
+    setState(() {
+      isLoading = true;
+      configs.clear();
+      testedConfigs.clear();
+      testingItem.clear();
+    });
+
+    link = link.replaceAll('freedom-guard://', '');
+
+    try {
+      final res =
+          await NetworkService.get(link).timeout(const Duration(seconds: 15));
+      if (res.statusCode != 200) throw res.statusCode;
+
+      final body = res.body;
+      List<String> list;
+
+      try {
+        list = List<String>.from(jsonDecode(body)['MOBILE']);
+      } catch (_) {
+        try {
+          list = utf8.decode(base64Decode(body)).split('\n');
+        } catch (_) {
+          list = body.split('\n');
+        }
+      }
+
+      configs = list
+          .where((e) => e.trim().isNotEmpty && !e.trim().startsWith('//'))
+          .toList();
+
+      await _loadTested();
+      _sort();
+      animCtrl.forward(from: 0);
+    } catch (e) {
+      LogOverlay.showLog(e.toString());
+    }
+
+    setState(() => isLoading = false);
+  }
+
+  Future<void> _loadTested() async {
+    final raw = await settings.getValue('testedConfigs');
+    if (raw != null) {
+      testedConfigs = List<Map<String, dynamic>>.from(jsonDecode(raw));
+    }
   }
 
   Future<void> testConfigs() async {
-    if (configs.isEmpty) {
-      LogOverlay.showLog('No configs to test');
-      return;
-    }
+    isTesting = true;
+    testedConfigs.clear();
+    setState(() {});
 
-    setState(() {
-      isTesting = true;
-      testedConfigs.clear();
-      _configLoading.clear();
-      for (var config in configs) {
-        _configLoading[config] = false;
-      }
-    });
+    for (final c in configs) {
+      testingItem[c] = true;
+      setState(() {});
 
-    final List<Map<String, dynamic>> results = [];
-    final List<String> pendingConfigs = List.from(configs)..shuffle();
-    final Set<String> testedSet = {};
-    const batchSize = 3;
-
-    while (pendingConfigs.isNotEmpty) {
-      final batch = <String>[];
-
-      while (batch.length < batchSize && pendingConfigs.isNotEmpty) {
-        final config = pendingConfigs.removeLast();
-        if (!testedSet.contains(config)) {
-          batch.add(config);
-          testedSet.add(config);
-        }
-      }
-      if (!mounted) break;
-      try {
-        final batchResults = await Future.wait(batch.map((server) async {
-          if (!mounted) return {"": ""};
-          if (server.trim().isEmpty) {
-            setState(() => _configLoading[server] = false);
-            return {
-              'config': server,
-              'success': false,
-              'ping': null,
-            };
-          }
-          setState(() => _configLoading[server] = true);
-
-          final ping = await _pingServer(server);
-          final success = ping != -1;
-
-          setState(() => _configLoading[server] = false);
-
-          return {
-            'config': server,
-            'success': success,
-            'ping': success ? ping : null,
-          };
-        }).toList());
-
-        results.addAll(batchResults);
-
-        final sortedResults = List<Map<String, dynamic>>.from(results);
-        sortedResults.sort((a, b) {
-          final aSuccess = a['success'] == true;
-          final bSuccess = b['success'] == true;
-          if (aSuccess && bSuccess) {
-            return (a['ping'] as int).compareTo(b['ping'] as int);
-          }
-          if (aSuccess) return -1;
-          if (bSuccess) return 1;
-          return 0;
-        });
-
-        final sortedConfigs = configs.toList()
-          ..sort((a, b) {
-            final aResult = sortedResults.firstWhere(
-              (e) => e['config'] == a,
-              orElse: () => {'config': a, 'success': false, 'ping': 999999},
-            );
-            final bResult = sortedResults.firstWhere(
-              (e) => e['config'] == b,
-              orElse: () => {'config': b, 'success': false, 'ping': 999999},
-            );
-
-            final aSuccess = aResult['success'] == true;
-            final bSuccess = bResult['success'] == true;
-
-            if (aSuccess && bSuccess) {
-              return (aResult['ping'] ?? 999999)
-                  .compareTo(bResult['ping'] ?? 999999);
-            }
-            if (aSuccess) return -1;
-            if (bSuccess) return 1;
-            return 0;
-          });
-
-        setState(() {
-          testedConfigs = List.from(sortedResults);
-          configs = List.from(sortedConfigs);
-        });
-
-        await settings.setValue('testedConfigs', jsonEncode(sortedResults));
-      } catch (e) {
-        LogOverlay.addLog('Batch test failed: $e');
-      }
-
-      await Future.delayed(const Duration(milliseconds: 500));
-    }
-    if (!mounted) return;
-    setState(() => isTesting = false);
-
-    LogOverlay.showLog('Config testing completed');
-  }
-
-  Future<void> selectConfig(String config) async {
-    try {
-      var oldServers = await ServersM().oldServers();
-      if (!oldServers.contains(config)) {
-        await ServersM().saveServers([config] + oldServers);
-      }
-      await ServersM().selectServer(config);
-      setState(() {
-        selectedConfig = config;
+      final ping = await serversM.pingC(c);
+      testedConfigs.add({
+        'config': c,
+        'success': ping != -1,
+        'ping': ping != -1 ? ping : null,
       });
 
-      LogOverlay.addLog('Selected: ${getConfigName(config)}');
-    } catch (e) {
-      LogOverlay.showLog('Failed to select config: $e');
+      testingItem[c] = false;
+      _sort();
+      setState(() {});
     }
+
+    await settings.setValue('testedConfigs', jsonEncode(testedConfigs));
+    isTesting = false;
+    setState(() {});
   }
 
-  String getConfigName(String config) {
-    try {
-      String name = getNameByConfig(config);
-      if (name.length > 20) {
-        name = name.substring(0, 20);
+  void _sort() {
+    configs.sort((a, b) {
+      final ar = testedConfigs.firstWhere((e) => e['config'] == a,
+          orElse: () => {'success': false, 'ping': 999999});
+      final br = testedConfigs.firstWhere((e) => e['config'] == b,
+          orElse: () => {'success': false, 'ping': 999999});
+
+      if (ar['success'] && br['success']) {
+        return (ar['ping'] as int).compareTo(br['ping'] as int);
       }
-      return name;
-    } catch (e) {
-      LogOverlay.addLog("Error getting config name: $e");
-      return 'Unnamed Config';
+      if (ar['success']) return -1;
+      if (br['success']) return 1;
+      return a.compareTo(b);
+    });
+  }
+
+  Future<void> selectConfig(String c) async {
+    setState(() => selectedConfig = c);
+    final old = await serversM.oldServers();
+    await serversM.saveServers({
+      ...[selectedConfig.toString()],
+      ...old
+    }.toList());
+    await serversM.selectServer(c);
+  }
+
+  Future<void> importAll() async {
+    final old = await serversM.oldServers();
+    await serversM.saveServers({...configs, ...old}.toList());
+    LogOverlay.showLog('Imported');
+  }
+
+  void shareTestedOnly() {
+    final ok = testedConfigs
+        .where((e) => e['success'] == true)
+        .map((e) => e['config'])
+        .join('\n');
+    if (ok.isEmpty) {
+      LogOverlay.showLog('Nothing to share');
+      return;
     }
+    Share.share(ok);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: AppBar(
-            title: const Text(
-              'CFG',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-            ),
-            elevation: 0,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: isLoading || isTesting ? null : loadSubLinks,
-                tooltip: 'Refresh Configs',
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('CFG'),
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.playlist_add), onPressed: importAll),
+          IconButton(icon: const Icon(Icons.share), onPressed: shareTestedOnly),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: loadSubLinks),
+        ],
+      ),
+      body: FadeTransition(
+        opacity: fade,
+        child: Transform.translate(
+          offset: Offset(0, slide.value),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: DropdownButtonFormField<String>(
+                  value: selectedSubLink,
+                  isExpanded: true,
+                  items: subLinks
+                      .map((e) => DropdownMenuItem(
+                            value: e,
+                            child: Text(
+                              e.split('#').last,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ))
+                      .toList(),
+                  onChanged: (v) async {
+                    if (v == null) return;
+                    selectedSubLink = v;
+                    await settings.setValue('selectedSubLink', v);
+                    await fetchConfigs(v);
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: FilledButton(
+                  onPressed: isTesting ? null : testConfigs,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: isTesting
+                        ? const SizedBox(
+                            key: ValueKey(1),
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Test configs', key: ValueKey(2)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: configs.length,
+                  itemBuilder: (_, i) {
+                    final c = configs[i];
+                    final r = testedConfigs.firstWhere((e) => e['config'] == c,
+                        orElse: () => {});
+                    final selected = c == selectedConfig;
+
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: selected
+                            ? theme.colorScheme.primaryContainer
+                            : theme.colorScheme.surface,
+                      ),
+                      child: ListTile(
+                        onTap: () => selectConfig(c),
+                        title: Text(
+                          getNameByConfig(c),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          r['ping'] != null ? '${r['ping']} ms' : 'Not tested',
+                          style: TextStyle(
+                            color: r['success'] == true
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                        ),
+                        trailing: testingItem[c] == true
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Icon(
+                                selected
+                                    ? Icons.check_circle
+                                    : (r['ping'] == null
+                                        ? Icons.signal_cellular_off
+                                        : r['ping'] > 400
+                                            ? Icons.signal_cellular_alt_1_bar
+                                            : r['ping'] > 250
+                                                ? Icons
+                                                    .signal_cellular_alt_2_bar
+                                                : Icons.signal_cellular_alt),
+                                color: selected
+                                    ? theme.colorScheme.onPrimary
+                                    : theme.colorScheme.primary,
+                              ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
-          body: FadeTransition(
-            opacity: _fadeAnimation,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                          color: theme.colorScheme.primary.withOpacity(0.2)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.colorScheme.shadow.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: selectedSubLink,
-                        hint: const Text('Select Subscription Link'),
-                        isExpanded: true,
-                        icon: const Icon(Icons.arrow_drop_down, size: 30),
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurface,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        items: subLinks.map((String link) {
-                          return DropdownMenuItem<String>(
-                            value: link,
-                            child: Text(
-                              link,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) async {
-                          if (newValue != null && !isTesting) {
-                            setState(() {
-                              selectedSubLink = newValue;
-                              selectedConfig = null;
-                              testedConfigs.clear();
-                              configs.clear();
-                              _configLoading.clear();
-                            });
-                            await settings.setValue(
-                                'selectedSubLink', newValue);
-                            fetchConfigs(newValue);
-                          }
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: isTesting ? null : testConfigs,
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 56),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                            backgroundColor: theme.colorScheme.primary,
-                            foregroundColor: theme.colorScheme.onPrimary,
-                            elevation: 2,
-                            shadowColor:
-                                theme.colorScheme.shadow.withOpacity(0.3),
-                          ),
-                          child: isTesting
-                              ? const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor:
-                                        AlwaysStoppedAnimation(Colors.white),
-                                  ),
-                                )
-                              : const Text(
-                                  'Test Configurations',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600),
-                                ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: configs.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No configurations available',
-                            style: TextStyle(fontSize: 18, color: Colors.grey),
-                          ),
-                        )
-                      : GridView.builder(
-                          padding: const EdgeInsets.all(16),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 1,
-                            crossAxisSpacing: 0,
-                            mainAxisSpacing: 0,
-                            childAspectRatio: 5,
-                          ),
-                          itemCount: configs.length,
-                          itemBuilder: (context, index) {
-                            bool isTested = testedConfigs.any(
-                                (config) => config['config'] == configs[index]);
-                            Map<String, dynamic>? testResult = isTested
-                                ? testedConfigs.firstWhere((config) =>
-                                    config['config'] == configs[index])
-                                : null;
-                            bool isSelected = configs[index] == selectedConfig;
-                            bool isConfigLoading =
-                                _configLoading[configs[index]] ?? false;
-                            return GestureDetector(
-                              onTap: isConfigLoading
-                                  ? null
-                                  : () => selectConfig(configs[index]),
-                              child: Card(
-                                elevation: isSelected ? 8 : 4,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                color: isSelected
-                                    ? theme.colorScheme.primary.withOpacity(0.9)
-                                    : theme.colorScheme.surface,
-                                child: Stack(
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16),
-                                        gradient: isSelected
-                                            ? LinearGradient(
-                                                colors: [
-                                                  theme.colorScheme.primary,
-                                                  theme.colorScheme.primary
-                                                      .withOpacity(0.7),
-                                                ],
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                              )
-                                            : null,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: theme.colorScheme.shadow
-                                                .withOpacity(0.1),
-                                            blurRadius: 6,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 12, left: 12, right: 12),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  Icons.vpn_key,
-                                                  color: isSelected
-                                                      ? theme
-                                                          .colorScheme.onPrimary
-                                                      : theme
-                                                          .colorScheme.primary,
-                                                  size: 24,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  getConfigName(configs[index]),
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                    color: isSelected
-                                                        ? theme.colorScheme
-                                                            .onPrimary
-                                                        : theme.colorScheme
-                                                            .onSurface,
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                                Spacer(flex: 1),
-                                                const SizedBox(width: 3),
-                                                if (!isSelected)
-                                                  Text(
-                                                    '${testResult?['ping'] != null ? '${testResult?['ping']}ms' : 'N/A'}',
-                                                    style: TextStyle(
-                                                      color: (testResult !=
-                                                                  null &&
-                                                              (testResult[
-                                                                      'success'] ??
-                                                                  false))
-                                                          ? Colors.green
-                                                          : Colors.red,
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                const SizedBox(width: 3),
-                                                if (isTested &&
-                                                    testResult != null &&
-                                                    !isSelected)
-                                                  Icon(
-                                                    testResult['success']
-                                                        ? testResult["ping"] >
-                                                                500
-                                                            ? Icons
-                                                                .wifi_1_bar_sharp
-                                                            : testResult[
-                                                                        "ping"] >
-                                                                    150
-                                                                ? Icons
-                                                                    .wifi_2_bar
-                                                                : Icons.wifi
-                                                        : Icons.wifi_off,
-                                                    color: testResult['success']
-                                                        ? Colors.green
-                                                        : Colors.red,
-                                                    size: 20,
-                                                  ),
-                                                const SizedBox(width: 8),
-                                                if (isSelected)
-                                                  Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white
-                                                          .withOpacity(0.2),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                    ),
-                                                    child: const Text(
-                                                      'Selected',
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 12),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    if (isConfigLoading)
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.5),
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                        ),
-                                        child: const Center(
-                                          child: SizedBox(
-                                            height: 24,
-                                            width: 24,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation(
-                                                      Colors.white),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
-          ),
         ),
-      ],
+      ),
     );
   }
+}
+
+extension<T> on List<T> {
+  T? get firstOrNull => isEmpty ? null : first;
 }

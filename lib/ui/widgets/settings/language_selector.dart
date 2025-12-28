@@ -168,16 +168,6 @@ class _LanguageSelectorState extends State<LanguageSelector> {
                                       : colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                              if (isSelected)
-                                Positioned(
-                                  right: 12,
-                                  child: Icon(
-                                    Icons.check_circle,
-                                    size: 16,
-                                    color:
-                                        colorScheme.onPrimary.withOpacity(0.8),
-                                  ),
-                                ),
                             ],
                           ),
                         ),

@@ -35,9 +35,8 @@ class Connect extends Tools {
   Future<void> _saveConfigPings(List<ConfigPingResult> configs) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      List<String> jsonList = configs
-          .map((c) => jsonEncode(c.toJson()))
-          .toList();
+      List<String> jsonList =
+          configs.map((c) => jsonEncode(c.toJson())).toList();
       await prefs.setStringList(_cachedConfigsKey, jsonList);
       LogOverlay.addLog("Saved ${configs.length} configs with pings to cache.");
     } catch (e) {
@@ -111,9 +110,8 @@ class Connect extends Tools {
 
     try {
       String parser = "";
-      bool requestPermission = typeDis != "quick"
-          ? await vibeCoreMain.requestPermission()
-          : true;
+      bool requestPermission =
+          typeDis != "quick" ? await vibeCoreMain.requestPermission() : true;
       if (requestPermission) {
         try {
           var parsedConfig = V2ray.parseFromURL(config);
@@ -171,6 +169,7 @@ class Connect extends Tools {
         await settings.getBool("proxy_mode") == true
             ? LogOverlay.showLog("Proxy mode enabled on port $proxyPort")
             : null;
+        _isConnected = true;
         return true;
       } else {
         LogOverlay.showLog(
@@ -201,8 +200,7 @@ class Connect extends Tools {
 
     LogOverlay.addLog("Trying cached configs first...");
     List<ConfigPingResult> cachedConfigs = await loadConfigPings();
-    bool isCache =
-        (await settings.getValue("selectedServer")) ==
+    bool isCache = (await settings.getValue("selectedServer")) ==
         (await settings.getValue("saved_sub"));
     await settings.setValue("saved_sub", config);
 
@@ -226,9 +224,8 @@ class Connect extends Tools {
             final guardModeEnabled =
                 (await settings.getValue("guard_mode")) == "true";
             if (guardModeEnabled) {
-              List<String> allConfigs = cachedConfigs
-                  .map((c) => c.configLink)
-                  .toList();
+              List<String> allConfigs =
+                  cachedConfigs.map((c) => c.configLink).toList();
               _startGuardModeMonitoring(cachedResult.configLink, allConfigs);
             }
             LogOverlay.showLog(
@@ -347,9 +344,8 @@ class Connect extends Tools {
 
     await _saveConfigPings(newPingResults);
 
-    List<String> allSortedConfigsForGuardMode = newPingResults
-        .map((c) => c.configLink)
-        .toList();
+    List<String> allSortedConfigsForGuardMode =
+        newPingResults.map((c) => c.configLink).toList();
 
     for (var result in newPingResults) {
       LogOverlay.addLog("Trying new config with ping: ${result.ping}ms");
@@ -524,7 +520,9 @@ class Connect extends Tools {
             bool connStat = await ConnectSub(
               config.replaceAll("freedom-guard://", ""),
               config.startsWith("freedom-guard") ? "fgAuto" : "sub",
-            ).timeout(Duration(seconds: 20), onTimeout: () => false);
+            ).timeout(Duration(seconds: 20), onTimeout: () {
+              return isConnected;
+            });
             if (!connStat) return _isConnected;
             if (connStat) return true;
           } else {
@@ -756,14 +754,14 @@ class Tools {
       final ping = await vibeCoreMain
           .getServerDelay(config: parser.getFullConfiguration())
           .timeout(
-            const Duration(seconds: 6),
-            onTimeout: () {
-              type != "f_link"
-                  ? debugPrint('Ping timeout for config: $config')
-                  : null;
-              return -1;
-            },
-          );
+        const Duration(seconds: 6),
+        onTimeout: () {
+          type != "f_link"
+              ? debugPrint('Ping timeout for config: $config')
+              : null;
+          return -1;
+        },
+      );
       if (ping > 0) {
         return ping;
       } else {

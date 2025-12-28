@@ -478,6 +478,7 @@ class ThemeNotifier extends ChangeNotifier {
 
   static final Map<String, ThemeData> _themes = {
     'Default Dark': defaultDarkTheme,
+    'Guard': guardTheme,
     'Programmer': hackerTheme,
     'Matrix': matrixTheme,
     'Neon Dev': neonDevTheme,
