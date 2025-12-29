@@ -50,7 +50,7 @@ class _MainScreenState extends State<MainScreen> {
                   elevation: 0,
                   centerTitle: true,
                   title: const Text(
-                    "Freedom Guard",
+                    "FREEDOM GUARD",
                     style: TextStyle(
                       letterSpacing: 2,
                       fontWeight: FontWeight.w900,
