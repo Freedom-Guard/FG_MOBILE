@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vibe_core/vibe_core.dart';
@@ -8,7 +9,6 @@ import 'package:Freedom_Guard/services/config.dart';
 import 'package:Freedom_Guard/services/share.dart';
 import 'package:Freedom_Guard/ui/screens/servers_list_screen.dart';
 import 'package:Freedom_Guard/components/connect.dart';
-import 'package:Freedom_Guard/core/global.dart';
 
 class NetworkStatusWidget extends StatefulWidget {
   const NetworkStatusWidget({Key? key}) : super(key: key);
@@ -64,7 +64,22 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
         protocol = config.split("://").first.toUpperCase();
       }
 
-      final delay = await connect.getConnectedDelay();
+      int? delay;
+      if (config != null && config.isNotEmpty) {
+        final uri = Uri.parse(config);
+        final host = uri.host;
+        try {
+          final stopwatch = Stopwatch()..start();
+          final socket = await Socket.connect(host, uri.port,
+              timeout: const Duration(seconds: 5));
+          socket.destroy();
+          stopwatch.stop();
+          delay = stopwatch.elapsedMilliseconds;
+        } catch (_) {
+          delay = null;
+        }
+      }
+
       final res = await http
           .get(Uri.parse('http://ip-api.com/json'))
           .timeout(const Duration(seconds: 6));
@@ -72,7 +87,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
       if (mounted && res.statusCode == 200) {
         final data = jsonDecode(res.body);
         setState(() {
-          ping = delay >= 0 ? delay : null;
+          ping = delay;
           country = data['country'];
           ipAddress = data['query'];
         });

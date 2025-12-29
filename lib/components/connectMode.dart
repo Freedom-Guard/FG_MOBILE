@@ -22,7 +22,7 @@ connectAutoMode(BuildContext context) async {
 connectFlMode(BuildContext context) async {
   GlobalFGB.connStatText.value = "Connecting using FL mode...";
   var connStat = false;
-  LogOverlay.showLog("connecting to FL mode...");
+  LogOverlay.addLog("connecting to FL mode...");
   connStat = await CancellableRunner.runWithTimeout(
     (token) async {
       return await connectFL(token);
@@ -36,9 +36,8 @@ connectRepoMode(BuildContext context) async {
   GlobalFGB.connStatText.value = "Connecting using Repository mode...";
   final settings = Provider.of<SettingsApp>(context, listen: false);
   var connStat = false;
-  LogOverlay.showLog(
+  LogOverlay.addLog(
     "connecting to Repo mode...",
-    backgroundColor: Colors.blueAccent,
   );
   var timeout = int.tryParse(
         await settings.getValue("timeout_auto").toString(),
