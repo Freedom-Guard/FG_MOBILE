@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'dart:convert';
+import 'package:Freedom_Guard/core/global.dart';
 import 'package:Freedom_Guard/core/network/network_service.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/safe_mode.dart';
@@ -103,9 +104,10 @@ class Connect extends Tools {
   }) async {
     await disConnect(typeDis: typeDis);
     final stopwatch = Stopwatch()..start();
-    LogOverlay.showLog(
+    GlobalFGB.connStatText.value = "Connecting to VIBE...";
+
+    LogOverlay.addLog(
       "Connecting To VIBE...",
-      backgroundColor: Colors.blueAccent,
     );
 
     try {
@@ -170,6 +172,7 @@ class Connect extends Tools {
             ? LogOverlay.showLog("Proxy mode enabled on port $proxyPort")
             : null;
         _isConnected = true;
+        GlobalFGB.connStatText.value = "Connected successfully ✅";
         return true;
       } else {
         LogOverlay.showLog(
@@ -185,7 +188,8 @@ class Connect extends Tools {
       return false;
     } finally {
       stopwatch.stop();
-      debugPrint('Connection took ${stopwatch.elapsed.inMilliseconds} ms');
+      LogOverlay.addLog(
+          'Connection took ${stopwatch.elapsed.inMilliseconds} ms');
     }
 
     return false;
@@ -197,7 +201,7 @@ class Connect extends Tools {
     String typeC = "normal",
   }) async {
     await disConnect();
-
+    GlobalFGB.connStatText.value = "Fetching subscription configs...";
     LogOverlay.addLog("Trying cached configs first...");
     List<ConfigPingResult> cachedConfigs = await loadConfigPings();
     bool isCache = (await settings.getValue("selectedServer")) ==
