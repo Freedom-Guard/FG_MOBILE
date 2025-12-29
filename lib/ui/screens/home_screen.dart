@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:Freedom_Guard/ui/widgets/fragment.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'package:Freedom_Guard/components/connectMode.dart';
-//import 'package:Freedom_Guard/core/is_tv.dart';
-import 'package:Freedom_Guard/ui/widgets/background.dart';
 import 'package:Freedom_Guard/ui/widgets/background_picker_dialog.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
@@ -12,17 +14,11 @@ import 'package:Freedom_Guard/services/services.dart';
 import 'package:Freedom_Guard/ui/widgets/CBar.dart';
 import 'package:Freedom_Guard/ui/widgets/nav.dart';
 import 'package:Freedom_Guard/ui/widgets/network.dart';
-import 'package:Freedom_Guard/ui/widgets/theme/theme.dart';
 import 'package:Freedom_Guard/services/update.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/ui/screens/servers_screen.dart';
 import 'package:Freedom_Guard/ui/screens/settings_screen.dart';
-import 'package:Freedom_Guard/ui/animations/connect.dart';
-import 'package:Freedom_Guard/ui/widgets/fragment.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -32,7 +28,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 1;
 
- // final bool _isTV = isTvPlatform;
   final List<Widget> _pages = [
     SettingsPage(),
     HomeContent(),
@@ -42,28 +37,33 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF080E17),
       extendBodyBehindAppBar: true,
       extendBody: true,
       appBar: _currentIndex == 1
           ? PreferredSize(
-              preferredSize: const Size.fromHeight(kToolbarHeight),
-              child: ClipRRect(
+              preferredSize: const Size.fromHeight(kToolbarHeight + 20),
+              child: Container(
+                padding: const EdgeInsets.only(top: 10),
                 child: AppBar(
                   backgroundColor: Colors.transparent,
+                  elevation: 0,
                   centerTitle: true,
-                  leading: IconButton(
-                    icon: const Icon(Icons.cable),
-                    onPressed: () {
-                      openXraySettings(context);
-                    },
-                  ),
-                  actions: [
-                    IconButton(
-                      icon: Icon(Icons.grid_view_rounded),
-                      onPressed: () {
-                        showActionsMenu(context);
-                      },
+                  title: const Text(
+                    "Freedom Guard",
+                    style: TextStyle(
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
+                      color: Colors.white,
                     ),
+                  ),
+                  leading: _buildActionBtn(
+                      Icons.cable, () => openXraySettings(context)),
+                  actions: [
+                    _buildActionBtn(Icons.grid_view_rounded,
+                        () => showActionsMenu(context)),
+                    const SizedBox(width: 15),
                   ],
                 ),
               ),
@@ -76,10 +76,23 @@ class _MainScreenState extends State<MainScreen> {
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          setState(() => _currentIndex = index);
         },
+      ),
+    );
+  }
+
+  Widget _buildActionBtn(IconData icon, VoidCallback press) {
+    return Container(
+      margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: Colors.white, size: 20),
+        onPressed: press,
       ),
     );
   }
@@ -91,51 +104,52 @@ class HomeContent extends StatefulWidget {
 }
 
 class _HomeContentState extends State<HomeContent>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   bool isConnected = false;
-  bool isPressed = false;
   bool isConnecting = false;
-  late AnimationController _animationController;
-  late Animation<double> _pulseAnimation;
+  late AnimationController _rippleController;
+  late AnimationController _pulseController;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
-    _pulseAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
-    );
+    _rippleController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 4000));
+    _pulseController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 1500),
+        lowerBound: 0.9,
+        upperBound: 1.0)
+      ..repeat(reverse: true);
+
     Future.microtask(() async {
       final bgNotifier =
           Provider.of<BackgroundNotifier>(context, listen: false);
-      String selectedIMG = await SettingsApp().getValue("selectedIMG");
-      String selectedColor = await SettingsApp().getValue("selectedColor");
+      String sImg = await SettingsApp().getValue("selectedIMG");
+      String sCol = await SettingsApp().getValue("selectedColor");
 
-      if (selectedIMG != "") {
-        bgNotifier.setBackground(selectedIMG);
-      } else if (selectedColor != "") {
-        bgNotifier.setBackground(selectedColor);
-      } else {
-        bgNotifier.setBackground(BackgroundService.getRandomBackground());
-      }
-      Timer.periodic(Duration(seconds: 10), (timer) async {
-        final connected = await checker.checkVPN();
-        if (mounted) {
+      if (sImg != "")
+        bgNotifier.setBackground(sImg);
+      else if (sCol != "") bgNotifier.setBackground(sCol);
+
+      Timer.periodic(const Duration(seconds: 10), (t) async {
+        final check = await checker.checkVPN();
+        if (mounted && check != isConnected) {
           setState(() {
-            isConnected = connected;
+            isConnected = check;
+            if (isConnected)
+              _rippleController.repeat();
+            else
+              _rippleController.stop();
           });
         }
       });
-      final connected = await checker.checkVPN();
+
+      final initialCheck = await checker.checkVPN();
       if (mounted) {
         setState(() {
-          isConnected = connected;
+          isConnected = initialCheck;
+          if (isConnected) _rippleController.repeat();
         });
       }
       await checkForUpdate(context);
@@ -143,89 +157,68 @@ class _HomeContentState extends State<HomeContent>
   }
 
   @override
-  void didUpdateWidget(HomeContent oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (isConnecting && !_animationController.isAnimating) {
-      _animationController.repeat();
-    } else if (!isConnecting && _animationController.isAnimating) {
-      _animationController.stop();
-    }
-  }
-
-  @override
   void dispose() {
-    _animationController.dispose();
+    _rippleController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
   Future<void> toggleConnection() async {
     final serverM = Provider.of<ServersM>(context, listen: false);
     final settings = Provider.of<SettingsApp>(context, listen: false);
+
     if (isConnecting) {
       await connect.disConnect();
       setState(() {
-        isConnected = false;
         isConnecting = false;
+        isConnected = false;
+        _rippleController.stop();
       });
-      LogOverlay.showLog("Connection process stopped.", type: "warning");
       return;
     }
 
     LogOverlay.clearLogs();
-    setState(() {
-      isConnecting = true;
-    });
+    setState(() => isConnecting = true);
 
     if (isConnected) {
       setState(() {
         isConnected = false;
+        _rippleController.stop();
       });
       await connect.disConnect();
     } else {
       try {
-        var connStat = false;
-        var selectedServer =
-            (await serverM.getSelectedServer() as String).trim();
-        final isQuick = (await settings.getValue("fast_connect")).isNotEmpty &&
-            bool.tryParse(await settings.getValue("fast_connect")) == true;
-        if (isQuick &&
-            ((await settings.getValue("config_backup")) != "") &&
-            (selectedServer.split("#")[0].isEmpty ||
-                selectedServer.split("#")[0].startsWith("http"))) {
-          if ((await connect
-                  .testConfig(await settings.getValue("config_backup"))) !=
-              -1) {
-            selectedServer = (await settings.getValue("config_backup"));
-            LogOverlay.addLog("Conneting to QUICK mode...");
-          }
-        }
-        if (selectedServer.split("#")[0].startsWith("mode=auto") ||
-            selectedServer.split("#")[0].isEmpty) {
-          connStat = await connectAutoMode(context);
-        } else if (selectedServer.split("#")[0].startsWith("mode=repo")) {
-          connStat = await connectRepoMode(context);
-        } else if (selectedServer.split("#")[0].startsWith("mode=f-link")) {
-          connStat = await connectFlMode(context);
-        } else if (selectedServer.split("#")[0].startsWith("mode=auto-my")) {
-          connStat = await connectAutoMy(context);
-        } else {
-          LogOverlay.addLog(
-            "connecting to config: \n ${selectedServer.split("#")[0]}",
-          );
-          if (selectedServer.startsWith("http") ||
-              selectedServer.startsWith("freedom-guard")) {
-            connStat = await connect.ConnectSub(
-                selectedServer.replaceAll("freedom-guard://", ""),
-                selectedServer.startsWith("freedom-guard") ? "fgAuto" : "sub");
-          } else {
-            connStat = await connect.ConnectVibe(selectedServer, {});
-          }
-        }
-        setState(() {
-          isConnected = connStat;
-        });
+        _rippleController.repeat();
+        var selected = (await serverM.getSelectedServer() as String).trim();
+        final isQuick = (await settings.getValue("fast_connect")) == "true";
 
+        if (isQuick && (await settings.getValue("config_backup") != "")) {
+          selected = await settings.getValue("config_backup");
+        }
+
+        bool connStat = false;
+        if (selected.contains("mode=auto") || selected == "")
+          connStat = await connectAutoMode(context);
+        else if (selected.startsWith("mode=f-link"))
+          connStat = await connectFlMode(context);
+        else if (selected.startsWith("mode=repo"))
+          connStat = await connectRepoMode(context);
+        else if (selected.startsWith("mode=auto-my"))
+          connStat = await connectAutoMy(context);
+        else {
+          if (selected.startsWith("http") ||
+              selected.startsWith("freedom-guard")) {
+            connStat = await connect.ConnectSub(
+                selected.replaceAll("freedom-guard://", ""),
+                selected.startsWith("freedom-guard") ? "fgAuto" : "sub");
+          } else {
+            connStat = await connect.ConnectVibe(selected, {});
+          }
+        }
+
+        setState(() => isConnected = connStat);
         if (connStat) {
+          LogOverlay.showLog("Connected Successfully", type: "success");
           FirebaseAnalytics.instance.logEvent(
             name: "connected",
             parameters: {
@@ -235,11 +228,8 @@ class _HomeContentState extends State<HomeContent>
             },
           );
           if ((await settings.getValue("f_link")) == "true") {
-            donateCONFIG(selectedServer.split("#")[0]);
+            donateCONFIG(selected);
           }
-          LogOverlay.showLog(
-              "connected to ${await settings.getValue("core_vpn")} mode",
-              type: "success");
           refreshCache();
         } else {
           if (await settings.getValue("core_vpn") == "auto") {
@@ -252,183 +242,148 @@ class _HomeContentState extends State<HomeContent>
               },
             );
           }
-          LogOverlay.showLog(
-              "not connected to ${await settings.getValue("core_vpn")} mode",
-              type: "error");
+          _rippleController.stop();
         }
       } catch (e) {
-        setState(() {
-          isConnected = false;
-        });
-        LogOverlay.showLog("خطا در اتصال: $e", type: "error");
+        setState(() => isConnected = false);
+        _rippleController.stop();
       }
     }
-
-    setState(() {
-      isConnecting = false;
-    });
+    setState(() => isConnecting = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeNotifier = Provider.of<ThemeNotifier>(context);
-    final bgNotifier = Provider.of<BackgroundNotifier>(context);
     return Stack(
+      fit: StackFit.expand,
       children: [
-        Container(),
         Container(
-          alignment: Alignment.center,
-          decoration: buildBackground(bgNotifier.background.isNotEmpty
-              ? bgNotifier.background
-              : BackgroundService.getRandomBackground()),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Spacer(flex: isConnected ? 2 : 1),
-              GestureDetector(
-                onTapDown: (_) => setState(() => isPressed = true),
-                onTapUp: (_) => setState(() => isPressed = false),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: isPressed ? 105 : 120,
-                  height: isPressed ? 105 : 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: isConnected
-                          ? [Colors.green.shade300, Colors.teal.shade700]
-                          : isConnecting
-                              ? [Colors.blue.shade300, Colors.cyan.shade600]
-                              : themeNotifier.getDisconnectedGradient() ??
-                                  [
-                                    Colors.grey.shade800,
-                                    Colors.blueGrey.shade900
-                                  ],
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment(0, -0.2),
+              radius: 1.2,
+              colors: [Color(0xFF1A2A44), Color(0xFF080E17)],
+            ),
+          ),
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Spacer(flex: (!isConnected ? 3 : 1)),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                if (isConnected || isConnecting)
+                  AnimatedBuilder(
+                    animation: _rippleController,
+                    builder: (_, __) => CustomPaint(
+                      painter: ModernRipplePainter(
+                          _rippleController.value,
+                          isConnected
+                              ? Theme.of(context).colorScheme.primary
+                              : Colors.white24),
+                      size: const Size(180, 180),
                     ),
-                    border: Border.all(
-                      color: isConnected
-                          ? Colors.green.shade200.withOpacity(0.9)
-                          : isConnecting
-                              ? Colors.cyan.shade200.withOpacity(0.9)
-                              : Colors.grey.shade400.withOpacity(0.6),
-                      width: isPressed ? 3.5 : 2.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isConnected
-                            ? Colors.green.shade400.withOpacity(0.5)
-                            : isConnecting
-                                ? Colors.cyan.shade400.withOpacity(0.5)
-                                : Colors.grey.shade600.withOpacity(0.3),
-                        blurRadius: isPressed ? 18 : 12,
-                        spreadRadius: isPressed ? 4 : 2,
-                        offset: const Offset(0, 2),
-                      ),
-                      BoxShadow(
-                        color: isConnected
-                            ? Colors.teal.shade300.withOpacity(0.3)
-                            : isConnecting
-                                ? Colors.blue.shade300.withOpacity(0.3)
-                                : Colors.black.withOpacity(0.15),
-                        blurRadius: 10,
-                        spreadRadius: 1,
-                        offset: const Offset(0, 0),
-                      ),
-                    ],
                   ),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
+                ScaleTransition(
+                  scale: _pulseController,
+                  child: GestureDetector(
                     onTap: toggleConnection,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        AnimatedOpacity(
-                          opacity: isConnecting ? 0.6 : 0.0,
-                          duration: const Duration(milliseconds: 400),
-                          curve: Curves.easeInOutCubic,
-                          child: Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [
-                                  Colors.white.withOpacity(0.25),
-                                  Colors.transparent,
-                                ],
-                                radius: 0.7,
-                              ),
-                            ),
-                          ),
+                    child: Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isConnected
+                            ? const Color(0xFF00D1FF).withOpacity(0.1)
+                            : Colors.transparent,
+                        border: Border.all(
+                          color: isConnected
+                              ? const Color(0xFF00D1FF)
+                              : Colors.white.withOpacity(0.2),
+                          width: 3,
                         ),
-                        if (isConnecting)
-                          AnimatedBuilder(
-                            animation: _pulseAnimation,
-                            builder: (context, child) {
-                              return Container(
-                                width: 120,
-                                height: 120,
-                                child: CustomPaint(
-                                  painter: ConnectPainter(
-                                    isConnecting,
-                                    animationValue: _pulseAnimation.value,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        AnimatedScale(
-                          scale: isPressed ? 0.95 : 1.0,
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeOutBack,
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 300),
-                            transitionBuilder: (child, animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: ScaleTransition(
-                                  scale: animation.drive(
-                                    Tween(begin: 0.85, end: 1.0).chain(
-                                      CurveTween(curve: Curves.easeOutCubic),
-                                    ),
-                                  ),
-                                  child: child,
-                                ),
-                              );
-                            },
-                            child: Tooltip(
-                              message: isConnected ? 'قطع اتصال' : 'اتصال',
-                              child: Icon(
-                                isConnected ? Icons.vpn_key_off : Icons.vpn_key,
-                                key: ValueKey(isConnected),
-                                size: 40,
-                                color: Colors.white.withOpacity(0.95),
-                                shadows: [
-                                  Shadow(
-                                    color: isConnected
-                                        ? Colors.teal.shade800.withOpacity(0.5)
-                                        : Colors.grey.shade700.withOpacity(0.4),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                        boxShadow: isConnected
+                            ? [
+                                BoxShadow(
+                                    color: const Color(0xFF00D1FF)
+                                        .withOpacity(0.3),
+                                    blurRadius: 40,
+                                    spreadRadius: 5),
+                              ]
+                            : [],
+                      ),
+                      child: Icon(
+                        isConnected
+                            ? Icons.verified_user_rounded
+                            : Icons.shield_outlined,
+                        size: 60,
+                        color: isConnected
+                            ? const Color(0xFF00D1FF)
+                            : Colors.white,
+                      ),
                     ),
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              isConnected
+                  ? "CONNECTED"
+                  : (isConnecting ? "CONNECTING..." : "READY"),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 3),
+            ),
+            const SizedBox(height: 10),
+            ValueListenableBuilder<String>(
+              valueListenable: GlobalFGB.connStatText,
+              builder: (context, value, _) {
+                final displayText = isConnected
+                    ? "CONNECTED"
+                    : (isConnecting ? value : "READY");
+
+                return Text(
+                  displayText,
+                  style: TextStyle(
+                      color: Colors.white.withOpacity(0.4), fontSize: 14),
+                );
+              },
+            ),
+            if (!isConnected)
+              const Spacer(
+                flex: 3,
               ),
-              if (isConnected) NetworkStatusWidget(),
-              Spacer(flex: 1),
-            ],
-          ),
+            if (isConnected) NetworkStatusWidget(),
+            const Spacer(flex: 1),
+          ],
         ),
       ],
     );
   }
+}
+
+class ModernRipplePainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  ModernRipplePainter(this.progress, this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    for (int i = 0; i < 3; i++) {
+      final val = (progress + (i * 0.33)) % 1.0;
+      final paint = Paint()
+        ..color = color.withOpacity((1 - val).clamp(0, 1) * 0.4)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+      canvas.drawCircle(center, 70 + (val * 100), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => true;
 }

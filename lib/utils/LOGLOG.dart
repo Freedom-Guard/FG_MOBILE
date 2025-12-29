@@ -9,6 +9,7 @@ class LogOverlay {
 
   static final List<_LogData> _logQueue = [];
   static final List<String> _logs = [];
+  
   static bool _isShowingLog = false;
 
   static void addLog(String message) {

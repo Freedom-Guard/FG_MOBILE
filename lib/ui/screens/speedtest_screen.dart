@@ -1,6 +1,5 @@
-import 'dart:io';
 import 'dart:typed_data';
-
+import 'dart:ui';
 import 'package:Freedom_Guard/core/local.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -15,383 +14,374 @@ class SpeedTestPage extends StatefulWidget {
 }
 
 class _SpeedTestPageState extends State<SpeedTestPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   double downloadSpeed = 0.0;
   double uploadSpeed = 0.0;
   int ping = 0;
+  int jitter = 0;
   bool isTesting = false;
   String status = 'Ready';
   double progress = 0.0;
-  late AnimationController _animationController;
-  late Animation<double> _progressAnimation;
+  String connectionType = "Checking...";
+  List<Map<String, dynamic>> history = [];
+
+  late AnimationController _gaugeController;
+  late Animation<double> _gaugeAnimation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    );
-    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
+    _gaugeController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1500));
+    _gaugeAnimation = Tween<double>(begin: 0, end: 0).animate(
+        CurvedAnimation(parent: _gaugeController, curve: Curves.elasticOut));
+    _checkConnectivity();
+  }
+
+  Future<void> _checkConnectivity() async {
+    var result = await Connectivity().checkConnectivity();
+    setState(() {
+      connectionType = result.toString().split('.').last.toUpperCase();
+    });
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _gaugeController.dispose();
     super.dispose();
   }
 
-  Future<void> _fetchPing() async {
-    final stopwatch = Stopwatch()..start();
-    try {
-      await http
-          .get(Uri.parse('https://www.google.com'))
-          .timeout(const Duration(seconds: 5));
-      stopwatch.stop();
-      setState(() {
-        ping = stopwatch.elapsedMilliseconds;
-      });
-    } catch (e) {
-      setState(() => ping = 0);
-    }
+  void _updateGauge(double value) {
+    _gaugeAnimation = Tween<double>(
+      begin: _gaugeAnimation.value,
+      end: value > 100 ? 1.0 : value / 100,
+    ).animate(
+        CurvedAnimation(parent: _gaugeController, curve: Curves.easeOutCubic));
+    _gaugeController.forward(from: 0);
   }
 
-  Future<void> _fetchDownloadSpeed() async {
-    final stopwatch = Stopwatch()..start();
-    try {
-      final response = await http
-          .get(Uri.parse('https://speed.cloudflare.com/__down?bytes=1000000'))
-          .timeout(const Duration(seconds: 5));
-      stopwatch.stop();
-      if (response.statusCode == 200) {
-        final bytes = response.bodyBytes.length;
-        final timeInSeconds = stopwatch.elapsedMilliseconds / 1000;
-        setState(() {
-          downloadSpeed = (bytes * 8 / timeInSeconds) / 1000000; // Mbps
-        });
-      } else {
-        setState(() => downloadSpeed = 0);
-      }
-    } catch (e) {
-      setState(() => downloadSpeed = 0);
-    }
-  }
-
-  Future<void> _fetchUploadSpeed() async {
-    final stopwatch = Stopwatch()..start();
-    try {
-      final connectivity = await Connectivity().checkConnectivity();
-      if (connectivity == ConnectivityResult.none) {
-        setState(() => uploadSpeed = 0);
-        return;
-      }
-
-      const payloadSize = 1000000;
-      final payload = Uint8List(payloadSize);
-      final response = await http.post(
-        Uri.parse('https://speed.cloudflare.com/__up'),
-        body: payload,
-        headers: {'Content-Type': 'application/octet-stream'},
-      ).timeout(const Duration(seconds: 10), onTimeout: () {
-        throw TimeoutException('Upload speed test timed out');
-      });
-      stopwatch.stop();
-      final timeInSeconds = stopwatch.elapsedMilliseconds / 1000.0;
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        if (timeInSeconds <= 0) {
-          throw Exception('Invalid time measurement');
-        }
-        final speedMbps = (payloadSize * 8 / timeInSeconds) / 1000000;
-        setState(() {
-          uploadSpeed = double.parse(speedMbps.toStringAsFixed(2));
-        });
-      } else {
-        setState(() => uploadSpeed = 0);
-      }
-    } on TimeoutException {
-      setState(() => uploadSpeed = 0);
-    } on SocketException {
-      setState(() => uploadSpeed = 0);
-    } catch (e) {
-      setState(() => uploadSpeed = 0);
-    } finally {
-      stopwatch.reset();
-    }
-  }
-
-  void startSpeedTest() async {
+  Future<void> _runTest() async {
     setState(() {
       isTesting = true;
-      downloadSpeed = 0.0;
-      uploadSpeed = 0.0;
+      downloadSpeed = 0;
+      uploadSpeed = 0;
       ping = 0;
-      status = 'Testing Download...';
-      progress = 0.0;
-    });
-    _animationController.reset();
-    _animationController.forward();
-
-    await _fetchDownloadSpeed();
-    setState(() {
-      status = 'Testing Upload...';
-      progress = 0.5;
+      jitter = 0;
+      progress = 0.1;
+      status = tr('Testing Ping...');
     });
 
-    await _fetchUploadSpeed();
+    final pStopwatch = Stopwatch()..start();
+    try {
+      await http
+          .get(Uri.parse('https://8.8.8.8'))
+          .timeout(const Duration(seconds: 3));
+      ping = pStopwatch.elapsedMilliseconds;
+      jitter = (ping * 0.12).toInt();
+    } catch (_) {}
+
     setState(() {
-      status = 'Testing Ping...';
-      progress = 0.75;
+      status = tr('Downloading...');
+      progress = 0.4;
     });
 
-    await _fetchPing();
+    final dStopwatch = Stopwatch()..start();
+    try {
+      final response = await http
+          .get(Uri.parse('https://speed.cloudflare.com/__down?bytes=2000000'));
+      double speed = (response.bodyBytes.length *
+              8 /
+              (dStopwatch.elapsedMilliseconds / 1000)) /
+          1000000;
+      downloadSpeed = double.parse(speed.toStringAsFixed(2));
+      _updateGauge(downloadSpeed);
+    } catch (_) {}
+
     setState(() {
-      status = 'Complete';
+      status = tr('Uploading...');
+      progress = 0.7;
+    });
+
+    final uStopwatch = Stopwatch()..start();
+    try {
+      final payload = Uint8List(1000000);
+      await http.post(Uri.parse('https://speed.cloudflare.com/__up'),
+          body: payload);
+      double speed =
+          (1000000 * 8 / (uStopwatch.elapsedMilliseconds / 1000)) / 1000000;
+      uploadSpeed = double.parse(speed.toStringAsFixed(2));
+    } catch (_) {}
+
+    setState(() {
+      status = tr('Complete');
       progress = 1.0;
       isTesting = false;
+      history.insert(0, {
+        'down': downloadSpeed,
+        'up': uploadSpeed,
+        'ping': ping,
+        'time': DateTime.now()
+      });
     });
-    _animationController.forward(from: 0.0);
+    _updateGauge(0);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-        textDirection:
-            getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            title: Text(tr('speed-test')),
-            elevation: 0,
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Container(
+            padding: EdgeInsets.all(8),
+            decoration:
+                BoxDecoration(color: Colors.white10, shape: BoxShape.circle),
+            child:
+                Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.white),
           ),
-          body: SizedBox(
-            width: double.infinity,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.grey[900]!, Colors.black],
-                ),
-              ),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      _buildHeader(),
-                      const SizedBox(height: 32),
-                      if (status != "Complete") _buildStartButton(),
-                      const SizedBox(height: 32),
-                      _buildProgressIndicator(),
-                      const SizedBox(height: 32),
-                      _buildSpeedCards(),
-                      const SizedBox(height: 52),
-                      if (status == "Complete") _buildStartButton(),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ));
-  }
-
-  Widget _buildHeader() {
-    return SizedBox(
-        width: double.infinity,
-        child: Text(
-          tr('speed-test-net'),
-          style: GoogleFonts.inter(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            letterSpacing: 0.5,
-          ),
-          textAlign: TextAlign.center,
-        ));
-  }
-
-  Widget _buildProgressIndicator() {
-    return FadeTransition(
-      opacity: _progressAnimation,
-      child: Column(
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(tr('Network Speed'),
+            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: Stack(
         children: [
-          CircularPercentIndicator(
-            radius: 80.0,
-            lineWidth: 12.0,
-            percent: progress,
-            center: Text(
-              status,
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                color: Colors.white70,
-                fontWeight: FontWeight.w500,
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF0F172A),
+                  Color(0xFF1E293B),
+                  Color(0xFF020617)
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-            progressColor: Colors.blueAccent,
-            backgroundColor: Colors.grey[800]!,
-            circularStrokeCap: CircularStrokeCap.round,
-            animation: true,
-            animationDuration: 1000,
           ),
-          const SizedBox(height: 16),
-          Text(
-            isTesting ? 'Running Test...' : 'Ready to Test',
-            style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[400]),
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.blueAccent.withOpacity(0.15)),
+              child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+                  child: Container()),
+            ),
+          ),
+          SafeArea(
+            child: SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    SizedBox(height: 20),
+                    _buildMainGauge(),
+                    SizedBox(height: 40),
+                    _buildQuickStats(),
+                    SizedBox(height: 32),
+                    _buildActionBtn(),
+                    SizedBox(height: 40),
+                    _buildHistorySection(),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSpeedCards() {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      alignment: WrapAlignment.center,
+  Widget _buildMainGauge() {
+    return Center(
+      child: CircularPercentIndicator(
+        radius: 120.0,
+        lineWidth: 15.0,
+        animation: true,
+        animateFromLastPercent: true,
+        percent: isTesting ? progress : 0.0,
+        circularStrokeCap: CircularStrokeCap.round,
+        progressColor: Colors.blueAccent,
+        backgroundColor: Colors.white.withOpacity(0.05),
+        center: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedBuilder(
+              animation: _gaugeAnimation,
+              builder: (context, child) => Text(
+                isTesting
+                    ? (downloadSpeed > 0
+                        ? downloadSpeed.toStringAsFixed(1)
+                        : "...")
+                    : "0.0",
+                style: GoogleFonts.plusJakartaSans(
+                    fontSize: 48,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white),
+              ),
+            ),
+            Text("Mbps",
+                style: GoogleFonts.plusJakartaSans(
+                    fontSize: 16, color: Colors.white54)),
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                  color: Colors.blueAccent.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20)),
+              child: Text(status,
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: Colors.blueAccent,
+                      fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickStats() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        SpeedCard(
-          title: 'Download',
-          value: downloadSpeed,
-          unit: 'Mbps',
-          icon: Icons.download,
-          color: Colors.blueAccent,
-          animation: _progressAnimation,
-        ),
-        SpeedCard(
-          title: 'Upload',
-          value: uploadSpeed,
-          unit: 'Mbps',
-          icon: Icons.upload,
-          color: Colors.greenAccent,
-          animation: _progressAnimation,
-        ),
-        SpeedCard(
-          title: 'Ping',
-          value: ping.toDouble(),
-          unit: 'ms',
-          icon: Icons.network_ping,
-          color: Colors.orangeAccent,
-          animation: _progressAnimation,
-        ),
+        _statItem("Download", downloadSpeed.toString(), "Mbps",
+            Icons.south_rounded, Colors.blueAccent),
+        _statItem("Upload", uploadSpeed.toString(), "Mbps", Icons.north_rounded,
+            Colors.redAccent),
+        _statItem("Ping", ping.toString(), "ms", Icons.sensors_rounded,
+            Colors.orangeAccent),
       ],
     );
   }
 
-  Widget _buildStartButton() {
+  Widget _statItem(
+      String label, String value, String unit, IconData icon, Color color) {
+    return Container(
+      width: (MediaQuery.of(context).size.width - 80) / 3,
+      padding: EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 20),
+          SizedBox(height: 8),
+          Text(value,
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white)),
+          Text(unit,
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10, color: Colors.white38)),
+          SizedBox(height: 4),
+          Text(label,
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11, color: Colors.white60)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionBtn() {
     return GestureDetector(
-      onTap: isTesting ? null : startSpeedTest,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      onTap: isTesting ? null : _runTest,
+      child: Container(
+        width: double.infinity,
+        height: 65,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isTesting
-                ? [Colors.grey[700]!, Colors.grey[800]!]
-                : [Colors.blueAccent, Colors.blue],
-          ),
-          borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: Colors.blueAccent.withOpacity(isTesting ? 0.0 : 0.4),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
+                color: Colors.blueAccent.withOpacity(0.3),
+                blurRadius: 20,
+                offset: Offset(0, 10))
           ],
+          gradient: LinearGradient(
+              colors: isTesting
+                  ? [Colors.grey, Colors.grey]
+                  : [Color(0xFF4F46E5), Color(0xFF3B82F6)]),
+          borderRadius: BorderRadius.circular(24),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isTesting ? Icons.hourglass_empty : Icons.play_arrow,
-              color: Colors.white,
-              size: 24,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              isTesting ? 'Testing...' : tr('start-test'),
-              style: GoogleFonts.inter(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ],
+        child: Center(
+          child: isTesting
+              ? CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+              : Text(tr('START SPEED TEST'),
+                  style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2)),
         ),
       ),
     );
   }
-}
 
-class SpeedCard extends StatelessWidget {
-  final String title;
-  final double value;
-  final String unit;
-  final IconData icon;
-  final Color color;
-  final Animation<double> animation;
-
-  const SpeedCard({
-    required this.title,
-    required this.value,
-    required this.unit,
-    required this.icon,
-    required this.color,
-    required this.animation,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: animation,
-      child: Container(
-        width: 140,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey[850]!.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.white70,
-                fontWeight: FontWeight.w500,
+  Widget _buildHistorySection() {
+    if (history.isEmpty) return Container();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(tr("Recent Tests"),
+            style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
+        SizedBox(height: 16),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: history.length > 3 ? 3 : history.length,
+          separatorBuilder: (c, i) => SizedBox(height: 12),
+          itemBuilder: (c, i) {
+            final item = history[i];
+            return Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.03),
+                borderRadius: BorderRadius.circular(20),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value.toStringAsFixed(1),
-              style: GoogleFonts.inter(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        color: Colors.blueAccent.withOpacity(0.1),
+                        shape: BoxShape.circle),
+                    child:
+                        Icon(Icons.history, color: Colors.blueAccent, size: 20),
+                  ),
+                  SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("${item['down']} Mbps Download",
+                          style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600)),
+                      Text("${item['ping']} ms • ${connectionType}",
+                          style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white38, fontSize: 12)),
+                    ],
+                  ),
+                  Spacer(),
+                  Icon(Icons.chevron_right, color: Colors.white24),
+                ],
               ),
-            ),
-            Text(
-              unit,
-              style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[400]),
-            ),
-          ],
+            );
+          },
         ),
-      ),
+      ],
     );
   }
 }

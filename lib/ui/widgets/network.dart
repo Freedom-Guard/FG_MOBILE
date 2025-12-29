@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:vibe_core/vibe_core.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:Freedom_Guard/services/share.dart';
 import 'package:Freedom_Guard/ui/screens/servers_list_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:vibe_core/vibe_core.dart';
 import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/core/global.dart';
 
@@ -22,441 +21,265 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
     with TickerProviderStateMixin {
   bool isPinging = false;
   int? ping;
-  String? country;
-  Timer? _autoRefreshTimer;
-  String serverName = "FG Server";
+  String? country, ipAddress;
+  String serverName = "Freedom Guard";
+  String protocol = "XRAY";
   late AnimationController _refreshController;
+  late AnimationController _entranceController;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
     _refreshController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    );
-    _startAutoRefresh();
+        vsync: this, duration: const Duration(milliseconds: 1000));
+
+    _entranceController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0.2, 0), end: Offset.zero).animate(
+            CurvedAnimation(
+                parent: _entranceController, curve: Curves.easeOutQuart));
+
+    _entranceController.forward();
+    _fetchPingAndCountry();
   }
 
   @override
   void dispose() {
-    _autoRefreshTimer?.cancel();
     _refreshController.dispose();
+    _entranceController.dispose();
     super.dispose();
   }
 
-  Future<void> _startAutoRefresh() async {
-    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
-      if (!isPinging) _fetchPingAndCountry();
-    });
-    await Future.delayed(Duration(seconds: 3));
-    _fetchPingAndCountry();
-  }
-
   Future<void> _fetchPingAndCountry() async {
-    if (!mounted) return;
+    if (!mounted || isPinging) return;
     setState(() => isPinging = true);
     _refreshController.repeat();
-    int attempts = 0;
-    const maxAttempts = 2;
-    String serverNameTemp =
-        getNameByConfig(await SettingsApp().getValue("config_backup"));
-    serverNameTemp = serverNameTemp == "Unnamed Server" || serverNameTemp == ""
-        ? "FG Server (FL)"
-        : serverNameTemp;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final maxServerNameLength = (screenWidth * 0.85 / 10).floor() - 10;
-    if (serverNameTemp.length > maxServerNameLength &&
-        maxServerNameLength > 0) {
-      serverNameTemp =
-          serverNameTemp.substring(0, maxServerNameLength - 3) + '...';
-    }
 
-    while (attempts < maxAttempts) {
-      try {
-        var pingConnected = await connect.getConnectedDelay();
-        final countryResponse = await http
-            .get(Uri.parse('http://ip-api.com/json'))
-            .timeout(const Duration(seconds: 5));
-        final countryData = jsonDecode(countryResponse.body);
+    try {
+      final String? config = await SettingsApp().getValue("config_backup");
+      if (config != null && config.isNotEmpty) {
+        serverName = getNameByConfig(config);
+        protocol = config.split("://").first.toUpperCase();
+      }
 
+      final delay = await connect.getConnectedDelay();
+      final res = await http
+          .get(Uri.parse('http://ip-api.com/json'))
+          .timeout(const Duration(seconds: 6));
+
+      if (mounted && res.statusCode == 200) {
+        final data = jsonDecode(res.body);
         setState(() {
-          ping = pingConnected >= 0 ? pingConnected : null;
-          country = countryData['country'] ?? 'Unknown';
-          isPinging = false;
-          serverName = serverNameTemp;
+          ping = delay >= 0 ? delay : null;
+          country = data['country'];
+          ipAddress = data['query'];
         });
+      }
+    } catch (_) {
+    } finally {
+      if (mounted) {
+        setState(() => isPinging = false);
         _refreshController.reset();
-        return;
-      } catch (_) {
-        attempts++;
-        if (attempts == maxAttempts) {
-          if (!mounted) return;
-          setState(() {
-            ping = null;
-            country = 'Unknown';
-            isPinging = false;
-            serverName = serverNameTemp;
-          });
-          _refreshController.reset();
-        }
       }
     }
   }
 
-  String _formatSpeed(int? speed) {
-    if (speed == null) return '—';
-    final mbps = speed / 1000000;
-    return mbps >= 1
-        ? '${mbps.toStringAsFixed(1)} Mbps'
-        : '${(speed / 1000).toStringAsFixed(0)} Kbps';
-  }
-
-  String _formatSize(int? bytes) {
-    if (bytes == null) return '—';
-    final gb = bytes / (1024 * 1024 * 1024);
-    final mb = bytes / (1024 * 1024);
-    return gb >= 1
-        ? '${gb.toStringAsFixed(1)} GB'
-        : '${mb.toStringAsFixed(1)} MB';
-  }
-
-  String _formatDuration(String? duration) => duration ?? '—';
-
   @override
   Widget build(BuildContext context) {
-    final double containerWidth = MediaQuery.of(context).size.width * 0.85;
-    final double tileWidth = (containerWidth - 20) / 2;
-
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: ValueListenableBuilder<V2RayStatus>(
-        valueListenable: v2rayStatus,
-        builder: (context, status, _) {
-          return Center(
-            child: Container(
-              width: containerWidth,
-              margin: const EdgeInsets.symmetric(vertical: 14),
-              child: Stack(
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _entranceController,
+        child: ValueListenableBuilder<V2RayStatus>(
+          valueListenable: v2rayStatus,
+          builder: (context, status, _) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.08),
+                    Colors.white.withOpacity(0.03)
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.white.withOpacity(0.08)),
+              ),
+              child: Column(
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.white.withOpacity(0.05),
-                          Colors.white.withOpacity(0.02)
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        )
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.07),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                                color: Colors.white.withOpacity(0.2)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.circle,
-                                      size: 10, color: Colors.greenAccent),
-                                  const SizedBox(width: 6),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        country ?? "Connecting...",
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                      Text(
-                                        serverName,
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const Spacer(),
-                                  _buildServerSelectButton(context),
-                                  _buildTopButtons(),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
-                              Wrap(
-                                spacing: 10,
-                                alignment: WrapAlignment.center,
-                                runSpacing: 10,
-                                children: [
-                                  _animatedTile(
-                                      _buildTile(
-                                          'Ping',
-                                          Icons.wifi,
-                                          ping == null ? '—' : '$ping ms',
-                                          Colors.greenAccent,
-                                          tileWidth),
-                                      0),
-                                  _animatedTile(
-                                      _buildTile(
-                                          'Uptime',
-                                          Icons.timer,
-                                          _formatDuration(status.duration),
-                                          Colors.purpleAccent,
-                                          tileWidth),
-                                      1),
-                                  _animatedTile(
-                                      _buildNetworkTile(
-                                          status, "speed", tileWidth),
-                                      2),
-                                  _animatedTile(
-                                      _buildNetworkTile(
-                                          status, "network", tileWidth),
-                                      3),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                  Row(
+                    children: [
+                      _buildAvatar(),
+                      const SizedBox(width: 14),
+                      Expanded(child: _buildLocationInfo()),
+                      _buildProtocolBadge(),
+                    ],
                   ),
+                  const SizedBox(height: 20),
+                  _buildStatsRow(status),
+                  const SizedBox(height: 20),
+                  _buildBottomBar(context),
                 ],
               ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildTile(
-      String label, IconData icon, String value, Color color, double width) {
-    return Container(
-      width: (MediaQuery.of(context).size.width * 0.75 - 10) / 2,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNetworkTile(V2RayStatus status, String type, double width) {
-    return Container(
-      width: (MediaQuery.of(context).size.width * 0.75 - 10) / 2,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            type == "speed" ? Icons.speed : Icons.data_usage,
-            color: Colors.blueAccent,
-            size: 18,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  type == "speed" ? "Speed" : "Total",
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                type == 'speed'
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '↓ ${_formatSpeed(status.downloadSpeed)}',
-                            style: const TextStyle(
-                              color: Colors.blueAccent,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            '↑ ${_formatSpeed(status.uploadSpeed)}',
-                            style: const TextStyle(
-                              color: Colors.orangeAccent,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '↓ ${_formatSize(status.download)}',
-                            style: TextStyle(
-                              color: Colors.blueAccent.withOpacity(0.85),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            '↑ ${_formatSize(status.upload)}',
-                            style: TextStyle(
-                              color: Colors.orangeAccent.withOpacity(0.85),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildServerSelectButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.2)),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ServerListPage()),
             );
           },
-          child: Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: const Icon(
-              Icons.swap_horiz_rounded,
-              color: Colors.white70,
-              size: 18,
-            ),
-          ),
         ),
       ),
     );
   }
 
-  Widget _buildTopButtons() {
-    return Row(
+  Widget _buildAvatar() {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.blueAccent.withOpacity(0.1),
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(Icons.language_rounded,
+          size: 20, color: Colors.blueAccent),
+    );
+  }
+
+  Widget _buildLocationInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AnimatedBuilder(
-          animation: _refreshController,
-          builder: (context, child) {
-            return Transform.rotate(
-              angle: _refreshController.value * 6.3,
-              child: GestureDetector(
-                onTap: isPinging ? null : _fetchPingAndCountry,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.1),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
-                  ),
-                  child:
-                      const Icon(Icons.refresh, size: 16, color: Colors.white),
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () => shareConfig(context),
-          child: Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.1),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
-            ),
-            child: const Icon(Icons.share, size: 16, color: Colors.white),
-          ),
-        ),
+        Text(country ?? "Connecting...",
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3)),
+        const SizedBox(height: 2),
+        Text(ipAddress ?? "0.0.0.0",
+            style: TextStyle(
+                color: Colors.white.withOpacity(0.3),
+                fontSize: 11,
+                fontFamily: 'monospace')),
       ],
     );
   }
 
-  Widget _animatedTile(Widget child, int index) {
-    return TweenAnimationBuilder(
-      duration: Duration(milliseconds: 500 + index * 100),
-      tween: Tween<double>(begin: 0, end: 1),
-      builder: (context, value, _) {
-        return Opacity(
-          opacity: value,
-          child: Transform.translate(
-            offset: Offset(0, 20 * (1 - (value))),
-            child: child,
-          ),
-        );
-      },
+  Widget _buildProtocolBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.blueAccent.withOpacity(0.2)),
+      ),
+      child: Text(protocol,
+          style: const TextStyle(
+              color: Colors.blueAccent,
+              fontSize: 10,
+              fontWeight: FontWeight.w800)),
     );
+  }
+
+  Widget _buildStatsRow(V2RayStatus status) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _statBox("${ping ?? '--'}ms", "LATENCY", Icons.sensors_rounded,
+            Colors.orangeAccent),
+        _statBox(_formatSize(status.upload), "UPLOAD",
+            Icons.expand_less_rounded, Colors.greenAccent),
+        _statBox(_formatSize(status.download), "DOWNLOAD",
+            Icons.expand_more_rounded, Colors.lightBlueAccent),
+      ],
+    );
+  }
+
+  Widget _statBox(String value, String label, IconData icon, Color color) {
+    return Column(
+      children: [
+        Icon(icon, size: 18, color: color.withOpacity(0.8)),
+        const SizedBox(height: 6),
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.bold)),
+        Text(label,
+            style: TextStyle(
+                color: Colors.white.withOpacity(0.2),
+                fontSize: 8,
+                fontWeight: FontWeight.w900)),
+      ],
+    );
+  }
+
+  Widget _buildBottomBar(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const ServerListPage())),
+            borderRadius: BorderRadius.circular(15),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.04),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.dns_outlined,
+                      size: 16, color: Colors.white38),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(serverName,
+                        style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500),
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                  const Icon(Icons.arrow_forward_ios_rounded,
+                      size: 10, color: Colors.white24),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        _circleBtn(Icons.share_rounded, () => shareConfig(context)),
+        const SizedBox(width: 10),
+        _circleBtn(Icons.refresh_rounded, _fetchPingAndCountry, isRotate: true),
+      ],
+    );
+  }
+
+  Widget _circleBtn(IconData icon, VoidCallback action,
+      {bool isRotate = false}) {
+    return GestureDetector(
+      onTap: action,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.04),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+        ),
+        child: isRotate
+            ? RotationTransition(
+                turns: _refreshController,
+                child: Icon(icon, size: 18, color: Colors.white70))
+            : Icon(icon, size: 18, color: Colors.white70),
+      ),
+    );
+  }
+
+  String _formatSize(int? bytes) {
+    if (bytes == null || bytes == 0) return '0.0 MB';
+    double mb = bytes / (1024 * 1024);
+    return mb > 1000
+        ? '${(mb / 1024).toStringAsFixed(1)} GB'
+        : '${mb.toStringAsFixed(1)} MB';
   }
 }
