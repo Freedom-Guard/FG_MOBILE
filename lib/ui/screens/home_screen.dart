@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:Freedom_Guard/ui/widgets/fragment.dart';
+import 'package:Freedom_Guard/utils/status_texts.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -343,8 +344,8 @@ class _HomeContentState extends State<HomeContent>
               valueListenable: GlobalFGB.connStatText,
               builder: (context, value, _) {
                 final displayText = isConnected
-                    ? "CONNECTED"
-                    : (isConnecting ? value : "READY");
+                    ? getStatusText("connected")
+                    : (isConnecting ? value : getStatusText("disconnected"));
 
                 return Text(
                   displayText,
