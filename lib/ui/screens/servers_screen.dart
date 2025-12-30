@@ -737,108 +737,82 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
   }
 
   Widget _buildServerItem(String server) {
-    final c = Theme.of(context).colorScheme;
-    final isSelected = multiSelectMode && selectedServers.contains(server);
-    final active = serversManage.selectedServer == server;
-    final ping = serverPingTimes[server];
-    final highlight = active || isSelected;
-
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 380),
-      curve: Curves.easeOutCubic,
-      builder: (context, v, child) => Opacity(
-        opacity: v,
-        child: Transform.translate(
-          offset: Offset(0, 8 * (1 - v)),
-          child: child,
-        ),
-      ),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 240),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: highlight ? c.primaryContainer : c.surface.withOpacity(0.85),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: highlight ? c.primary : c.outline.withOpacity(0.15),
-            width: highlight ? 1.4 : 1,
+    ThemeData theme = Theme.of(context);
+    bool isSelected = multiSelectMode && selectedServers.contains(server);
+    bool selected = serversManage.selectedServer == server;
+    int? ping = serverPingTimes[server];
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: selected || isSelected
+                    ? theme.colorScheme.primary.withOpacity(0.3)
+                    : theme.colorScheme.onSurface.withOpacity(0.1),
+                width: 2),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 14,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () async {
-              if (multiSelectMode) {
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+              onTap: () async {
+                if (multiSelectMode) {
+                  setState(() {
+                    if (selectedServers.contains(server)) {
+                      selectedServers.remove(server);
+                    } else {
+                      selectedServers.add(server);
+                    }
+                  });
+                } else {
+                  await serversManage.selectServer(server);
+                  if (mounted) setState(() {});
+                }
+              },
+              onLongPress: () {
                 setState(() {
-                  selectedServers.contains(server)
-                      ? selectedServers.remove(server)
-                      : selectedServers.add(server);
+                  multiSelectMode = true;
+                  selectedServers.add(server);
                 });
-              } else {
-                await serversManage.selectServer(server);
-                if (mounted) setState(() {});
-              }
-            },
-            onLongPress: () {
-              HapticFeedback.lightImpact();
-              setState(() {
-                multiSelectMode = true;
-                selectedServers.add(server);
-              });
-            },
-            child: Stack(
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          getNameByConfig(server),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            fontWeight:
-                                highlight ? FontWeight.w800 : FontWeight.w600,
-                            color:
-                                highlight ? c.onPrimaryContainer : c.onSurface,
-                            letterSpacing: -0.4,
-                          ),
-                        ),
-                      ),
+              },
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                child: Row(children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(getNameByConfig(server),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: selected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: theme.colorScheme.onSurface),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 4),
+                        _buildPingIndicator(ping, context, server),
+                      ],
                     ),
-                    const SizedBox(height: 10),
-                    _buildPingIndicator(ping, context, server),
-                  ],
-                ),
-                Positioned(
-                  top: -6,
-                  right: -6,
-                  child: IconButton(
-                    icon: Icon(Icons.more_vert_rounded,
-                        size: 18,
-                        color: highlight
-                            ? c.onPrimaryContainer.withOpacity(0.8)
-                            : c.onSurfaceVariant.withOpacity(0.6)),
-                    onPressed: () => _showServerOptions(context, server),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    visualDensity: VisualDensity.compact,
                   ),
-                ),
-              ],
+                  _buildIconButton(
+                      icon: Icons.network_check,
+                      tooltip: 'Ping Server',
+                      onPressed: () => _pingServer(server)),
+                  _buildIconButton(
+                      icon: Icons.more_vert,
+                      tooltip: 'Options',
+                      onPressed: () => _showServerOptions(context, server)),
+                ]),
+              ),
             ),
           ),
         ),
