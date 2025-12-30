@@ -183,8 +183,19 @@ class _CFGPageState extends State<CFGPage> with SingleTickerProviderStateMixin {
   }
 
   Future<void> importAll() async {
+    final ok = testedConfigs
+        .where(
+            (e) => e['success'] == true && e['ping'] != null && e['ping'] > 0)
+        .map<String>((e) => e['config'] as String)
+        .toList();
+
     final old = await serversM.oldServers();
-    await serversM.saveServers({...configs, ...old}.toList());
+
+    await serversM.saveServers([
+      ...ok,
+      ...old,
+    ]);
+
     LogOverlay.showLog('Imported');
   }
 

@@ -61,7 +61,7 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
       final String? config = await SettingsApp().getValue("config_backup");
       if (config != null && config.isNotEmpty) {
         serverName = getNameByConfig(config);
-        protocol = config.split("://").first.toUpperCase();
+        protocol = config.split("#")[0].split("://").first.toUpperCase();
       }
 
       int? delay;

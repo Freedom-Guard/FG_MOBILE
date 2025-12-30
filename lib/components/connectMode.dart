@@ -77,7 +77,7 @@ connectAutoVibe(List listConfigs) async {
     }
 
     if (connStat) {
-      LogOverlay.showLog("Connected successfully.");
+      LogOverlay.addLog("Connected successfully.");
       return true;
     }
   }
