@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:Freedom_Guard/ui/widgets/feedback.dart';
 import 'package:Freedom_Guard/ui/widgets/fragment.dart';
 import 'package:Freedom_Guard/utils/status_texts.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -64,7 +65,6 @@ class _MainScreenState extends State<MainScreen> {
                   actions: [
                     _buildActionBtn(Icons.grid_view_rounded,
                         () => showActionsMenu(context)),
-                    const SizedBox(width: 15),
                   ],
                 ),
               ),

@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'package:Freedom_Guard/ui/widgets/feedback.dart';
+import 'package:flutter/material.dart';
 import 'package:Freedom_Guard/ui/screens/browser.dart';
 import 'package:Freedom_Guard/ui/screens/cfg_screen.dart';
 import 'package:Freedom_Guard/ui/screens/f-link_screen.dart';
@@ -10,8 +12,6 @@ import 'package:Freedom_Guard/ui/screens/redirect_manager_screen.dart';
 import 'package:Freedom_Guard/ui/screens/speedtest_screen.dart';
 import 'package:Freedom_Guard/ui/widgets/dns.dart';
 import 'package:Freedom_Guard/core/local.dart';
-
-import 'package:flutter/material.dart';
 
 void showActionsMenu(BuildContext context) {
   OverlayEntry? overlayEntry;
@@ -47,14 +47,14 @@ class _ActionsMenuState extends State<ActionsMenu>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 350),
+      duration: const Duration(milliseconds: 400),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
 
     _controller.forward();
@@ -72,163 +72,216 @@ class _ActionsMenuState extends State<ActionsMenu>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _closeMenu,
-      child: Material(
-        color: Colors.black.withOpacity(0.4),
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            alignment: Alignment.topRight,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: GestureDetector(
-                    onTap: _closeMenu,
-                    child: Container(color: Colors.transparent),
-                  ),
-                ),
-                Positioned(
-                  top: kToolbarHeight + 10,
-                  right: getDir() == "ltr" ? 10 : null,
-                  left: getDir() == "rtl" ? 10 : null,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                      child: Container(
-                        width: 250,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                          border:
-                              Border.all(color: Colors.white.withOpacity(0.2)),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: GestureDetector(
+        onTap: _closeMenu,
+        behavior: HitTestBehavior.opaque,
+        child: Stack(
+          children: [
+            FadeTransition(
+              opacity: _fadeAnimation,
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(color: Colors.black.withOpacity(0.5)),
+              ),
+            ),
+            Center(
+              child: ScaleTransition(
+                scale: _scaleAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.85,
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 40,
+                          spreadRadius: 5,
                         ),
-                        child: Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          alignment: WrapAlignment.center,
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          "Menu",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 0.85,
                           children: [
-                            _buildMenuButton(context, Icons.dns, "DNS",
-                                Colors.deepPurpleAccent, () {
-                              showDnsSelectionPopup(context);
-                              _closeMenu();
-                            }),
-                            _buildMenuButton(context, Icons.notifications,
-                                tr("notifications"), Colors.amberAccent, () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          NotificationsPage()));
-                              _closeMenu();
-                            }),
-                            _buildMenuButton(context, Icons.rocket_launch,
-                                "CFG", Colors.orangeAccent, () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => CFGPage()));
-                              _closeMenu();
-                            }),
-                            _buildMenuButton(context, Icons.volunteer_activism,
-                                tr("donate"), Colors.redAccent, () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          PremiumDonateConfigPage()));
-                              _closeMenu();
-                            }),
-                            _buildMenuButton(context, Icons.public,
-                                tr("browser"), Colors.blueAccent, () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => FreedomBrowser()));
-                              _closeMenu();
-                            }),
-                            _buildMenuButton(context, Icons.network_check,
-                                tr("speed-test"), Colors.greenAccent, () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => SpeedTestPage()));
-                              _closeMenu();
-                            }),
-                            _buildMenuButton(context, Icons.bug_report,
-                                tr("logs"), Colors.orangeAccent, () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => LogPage()));
-                              _closeMenu();
-                            }),
-                            _buildMenuButton(context, Icons.security,
-                                tr("Host Checker"), Colors.deepOrange, () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          HostCheckerScreen()));
-                              _closeMenu();
-                            }),
-                            _buildMenuButton(context, Icons.directions,
-                                ("Redirect"), Colors.deepPurpleAccent, () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          RedirectManagerPage()));
-                              _closeMenu();
-                            }),
-                            _buildMenuButton(context, Icons.scanner,
-                                ("Dns Scanner"), Colors.deepPurpleAccent, () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => DnsToolsPage()));
-                              _closeMenu();
-                            }),
+                            _buildItem(
+                                context,
+                                Icons.dns_rounded,
+                                "DNS",
+                                Colors.blueAccent,
+                                () => showDnsSelectionPopup(context)),
+                            _buildItem(
+                                context,
+                                Icons.feedback,
+                                "Feedback",
+                                Colors.white,
+                                () => showFeedbackDialog(context)),
+                            _buildItem(
+                                context,
+                                Icons.scanner_rounded,
+                                tr("Dns Scanner"),
+                                Colors.greenAccent,
+                                () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) => DnsToolsPage()))),
+                            _buildItem(
+                                context,
+                                Icons.notifications_active,
+                                tr("notifications"),
+                                Colors.orangeAccent,
+                                () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) => NotificationsPage()))),
+                            _buildItem(
+                                context,
+                                Icons.rocket_launch,
+                                "CFG",
+                                Colors.purpleAccent,
+                                () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) => CFGPage()))),
+                            _buildItem(
+                                context,
+                                Icons.favorite,
+                                tr("donate"),
+                                Colors.redAccent,
+                                () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) =>
+                                            PremiumDonateConfigPage()))),
+                            _buildItem(
+                                context,
+                                Icons.language,
+                                tr("browser"),
+                                Colors.cyanAccent,
+                                () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) => FreedomBrowser()))),
+                            _buildItem(
+                                context,
+                                Icons.speed,
+                                tr("speed-test"),
+                                Colors.greenAccent,
+                                () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) => SpeedTestPage()))),
+                            _buildItem(
+                                context,
+                                Icons.terminal,
+                                tr("logs"),
+                                Colors.amberAccent,
+                                () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) => LogPage()))),
+                            _buildItem(
+                                context,
+                                Icons.security,
+                                "Host",
+                                Colors.tealAccent,
+                                () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) => HostCheckerScreen()))),
+                            _buildItem(
+                                context,
+                                Icons.alt_route,
+                                "Redirect",
+                                Colors.indigoAccent,
+                                () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (c) =>
+                                            RedirectManagerPage()))),
                           ],
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildMenuButton(BuildContext context, IconData icon, String label,
-      Color color, VoidCallback onPressed) {
+  Widget _buildItem(BuildContext context, IconData icon, String label,
+      Color color, VoidCallback onTap) {
     return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(15),
-      child: Container(
-        width: 100,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
+      onTap: () {
+        _closeMenu();
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withOpacity(0.4), width: 1),
             ),
-          ],
-        ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
