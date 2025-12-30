@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 connectAutoMode(BuildContext context) async {
-  GlobalFGB.connStatText.value = "Trying to connect automatically...";
+  GlobalFGB.connStatText.value = "🤖 Trying to connect automatically…";
   final settings = Provider.of<SettingsApp>(context, listen: false);
   var connStat = false;
   connStat = await connectFlMode(context);
@@ -20,7 +20,7 @@ connectAutoMode(BuildContext context) async {
 }
 
 connectFlMode(BuildContext context) async {
-  GlobalFGB.connStatText.value = "Connecting using FL mode...";
+  GlobalFGB.connStatText.value = "⚡ Connecting via F-Link (FL mode)…";
   var connStat = false;
   LogOverlay.addLog("connecting to FL mode...");
   connStat = await CancellableRunner.runWithTimeout(
@@ -33,7 +33,7 @@ connectFlMode(BuildContext context) async {
 }
 
 connectRepoMode(BuildContext context) async {
-  GlobalFGB.connStatText.value = "Connecting using Repository mode...";
+  GlobalFGB.connStatText.value = "📦 Connecting via Repository mode…";
   final settings = Provider.of<SettingsApp>(context, listen: false);
   var connStat = false;
   LogOverlay.addLog(
@@ -57,7 +57,7 @@ connectRepoMode(BuildContext context) async {
 }
 
 connectAutoMy(BuildContext context) async {
-  GlobalFGB.connStatText.value = "Connecting using Repository mode...";
+  GlobalFGB.connStatText.value = "Connecting using Auto User mode...";
   final serverM = Provider.of<ServersM>(context, listen: false);
   List servers = await serverM.oldServers();
   var connStat = false;

@@ -201,7 +201,7 @@ class Connect extends Tools {
     String typeC = "normal",
   }) async {
     await disConnect();
-    GlobalFGB.connStatText.value = "Fetching subscription configs...";
+    GlobalFGB.connStatText.value = "📡 Fetching subscription configurations…";
     LogOverlay.addLog("Trying cached configs first...");
     List<ConfigPingResult> cachedConfigs = await loadConfigPings();
     bool isCache = (await settings.getValue("selectedServer")) ==
@@ -232,9 +232,8 @@ class Connect extends Tools {
                   cachedConfigs.map((c) => c.configLink).toList();
               _startGuardModeMonitoring(cachedResult.configLink, allConfigs);
             }
-            LogOverlay.showLog(
+            LogOverlay.addLog(
               "Connected using cached config.",
-              type: "success",
             );
             return true;
           }
@@ -363,7 +362,7 @@ class Connect extends Tools {
             allSortedConfigsForGuardMode,
           );
         }
-        LogOverlay.showLog("Connected to new config.", type: "success");
+        LogOverlay.addLog("Connected to new config.");
         return true;
       }
     }
@@ -400,7 +399,7 @@ class Connect extends Tools {
     String activeConfig = currentConfig;
 
     _guardModeTimer?.cancel();
-    LogOverlay.showLog("Smart Guard mode monitoring started.");
+    LogOverlay.addLog("Smart Guard mode monitoring started.");
     _guardModeTimer = Timer.periodic(Duration(seconds: 120), (timer) async {
       if (!_guardModeActive) {
         timer.cancel();

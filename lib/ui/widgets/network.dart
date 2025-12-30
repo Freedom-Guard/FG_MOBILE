@@ -65,19 +65,18 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
       }
 
       int? delay;
-      if (config != null && config.isNotEmpty) {
-        final uri = Uri.parse(config);
-        final host = uri.host;
-        try {
-          final stopwatch = Stopwatch()..start();
-          final socket = await Socket.connect(host, uri.port,
-              timeout: const Duration(seconds: 5));
-          socket.destroy();
-          stopwatch.stop();
-          delay = stopwatch.elapsedMilliseconds;
-        } catch (_) {
-          delay = null;
-        }
+      const testUrl = 'https://www.google.com/generate_204';
+
+      try {
+        final uri = Uri.parse(testUrl);
+        final stopwatch = Stopwatch()..start();
+
+        await http.head(uri).timeout(const Duration(seconds: 5));
+
+        stopwatch.stop();
+        delay = stopwatch.elapsedMilliseconds;
+      } catch (_) {
+        delay = null;
       }
 
       final res = await http
