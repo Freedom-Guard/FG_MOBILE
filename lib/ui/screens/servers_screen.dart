@@ -214,7 +214,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
       servers.remove(server);
       serverPingTimes.remove(server);
       if (serversManage.selectedServer == server)
-        serversManage.selectServer("#Auto Server");
+        serversManage.selectServer("mode=auto#Auto Server");
     });
     _saveServers();
   }
@@ -431,7 +431,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
               setState(() {
                 servers.clear();
                 serverPingTimes.clear();
-                serversManage.selectServer("#Auto Server");
+                serversManage.selectServer("mode=auto#Auto Server");
               });
               _saveServers();
               Navigator.pop(ctx);
@@ -476,7 +476,7 @@ class _ServersPageState extends State<ServersPage> with RouteAware {
                   servers.removeWhere((s) => toRemove.contains(s));
                   serverPingTimes.removeWhere((k, _) => toRemove.contains(k));
                   if (!servers.contains(serversManage.oldServers()))
-                    serversManage.selectServer('#Auto Server');
+                    serversManage.selectServer('mode=auto#Auto Server');
                   _saveServers();
                 }
               });

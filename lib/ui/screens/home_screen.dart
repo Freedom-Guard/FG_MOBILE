@@ -197,7 +197,7 @@ class _HomeContentState extends State<HomeContent>
         }
 
         bool connStat = false;
-        if (selected.contains("mode=auto") || selected == "")
+        if (selected.startsWith("mode=auto") || selected.split("#")[0] == "")
           connStat = await connectAutoMode(context);
         else if (selected.startsWith("mode=f-link"))
           connStat = await connectFlMode(context);
