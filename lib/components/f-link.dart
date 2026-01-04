@@ -178,8 +178,7 @@ Future<bool> donateCONFIG(String config,
     LogOverlay.showLog("Config submitted successfully", type: "success");
     return true;
   } catch (e) {
-    LogOverlay.showLog("Error saving config: $e please turn on vpn",
-        type: "error");
+    LogOverlay.addLog("Error saving config: $e \n please turn on vpn");
     return false;
   }
 }

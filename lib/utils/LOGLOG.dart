@@ -9,7 +9,7 @@ class LogOverlay {
 
   static final List<_LogData> _logQueue = [];
   static final List<String> _logs = [];
-  
+
   static bool _isShowingLog = false;
 
   static void addLog(String message) {
@@ -362,13 +362,36 @@ class _RatingModalContent extends StatefulWidget {
   State<_RatingModalContent> createState() => _RatingModalContentState();
 }
 
-class _RatingModalContentState extends State<_RatingModalContent> {
+class _RatingModalContentState extends State<_RatingModalContent>
+    with SingleTickerProviderStateMixin {
   int _rating = 0;
   bool _isExitEnabled = false;
+
+  late final AnimationController _controller;
+  late final Animation<double> _scale;
+  late final Animation<double> _fade;
 
   @override
   void initState() {
     super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    _scale = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutBack,
+    );
+
+    _fade = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    );
+
+    _controller.forward();
+
     Future.delayed(const Duration(seconds: 1), () {
       if (mounted) {
         setState(() => _isExitEnabled = true);
@@ -377,85 +400,110 @@ class _RatingModalContentState extends State<_RatingModalContent> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.black87.withOpacity(0.85),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.8,
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
+    return FadeTransition(
+      opacity: _fade,
+      child: ScaleTransition(
+        scale: _scale,
+        child: Dialog(
+          backgroundColor: colors.surface.withOpacity(0.95),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: Text(
-                  'امتیاز به کانفیگ',
-                  style: TextStyle(
-                    color: Colors.amber,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.85,
               ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  return IconButton(
-                    onPressed: () {
-                      setState(() {
-                        _rating = index + 1;
-                      });
-                    },
-                    icon: Icon(
-                      _rating > index ? Icons.star : Icons.star_border,
-                      color: Colors.amber,
-                      size: 30,
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextButton(
-                    onPressed: _isExitEnabled && _rating > 0
-                        ? () => Navigator.of(context).pop(_rating)
-                        : null,
-                    style: TextButton.styleFrom(
-                      backgroundColor: _isExitEnabled && _rating > 0
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.grey.shade800,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                  Text(
+                    'امتیاز به کانفیگ',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: const Text('ارسال'),
                   ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(-1),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      final active = _rating > index;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => _rating = index + 1);
+                        },
+                        child: AnimatedScale(
+                          scale: active ? 1.2 : 1.0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Icon(
+                              active
+                                  ? Icons.star_rounded
+                                  : Icons.star_border_rounded,
+                              color: active
+                                  ? Colors.amber
+                                  : colors.onSurface.withOpacity(0.4),
+                              size: 34,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _isExitEnabled && _rating > 0
+                              ? () => Navigator.of(context).pop(_rating)
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colors.primary,
+                            foregroundColor: colors.onPrimary,
+                            disabledBackgroundColor: colors.surfaceVariant,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: const Text('ارسال'),
+                        ),
                       ),
-                    ),
-                    child: const Text('لغو'),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context).pop(-1),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colors.error,
+                            side: BorderSide(color: colors.error),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text('لغو'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
