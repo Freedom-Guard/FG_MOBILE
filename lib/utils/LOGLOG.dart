@@ -229,99 +229,137 @@ class _ModalContentState extends State<_ModalContent> {
     });
   }
 
-  void openTelegram(String telegramLink) async {
-    if (telegramLink.startsWith("@")) {
-      telegramLink = "https://t.me/" + telegramLink.split("@")[1];
+  Future<void> openTelegram(String telegramLink) async {
+    String link = telegramLink;
+    if (link.startsWith("@")) {
+      link = "https://t.me/${link.substring(1)}";
     }
-    final uri = Uri.parse(telegramLink);
+    final uri = Uri.parse(link);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      LogOverlay.showLog(
-        "Cannot open the link.",
-        type: "error",
-      );
-    }
+    } else {}
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final glassColor = isDark
+        ? Colors.white.withOpacity(0.07)
+        : Colors.white.withOpacity(0.25);
+
+    final borderColor = isDark
+        ? Colors.white.withOpacity(0.12)
+        : Colors.white.withOpacity(0.35);
+
     return Dialog(
-      backgroundColor: widget.backgroundColor.withOpacity(0.85),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.8,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: Text(
-                  'تبلیغات اهدا کننده',
-                  style: TextStyle(
-                    color: Colors.amber,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Align(
-                  alignment: Alignment.bottomRight,
-                  child: Text(
-                    widget.message,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  )),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  if (widget.telegramLink != "")
-                    TextButton(
-                      onPressed: () => openTelegram(widget.telegramLink),
-                      style: TextButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text('مشاهده کانال'),
-                    ),
-                  const SizedBox(width: 20),
-                  Align(
-                      alignment: Alignment.bottomLeft,
-                      child: TextButton(
-                        onPressed: _isExitEnabled
-                            ? () => Navigator.of(context).maybePop()
-                            : null,
-                        style: TextButton.styleFrom(
-                          backgroundColor: _isExitEnabled
-                              ? Colors.red
-                              : Colors.grey.shade800,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text('خروج'),
-                      )),
-                ],
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          decoration: BoxDecoration(
+            color: glassColor,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: borderColor,
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
             ],
+          ),
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.82,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  'تبلیغات اهدا کننده',
+                  style: TextStyle(
+                    color: Colors.amber.shade300,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  widget.message,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.92),
+                    fontSize: 15.5,
+                    height: 1.45,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: _isExitEnabled
+                          ? () => Navigator.of(context).maybePop()
+                          : null,
+                      style: TextButton.styleFrom(
+                        backgroundColor: _isExitEnabled
+                            ? Colors.red.shade600
+                            : Colors.grey.shade800.withOpacity(0.6),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 28,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: _isExitEnabled ? 2 : 0,
+                      ),
+                      child: const Text(
+                        'خروج',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    if (widget.telegramLink.isNotEmpty)
+                      TextButton(
+                        onPressed: () => openTelegram(widget.telegramLink),
+                        style: TextButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 2,
+                        ),
+                        child: const Text(
+                          'مشاهده کانال',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
