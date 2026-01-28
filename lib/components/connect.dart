@@ -382,10 +382,7 @@ class Connect extends Tools {
       }
     }
 
-    LogOverlay.showLog(
-      "Failed to connect to any config from subscription.",
-      type: "error",
-    );
+    LogOverlay.addLog("Failed to connect to any config from subscription.");
     return false;
   }
 
@@ -526,7 +523,7 @@ class Connect extends Tools {
             ).timeout(Duration(seconds: 20), onTimeout: () {
               return isConnected;
             });
-            if (!connStat) return _isConnected;
+            if (!connStat && isConnected) return _isConnected;
             if (connStat) return true;
           } else {
             if (await testConfig(config) != -1) {
