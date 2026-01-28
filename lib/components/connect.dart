@@ -397,60 +397,96 @@ class Connect extends Tools {
 
     _guardModeTimer?.cancel();
     LogOverlay.addLog("Smart Guard mode monitoring started.");
-    _guardModeTimer = Timer.periodic(Duration(seconds: 120), (timer) async {
+
+    Timer(const Duration(seconds: 10), () async {
+      if (!_guardModeActive) return;
+      await _performGuardCheck(
+        allSortedConfigs: allSortedConfigs,
+        activeConfig: activeConfig,
+        retryCount: retryCount,
+        maxRetries: maxRetries,
+        onConfigSwitched: (newConfig) {
+          activeConfig = newConfig;
+          retryCount = 0;
+        },
+        onRetryIncrement: () => retryCount++,
+        onRetryReset: () => retryCount = 0,
+      );
+    });
+
+    _guardModeTimer =
+        Timer.periodic(const Duration(seconds: 120), (timer) async {
       if (!_guardModeActive) {
         timer.cancel();
         return;
       }
 
-      int ping = await getConnectedDelay();
-      LogOverlay.addLog("Guard mode check - ping: $ping");
+      await _performGuardCheck(
+        allSortedConfigs: allSortedConfigs,
+        activeConfig: activeConfig,
+        retryCount: retryCount,
+        maxRetries: maxRetries,
+        onConfigSwitched: (newConfig) {
+          activeConfig = newConfig;
+          retryCount = 0;
+        },
+        onRetryIncrement: () => retryCount++,
+        onRetryReset: () => retryCount = 0,
+      );
+    });
+  }
 
-      if (ping == -1 || ping > 1000) {
-        retryCount++;
-        LogOverlay.addLog(
-          "Guard mode: bad connection, retry $retryCount/$maxRetries",
-        );
+  Future<void> _performGuardCheck({
+    required List<String> allSortedConfigs,
+    required String activeConfig,
+    required int retryCount,
+    required int maxRetries,
+    required void Function(String) onConfigSwitched,
+    required VoidCallback onRetryIncrement,
+    required VoidCallback onRetryReset,
+  }) async {
+    int ping = await getConnectedDelay();
+    LogOverlay.addLog("Guard mode check - ping: $ping");
 
-        if (retryCount >= maxRetries) {
-          LogOverlay.addLog("Guard mode: attempting to find next best config.");
-          bool connected = false;
+    if (ping == -1 || ping > 1000) {
+      onRetryIncrement();
+      LogOverlay.addLog(
+          "Guard mode: bad connection, retry $retryCount/$maxRetries");
 
-          for (String nextCfg in allSortedConfigs) {
-            if (nextCfg == activeConfig) continue;
+      if (retryCount >= maxRetries) {
+        LogOverlay.addLog("Guard mode: attempting to find next best config.");
+        bool connected = false;
 
-            LogOverlay.addLog("Guard mode: testing next config...");
-            int newPing = await testConfig(nextCfg);
+        for (String nextCfg in allSortedConfigs) {
+          if (nextCfg == activeConfig) continue;
 
-            if (newPing != -1 && newPing < 1000) {
-              LogOverlay.addLog(
-                "Guard mode: trying better config with ping $newPing",
-              );
-              bool result = await ConnectVibe(nextCfg, {}, typeDis: "guard");
-              if (result) {
-                activeConfig = nextCfg;
-                retryCount = 0;
-                connected = true;
-                LogOverlay.showLog(
-                  "Guard mode: switched to new config",
-                  type: "success",
-                );
-                break;
-              }
+          LogOverlay.addLog("Guard mode: testing next config...");
+          int newPing = await testConfig(nextCfg);
+
+          if (newPing != -1 && newPing < 1000) {
+            LogOverlay.addLog(
+                "Guard mode: trying better config with ping $newPing");
+            bool result = await ConnectVibe(nextCfg, {}, typeDis: "guard");
+
+            if (result) {
+              onConfigSwitched(nextCfg);
+              connected = true;
+              LogOverlay.showLog("Guard mode: switched to new config",
+                  type: "success");
+              break;
             }
           }
-
-          if (!connected) {
-            LogOverlay.addLog(
-              "Guard mode: no better config found after checking all.",
-            );
-          }
         }
-      } else {
-        retryCount = 0;
-        LogOverlay.addLog("Guard mode: connection healthy");
+
+        if (!connected) {
+          LogOverlay.addLog(
+              "Guard mode: no better config found after checking all.");
+        }
       }
-    });
+    } else {
+      onRetryReset();
+      LogOverlay.addLog("Guard mode: connection healthy");
+    }
   }
 
   void _stopGuardModeMonitoring() {
