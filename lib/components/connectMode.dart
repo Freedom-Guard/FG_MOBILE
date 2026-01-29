@@ -1,3 +1,4 @@
+import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
@@ -29,7 +30,11 @@ connectFlMode(BuildContext context) async {
     },
     timeout: Duration(seconds: 1020),
   );
-  return connStat;
+  final result = await Tools().testNet();
+  if (result['connected']) {
+    return true;
+  } else
+    return false;
 }
 
 connectRepoMode(BuildContext context) async {

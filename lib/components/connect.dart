@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'dart:convert';
+import 'dart:io';
 import 'package:Freedom_Guard/core/global.dart';
 import 'package:Freedom_Guard/core/network/network_service.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
@@ -556,15 +557,25 @@ class Connect extends Tools {
             bool connStat = await ConnectSub(
               config.replaceAll("freedom-guard://", ""),
               config.startsWith("freedom-guard") ? "fgAuto" : "sub",
-            ).timeout(Duration(seconds: 20), onTimeout: () {
-              return isConnected;
+            ).timeout(Duration(seconds: 20), onTimeout: () async {
+              final result = await testNet();
+              if (result['connected']) {
+                return true;
+              } else
+                return false;
             });
-            if (!connStat && isConnected) return _isConnected;
-            if (connStat) return true;
+            final result = await testNet();
+            if (result['connected']) {
+              return true;
+            }
+            ;
           } else {
             if (await testConfig(config) != -1) {
               await ConnectVibe(config, {});
-              return true;
+              final result = await testNet();
+              if (result['connected']) {
+                return true;
+              }
             }
           }
         } else if (parts[0] == "warp") {
@@ -633,6 +644,53 @@ class Tools {
         return -1;
       },
     );
+  }
+
+  Future<Map<String, dynamic>> testNet() async {
+    final stopwatch = Stopwatch()..start();
+
+    try {
+      final response = await http
+          .get(
+            Uri.parse('https://www.google.com/generate_204'),
+          )
+          .timeout(const Duration(seconds: 6));
+
+      stopwatch.stop();
+      LogOverlay.addLog(
+          "Ping connecting ${stopwatch.elapsedMilliseconds} ms \n Status: ${response.statusCode} ");
+
+      if (response.statusCode == 204) {
+        return {
+          'connected': true,
+          'delay_ms': stopwatch.elapsedMilliseconds,
+        };
+      } else {
+        return {
+          'connected': false,
+          'delay_ms': null,
+          'error': 'Bad status: ${response.statusCode}',
+        };
+      }
+    } on SocketException {
+      return {
+        'connected': false,
+        'delay_ms': null,
+        'error': 'No Internet',
+      };
+    } on TimeoutException {
+      return {
+        'connected': false,
+        'delay_ms': null,
+        'error': 'Timeout',
+      };
+    } catch (e) {
+      return {
+        'connected': false,
+        'delay_ms': null,
+        'error': e.toString(),
+      };
+    }
   }
 
   Future<String> addOptionsToVibe(dynamic parsedJson) async {
