@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:vibe_core/vibe_core.dart';
+import 'package:flutter_v2ray_client/flutter_v2ray.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:Freedom_Guard/services/config.dart';
 import 'package:Freedom_Guard/services/share.dart';

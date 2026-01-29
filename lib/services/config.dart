@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:vibe_core/vibe_core.dart';
+
+import 'package:flutter_v2ray_client/flutter_v2ray.dart';
 
 String getNameByConfig(String config) {
   try {

@@ -8,7 +8,7 @@ import 'package:Freedom_Guard/components/safe_mode.dart';
 import 'package:Freedom_Guard/components/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vibe_core/vibe_core.dart';
+import 'package:flutter_v2ray_client/flutter_v2ray.dart';
 import 'package:http/http.dart' as http;
 
 class ConfigPingResult {
