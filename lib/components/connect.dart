@@ -565,7 +565,7 @@ class Connect extends Tools {
                   config.replaceAll("freedom-guard://", ""),
                   config.startsWith("freedom-guard") ? "fgAuto" : "sub",
                 ),
-                timeout: Duration(seconds: 20),
+                timeout: Duration(seconds: 40),
               );
               final result = await testNet();
               if (result['connected']) {
