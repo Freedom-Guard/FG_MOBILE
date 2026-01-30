@@ -242,9 +242,14 @@ Future<List> restoreConfigs() async {
   return [];
 }
 
-Future<bool> tryConnect(String config, String docId, String message_old,
-    String telegramLink) async {
+Future<bool> _tryConnectInternal(
+  String config,
+  String docId,
+  String message_old,
+  String telegramLink,
+) async {
   int resPing = 0;
+
   if (config.startsWith("http")) {
     resPing = (await connect.ConnectSub(config, "f_link", typeC: "f_link")
             .timeout(Duration(seconds: 25), onTimeout: () {
@@ -258,37 +263,34 @@ Future<bool> tryConnect(String config, String docId, String message_old,
 
   String message = message_old;
   var docRef;
+
   if (resPing > 1) {
     bool success = false;
-    if (!(config.startsWith("http"))) {
+
+    if (!config.startsWith("http")) {
       success = await connect.ConnectVibe(config, {"type": "f_link"});
     } else {
       success = true;
     }
+
     if (success) {
       try {
         docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
-
         await docRef.update({'connected': FieldValue.increment(1)}).timeout(
-            Duration(seconds: 3), onTimeout: () {
-          throw "";
-        });
-      } on FirebaseException catch (e) {
-        await saveFailedUpdate(docId, 1);
-        LogOverlay.addLog(
-            "Firebase error incrementing connection counter: ${e.message}");
+          Duration(seconds: 3),
+          onTimeout: () => throw "",
+        );
       } catch (e) {
-        LogOverlay.addLog("Unknown error incrementing connection counter: $e");
+        await saveFailedUpdate(docId, 1);
       }
 
       if (message.isNotEmpty) {
-        if (!isValidTelegramLink(telegramLink)) {
-          telegramLink = "";
-          LogOverlay.showModal(message, telegramLink);
-        } else {
-          LogOverlay.showModal(message, telegramLink);
-        }
+        LogOverlay.showModal(
+          message,
+          isValidTelegramLink(telegramLink) ? telegramLink : "",
+        );
       }
+
       rating(docId);
       return true;
     }
@@ -296,20 +298,32 @@ Future<bool> tryConnect(String config, String docId, String message_old,
 
   try {
     docRef = FirebaseFirestore.instance.collection('configs').doc(docId);
-    await docRef.update({'connected': FieldValue.increment(1)}).timeout(
-        Duration(seconds: 3), onTimeout: () {
-      throw "";
-    });
-  } on FirebaseException catch (e) {
-    await saveFailedUpdate(docId, -1);
-    LogOverlay.addLog(
-        "Server error decrementing connection counter: ${e.message}");
+    await docRef.update({'connected': FieldValue.increment(-1)}).timeout(
+      Duration(seconds: 3),
+      onTimeout: () => throw "",
+    );
   } catch (e) {
     await saveFailedUpdate(docId, -1);
-    LogOverlay.addLog("Unknown error decrementing connection counter: $e");
   }
 
   return false;
+}
+
+Future<bool> tryConnect(
+  String config,
+  String docId,
+  String message_old,
+  String telegramLink,
+) {
+  return PromiseRunner.runWithTimeout(
+    () => _tryConnectInternal(
+      config,
+      docId,
+      message_old,
+      telegramLink,
+    ),
+    timeout: Duration(seconds: 40),
+  );
 }
 
 Future<void> refreshCache() async {
@@ -399,7 +413,8 @@ Future<bool> connectFL() async {
       if (success) {
         final isp = await SettingsApp().getValue("isp");
         await addISPToConfig(docId, isp == "" ? await getUserISP() : isp);
-        SettingsApp().setValue("config_backup", "mode=f-link#Auto Server (FL Mode)");
+        SettingsApp()
+            .setValue("config_backup", "mode=f-link#Auto Server (FL Mode)");
         return true;
       }
     }

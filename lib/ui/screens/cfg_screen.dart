@@ -117,7 +117,7 @@ class _CFGPageState extends State<CFGPage> with SingleTickerProviderStateMixin {
       _sort();
       animCtrl.forward(from: 0);
     } catch (e) {
-      LogOverlay.showLog(e.toString());
+      LogOverlay.addLog(e.toString());
     }
 
     setState(() => isLoading = false);
