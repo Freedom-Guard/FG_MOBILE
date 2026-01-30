@@ -382,33 +382,30 @@ Future<void> rating(String docID) async {
   }
 }
 
-Future<bool> connectFL(CancelToken token) async {
+Future<bool> connectFL() async {
   try {
     final configs = await restoreConfigs();
-    bool isConnected = false;
     for (var config in configs) {
-      if (token.isCanceled) return connect.isConnected;
-
       final configStr = config['config'] as String;
       final message = config['message'] ?? "";
       final telegramLink = config['telegramLink'] ?? "";
       final docId = config['id'];
 
-      final success = await tryConnect(configStr, docId, message, telegramLink);
-      if (success) {
-        if (token.isCanceled) return true;
+      final success = await PromiseRunner.runWithTimeout(
+        () => tryConnect(configStr, docId, message, telegramLink),
+        timeout: Duration(seconds: 100),
+      );
 
+      if (success) {
         final isp = await SettingsApp().getValue("isp");
-        await addISPToConfig(docId, (isp == "" ? await getUserISP() : isp));
-        SettingsApp()
-            .setValue("config_backup", "mode=f-link#Auto Server (FL Mode)");
+        await addISPToConfig(docId, isp == "" ? await getUserISP() : isp);
+        SettingsApp().setValue("config_backup", "mode=f-link#Auto Server (FL Mode)");
         return true;
       }
     }
   } catch (e) {
     LogOverlay.addLog("Error connecting FL: $e");
   }
-
   LogOverlay.addLog("Connection FL failed");
   return false;
 }

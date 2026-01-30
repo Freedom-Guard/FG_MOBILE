@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:Freedom_Guard/core/async_runner.dart';
 import 'package:Freedom_Guard/core/global.dart';
 import 'package:Freedom_Guard/core/network/network_service.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/safe_mode.dart';
 import 'package:Freedom_Guard/components/settings.dart';
+import 'package:dart_promise/dart_promise.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_v2ray_client/flutter_v2ray.dart';
@@ -496,99 +498,102 @@ class Connect extends Tools {
     _guardModeTimer = null;
   }
 
-  Future<bool> ConnectFG(String fgconfig, int timeout) async {
-    try {
-      final uri = (fgconfig);
-      http.Response? response;
-      int attempt = 0;
-      int delayMs = 800;
-      bool usedCache = false;
-      String? cachedData;
+  Future<bool> ConnectFG(String fgconfig, int timeout) {
+    return Promise<bool>((resolve, reject) async {
+      try {
+        final uri = fgconfig;
+        http.Response? response;
+        int attempt = 0;
+        int delayMs = 800;
+        bool usedCache = false;
+        String? cachedData;
 
-      while (attempt < 3) {
-        try {
-          response = await NetworkService.get(uri).timeout(
-            Duration(milliseconds: timeout),
-            onTimeout: () => throw TimeoutException('Request timed out'),
-          );
-          break;
-        } catch (e) {
-          attempt++;
-          if (attempt >= 3) {
-            final prefs = await SharedPreferences.getInstance();
-            cachedData = prefs.getString('cached_fg_config');
-            if (cachedData != null) {
-              usedCache = true;
-              LogOverlay.addLog('Using cached config due to failure: $e');
-              break;
-            } else {
-              LogOverlay.addLog('No cached config found. Network error: $e');
-              return false;
-            }
-          }
-          await Future.delayed(Duration(milliseconds: delayMs));
-          delayMs *= 2;
-        }
-      }
-
-      dynamic data;
-      if (usedCache) {
-        data = jsonDecode(cachedData!);
-      } else {
-        if (response == null || response.statusCode != 200) {
-          LogOverlay.showLog(
-            'Failed to load config: ${response?.statusCode ?? "unknown"}',
-            type: "error",
-          );
-          return false;
-        }
-        data = jsonDecode(response.body);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('cached_fg_config', response.body);
-      }
-
-      List publicServers = data["MOBILE"];
-
-      for (var entry in publicServers) {
-        var parts = entry.split(",;,");
-        if (parts[0] == "vibe") {
-          var config = parts[1].split("#")[0];
-          if (config.startsWith("http") || config.startsWith("freedom-guard")) {
-            bool connStat = await ConnectSub(
-              config.replaceAll("freedom-guard://", ""),
-              config.startsWith("freedom-guard") ? "fgAuto" : "sub",
-            ).timeout(Duration(seconds: 20), onTimeout: () async {
-              final result = await testNet();
-              if (result['connected']) {
-                return true;
-              } else
-                return false;
-            });
-            final result = await testNet();
-            if (result['connected']) {
-              return true;
-            }
-            ;
-          } else {
-            if (await testConfig(config) != -1) {
-              await ConnectVibe(config, {});
-              final result = await testNet();
-              if (result['connected']) {
-                return true;
+        while (attempt < 3) {
+          try {
+            response = await NetworkService.get(uri).timeout(
+              Duration(milliseconds: timeout),
+              onTimeout: () => throw TimeoutException('Request timed out'),
+            );
+            break;
+          } catch (e) {
+            attempt++;
+            if (attempt >= 3) {
+              final prefs = await SharedPreferences.getInstance();
+              cachedData = prefs.getString('cached_fg_config');
+              if (cachedData != null) {
+                usedCache = true;
+                LogOverlay.addLog('Using cached config due to failure: $e');
+                break;
+              } else {
+                LogOverlay.addLog('No cached config found. Network error: $e');
+                resolve(false);
+                return;
               }
             }
+            await Future.delayed(Duration(milliseconds: delayMs));
+            delayMs *= 2;
           }
-        } else if (parts[0] == "warp") {
-          continue;
         }
-        await Future.delayed(const Duration(milliseconds: 400));
-      }
 
-      return false;
-    } catch (e, stack) {
-      LogOverlay.addLog('Error in ConnectFG: $e\n$stack');
-      return false;
-    }
+        dynamic data;
+        if (usedCache) {
+          data = jsonDecode(cachedData!);
+        } else {
+          if (response == null || response.statusCode != 200) {
+            LogOverlay.showLog(
+              'Failed to load config: ${response?.statusCode ?? "unknown"}',
+              type: "error",
+            );
+            resolve(false);
+            return;
+          }
+          data = jsonDecode(response.body);
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('cached_fg_config', response.body);
+        }
+
+        List publicServers = data["MOBILE"];
+        for (var entry in publicServers) {
+          var parts = entry.split(",;,");
+
+          if (parts[0] == "vibe") {
+            var config = parts[1].split("#")[0];
+            if (config.startsWith("http") ||
+                config.startsWith("freedom-guard")) {
+              bool connStat = await PromiseRunner.runWithTimeout(
+                () => ConnectSub(
+                  config.replaceAll("freedom-guard://", ""),
+                  config.startsWith("freedom-guard") ? "fgAuto" : "sub",
+                ),
+                timeout: Duration(seconds: 20),
+              );
+              final result = await testNet();
+              if (result['connected']) {
+                resolve(true);
+                return;
+              }
+            } else {
+              if (await testConfig(config) != -1) {
+                await ConnectVibe(config, {});
+                final result = await testNet();
+                if (result['connected']) {
+                  resolve(true);
+                  return;
+                }
+              }
+            }
+          } else if (parts[0] == "warp") {
+            continue;
+          }
+          await Future.delayed(const Duration(milliseconds: 400));
+        }
+
+        resolve(false);
+      } catch (e, stack) {
+        LogOverlay.addLog('Error in ConnectFG: $e\n$stack');
+        resolve(false);
+      }
+    }).toFuture();
   }
 }
 
@@ -649,6 +654,7 @@ class Tools {
   Future<Map<String, dynamic>> testNet() async {
     final attempts = 3;
     int successDelay = -1;
+    await Future.delayed(Duration(seconds: 2));
 
     for (int i = 0; i < attempts; i++) {
       final isLastAttempt = (i == attempts - 1);

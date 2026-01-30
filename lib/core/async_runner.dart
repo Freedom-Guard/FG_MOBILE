@@ -1,27 +1,30 @@
-import 'dart:async';
+import 'package:dart_promise/dart_promise.dart';
 
-class CancelToken {
-  bool _canceled = false;
-  void cancel() => _canceled = true;
-  bool get isCanceled => _canceled;
-}
+typedef Task = Future<bool> Function();
 
-class CancellableRunner {
-  static Future<bool> runWithTimeout(
-    Future<bool> Function(CancelToken token) task, {
-    required Duration timeout,
-  }) async {
-    final token = CancelToken();
-    try {
-      return await task(token).timeout(
-        timeout,
-        onTimeout: () {
-          token.cancel();
-          return false;
-        },
-      );
-    } catch (_) {
-      return false;
-    }
+class PromiseRunner {
+  static Future<bool> runWithTimeout(Task task, {required Duration timeout}) {
+    return Promise<bool>((resolve, reject) {
+      bool completed = false;
+
+      Future.delayed(timeout, () {
+        if (!completed) {
+          completed = true;
+          resolve(false);
+        }
+      });
+
+      task().then((result) {
+        if (!completed) {
+          completed = true;
+          resolve(result);
+        }
+      }).catchError((_) {
+        if (!completed) {
+          completed = true;
+          resolve(false);
+        }
+      });
+    }).toFuture();
   }
 }

@@ -24,11 +24,9 @@ connectFlMode(BuildContext context) async {
   GlobalFGB.connStatText.value = "⚡ Connecting via F-Link (FL mode)…";
   var connStat = false;
   LogOverlay.addLog("connecting to FL mode...");
-  connStat = await CancellableRunner.runWithTimeout(
-    (token) async {
-      return await connectFL(token);
-    },
-    timeout: Duration(seconds: 1020),
+  connStat = await PromiseRunner.runWithTimeout(
+    connectFL,
+    timeout: Duration(seconds: 120),
   );
   final result = await Tools().testNet();
   if (result['connected']) {
