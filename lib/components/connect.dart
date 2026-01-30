@@ -647,50 +647,51 @@ class Tools {
   }
 
   Future<Map<String, dynamic>> testNet() async {
-    final stopwatch = Stopwatch()..start();
+    final attempts = 3;
+    int successDelay = -1;
 
-    try {
-      final response = await http
-          .get(
-            Uri.parse('https://www.google.com/generate_204'),
-          )
-          .timeout(const Duration(seconds: 6));
+    for (int i = 0; i < attempts; i++) {
+      final isLastAttempt = (i == attempts - 1);
+      final timeoutSeconds = isLastAttempt ? 6 : 3;
 
-      stopwatch.stop();
-      LogOverlay.addLog(
-          "Ping connecting ${stopwatch.elapsedMilliseconds} ms \n Status: ${response.statusCode} ");
+      final stopwatch = Stopwatch()..start();
 
-      if (response.statusCode == 204) {
-        return {
-          'connected': true,
-          'delay_ms': stopwatch.elapsedMilliseconds,
-        };
-      } else {
-        return {
-          'connected': false,
-          'delay_ms': null,
-          'error': 'Bad status: ${response.statusCode}',
-        };
+      try {
+        final response = await http
+            .get(Uri.parse('https://www.google.com/generate_204'))
+            .timeout(Duration(seconds: timeoutSeconds));
+
+        stopwatch.stop();
+
+        LogOverlay.addLog(
+            "Ping attempt ${i + 1} → ${stopwatch.elapsedMilliseconds} ms | Status: ${response.statusCode}");
+
+        if (response.statusCode == 204) {
+          successDelay = stopwatch.elapsedMilliseconds;
+          break;
+        }
+      } on SocketException {
+        LogOverlay.addLog("Ping attempt ${i + 1} → No Internet");
+      } on TimeoutException {
+        LogOverlay.addLog(
+            "Ping attempt ${i + 1} → Timeout after ${timeoutSeconds}s");
+      } catch (e) {
+        LogOverlay.addLog("Ping attempt ${i + 1} → Error: $e");
       }
-    } on SocketException {
+    }
+
+    if (successDelay >= 0) {
       return {
-        'connected': false,
-        'delay_ms': null,
-        'error': 'No Internet',
-      };
-    } on TimeoutException {
-      return {
-        'connected': false,
-        'delay_ms': null,
-        'error': 'Timeout',
-      };
-    } catch (e) {
-      return {
-        'connected': false,
-        'delay_ms': null,
-        'error': e.toString(),
+        'connected': true,
+        'delay_ms': successDelay,
       };
     }
+
+    return {
+      'connected': false,
+      'delay_ms': null,
+      'error': 'Failed after $attempts attempts',
+    };
   }
 
   Future<String> addOptionsToVibe(dynamic parsedJson) async {
