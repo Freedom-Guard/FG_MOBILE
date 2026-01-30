@@ -185,6 +185,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
+  dart_promise:
+    dependency: "direct main"
+    description:
+      name: dart_promise
+      sha256: "053912486c0e662471e3d96b20e2e59378d378e5f3fbc3334ade7a161b9b52bc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1+1"
   dbus:
     dependency: transitive
     description:

@@ -57,7 +57,6 @@ class XraySettingsDialog {
           child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
               child: Container(
-                  height: MediaQuery.of(context).size.height * .8,
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(.08),
                     borderRadius: BorderRadius.circular(26),
