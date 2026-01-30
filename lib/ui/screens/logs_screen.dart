@@ -2,7 +2,6 @@ import 'package:Freedom_Guard/core/local.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
-import 'dart:ui';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/LOGLOG.dart';
 
