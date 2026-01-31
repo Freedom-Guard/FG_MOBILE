@@ -115,8 +115,11 @@ class Connect extends Tools {
 
     try {
       String parser = "";
-      bool requestPermission =
-          typeDis != "quick" ? await vibeCoreMain.requestPermission() : true;
+      bool requestPermission = await vibeCoreMain.requestPermission();
+      if (!requestPermission) {
+        LogOverlay.showLog("Permission Denied...", type: "error");
+        return false;
+      }
       if (requestPermission) {
         try {
           var parsedConfig = V2ray.parseFromURL(config);
@@ -198,12 +201,14 @@ class Connect extends Tools {
     return false;
   }
 
-  Future<bool> ConnectSub(
-    String config,
-    String type, {
-    String typeC = "normal",
-  }) async {
+  Future<bool> ConnectSub(String config, String type,
+      {String typeC = "normal", int depth = 0}) async {
     await disConnect();
+    if (depth > 5) {
+      LogOverlay.addLog(
+          "Max recursion depth reached in ConnectSub to prevent infinite loop.");
+      return false;
+    }
     GlobalFGB.connStatText.value = "📡 Fetching subscription configurations…";
     LogOverlay.addLog("Trying cached configs first...");
     List<ConfigPingResult> cachedConfigs = await loadConfigPings();
@@ -228,18 +233,21 @@ class Connect extends Tools {
             "type": type,
             "link": config,
           })) {
-            final guardModeEnabled =
-                (await settings.getValue("guard_mode")) == "true";
-            if (guardModeEnabled) {
-              List<String> allConfigs =
-                  cachedConfigs.map((c) => c.configLink).toList();
-              _startGuardModeMonitoring(cachedResult.configLink, allConfigs);
+            final netResult = await testNet();
+            if (netResult['connected'] == true) {
+              final guardModeEnabled =
+                  (await settings.getValue("guard_mode")) == "true";
+              if (guardModeEnabled) {
+                List<String> allConfigs =
+                    cachedConfigs.map((c) => c.configLink).toList();
+                _startGuardModeMonitoring(cachedResult.configLink, allConfigs);
+              }
+              LogOverlay.addLog("Connected using cached config.");
+              return true;
+            } else {
+              LogOverlay.addLog(
+                  "ConnectVibe succeeded but internet test failed (cached config).");
             }
-            LogOverlay.addLog(
-              "Connected using cached config.",
-            );
-
-            return true;
           }
         } else {
           LogOverlay.addLog(
@@ -333,20 +341,28 @@ class Connect extends Tools {
 
     directConfigs.shuffle();
 
-    for (String cfg in directConfigs) {
-      int ping = await testConfig(cfg, type: typeC);
-
-      if (ping != -1) {
-        LogOverlay.addLog("Ping Success: ${ping}ms for config: ${cfg}");
-        newPingResults.add(ConfigPingResult(configLink: cfg, ping: ping));
-        if (_isConnected == false)
-          await ConnectVibe(cfg, {"type": type, "link": config});
-        await _saveConfigPings(newPingResults);
-      } else {
-        LogOverlay.addLog("Ping Failed for config: ${cfg}");
+    Iterable<List<T>> chunk<T>(List<T> list, int size) sync* {
+      for (int i = 0; i < list.length; i += size) {
+        final chunkSize = (i + size > list.length) ? list.length - i : size;
+        yield list.sublist(i, i + chunkSize);
       }
     }
 
+    for (List<String> batch in chunk(directConfigs, 3)) {
+      List<Future<ConfigPingResult?>> pingFutures = batch.map((cfg) async {
+        int ping = await testConfig(cfg, type: typeC);
+        if (ping != -1) {
+          return ConfigPingResult(
+            configLink: cfg,
+            ping: ping,
+          );
+        }
+        return null;
+      }).toList();
+
+      List<ConfigPingResult?> results = await Future.wait(pingFutures);
+      newPingResults.addAll(results.whereType<ConfigPingResult>());
+    }
     newPingResults.sort((a, b) => a.ping.compareTo(b.ping));
 
     await _saveConfigPings(newPingResults);
@@ -356,30 +372,29 @@ class Connect extends Tools {
 
     for (var result in newPingResults) {
       LogOverlay.addLog("Trying new config with ping: ${result.ping}ms");
-      if (await ConnectVibe(result.configLink, {
-        "type": type,
-        "link": config,
-      })) {
+
+      if (await connectAndTest(
+          result.configLink, {"type": type, "link": config})) {
         if (guardModeEnabled) {
           _startGuardModeMonitoring(
             result.configLink,
             allSortedConfigsForGuardMode,
           );
         }
-        LogOverlay.addLog("Connected to new config.");
         return true;
       }
     }
 
     LogOverlay.addLog(
-      "All new direct configs failed. Trying http/sub configs...",
-    );
+        "All new direct configs failed. Trying http/sub configs...");
+
     for (String httpCfg in httpSubConfigs) {
       bool connStat = await PromiseRunner.runWithTimeout(
         () async {
           final ok = await ConnectSub(
             config.replaceAll("freedom-guard://", ""),
             config.startsWith("freedom-guard") ? "fgAuto" : "sub",
+            depth: depth + 1,
           );
           if (!ok) return false;
 
@@ -389,13 +404,19 @@ class Connect extends Tools {
         timeout: Duration(seconds: 45),
       );
 
-      if (connStat) {
-        return true;
-      }
+      if (connStat) return true;
     }
 
     LogOverlay.addLog("Failed to connect to any config from subscription.");
     return false;
+  }
+
+  Future<bool> connectAndTest(String cfg, Map args) async {
+    final ok = await ConnectVibe(cfg, args);
+    if (!ok) return false;
+
+    final netResult = await testNet();
+    return netResult['connected'] == true;
   }
 
   void _startGuardModeMonitoring(
@@ -574,6 +595,7 @@ class Connect extends Tools {
                   final ok = await ConnectSub(
                     config.replaceAll("freedom-guard://", ""),
                     config.startsWith("freedom-guard") ? "fgAuto" : "sub",
+                    depth: 1,
                   );
                   if (!ok) return false;
 
@@ -805,15 +827,21 @@ class Tools {
           final fragJson = json.decode(fragment);
           if (fragJson is Map && fragJson["enabled"] == true) {
             for (var outbound in parsedJson["outbounds"]) {
-              if (outbound is Map<String, dynamic> &&
-                  outbound["protocol"] == 'freedom') {
-                outbound["settings"] ??= {};
-                (outbound["settings"] as Map<String, dynamic>)["fragment"] =
-                    fragJson;
+              if (outbound is Map<String, dynamic>) {
+                final protocol = outbound["protocol"];
+                if (protocol != 'freedom' &&
+                    protocol != 'blackhole' &&
+                    protocol != 'direct') {
+                  outbound["settings"] ??= {};
+                  (outbound["settings"] as Map<String, dynamic>)["fragment"] =
+                      fragJson;
+                }
               }
             }
           }
-        } catch (e) {}
+        } catch (e) {
+          LogOverlay.addLog("Error applying fragment: $e");
+        }
       }
 
       if (fakeDns.trim().isNotEmpty) {
@@ -866,10 +894,15 @@ class Tools {
 
   Future<int> testConfig(String config, {String type = "normal"}) async {
     try {
-      final parser = V2ray.parseFromURL(config);
-      final ping = await vibeCoreMain
-          .getServerDelay(config: parser.getFullConfiguration())
-          .timeout(
+      String parser = "";
+      try {
+        var parsedConfig = V2ray.parseFromURL(config);
+        parser =
+            parsedConfig != null ? parsedConfig.getFullConfiguration() : config;
+      } catch (_) {
+        parser = config;
+      }
+      final ping = await vibeCoreMain.getServerDelay(config: parser).timeout(
         const Duration(seconds: 6),
         onTimeout: () {
           type != "f_link"
@@ -904,39 +937,15 @@ class Tools {
     if (await settings.getValue("bypass_lan") == "true") {
       LogOverlay.showLog("Bypass LAN Enabled");
       return [
-        "0.0.0.0/5",
-        "8.0.0.0/7",
-        "11.0.0.0/8",
-        "12.0.0.0/6",
-        "16.0.0.0/4",
-        "32.0.0.0/3",
-        "64.0.0.0/2",
-        "128.0.0.0/3",
-        "160.0.0.0/5",
-        "168.0.0.0/6",
-        "172.0.0.0/12",
-        "172.32.0.0/11",
-        "172.64.0.0/10",
-        "172.128.0.0/9",
-        "173.0.0.0/8",
-        "174.0.0.0/7",
-        "176.0.0.0/4",
-        "192.0.0.0/9",
-        "192.128.0.0/11",
-        "192.160.0.0/13",
-        "192.169.0.0/16",
-        "192.170.0.0/15",
-        "192.172.0.0/14",
-        "192.176.0.0/12",
-        "192.192.0.0/10",
-        "193.0.0.0/8",
-        "194.0.0.0/7",
-        "196.0.0.0/6",
-        "200.0.0.0/5",
-        "208.0.0.0/4",
-        "240.0.0.0/4",
+        "10.0.0.0/8", // Private
+        "172.16.0.0/12", // Private
+        "192.168.0.0/16", // Private
+        "127.0.0.0/8", // Loopback
+        "169.254.0.0/16", // Link-local
+        "fc00::/7", // IPv6 unique local
       ];
-    } else
+    } else {
       return null;
+    }
   }
 }
