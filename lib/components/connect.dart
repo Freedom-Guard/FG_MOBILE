@@ -238,6 +238,7 @@ class Connect extends Tools {
             LogOverlay.addLog(
               "Connected using cached config.",
             );
+
             return true;
           }
         } else {
@@ -374,14 +375,22 @@ class Connect extends Tools {
       "All new direct configs failed. Trying http/sub configs...",
     );
     for (String httpCfg in httpSubConfigs) {
-      if (await ConnectSub(
-        httpCfg,
-        "sub",
-        typeC: typeC,
-      ).timeout(Duration(seconds: 30), onTimeout: () => false)) {
+      bool connStat = await PromiseRunner.runWithTimeout(
+        () async {
+          final ok = await ConnectSub(
+            config.replaceAll("freedom-guard://", ""),
+            config.startsWith("freedom-guard") ? "fgAuto" : "sub",
+          );
+          if (!ok) return false;
+
+          final result = await testNet();
+          return result['connected'] == true;
+        },
+        timeout: Duration(seconds: 45),
+      );
+
+      if (connStat) {
         return true;
-      } else {
-        return _isConnected;
       }
     }
 
@@ -561,14 +570,20 @@ class Connect extends Tools {
             if (config.startsWith("http") ||
                 config.startsWith("freedom-guard")) {
               bool connStat = await PromiseRunner.runWithTimeout(
-                () => ConnectSub(
-                  config.replaceAll("freedom-guard://", ""),
-                  config.startsWith("freedom-guard") ? "fgAuto" : "sub",
-                ),
-                timeout: Duration(seconds: 40),
+                () async {
+                  final ok = await ConnectSub(
+                    config.replaceAll("freedom-guard://", ""),
+                    config.startsWith("freedom-guard") ? "fgAuto" : "sub",
+                  );
+                  if (!ok) return false;
+
+                  final result = await testNet();
+                  return result['connected'] == true;
+                },
+                timeout: Duration(seconds: 45),
               );
-              final result = await testNet();
-              if (result['connected']) {
+
+              if (connStat) {
                 resolve(true);
                 return;
               }

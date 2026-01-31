@@ -25,14 +25,17 @@ connectFlMode(BuildContext context) async {
   var connStat = false;
   LogOverlay.addLog("connecting to FL mode...");
   connStat = await PromiseRunner.runWithTimeout(
-    connectFL,
+    () async {
+      final ok = await connectFL();
+      if (!ok) return false;
+
+      final result = await Tools().testNet();
+      return result['connected'] == true;
+    },
     timeout: Duration(seconds: 120),
   );
-  final result = await Tools().testNet();
-  if (result['connected']) {
-    return true;
-  } else
-    return false;
+
+  return connStat;
 }
 
 connectRepoMode(BuildContext context) async {
@@ -45,17 +48,21 @@ connectRepoMode(BuildContext context) async {
   var timeout = int.tryParse(
         await settings.getValue("timeout_auto").toString(),
       ) ??
-      110000;
-  connStat = await connect.ConnectFG(
-    defSet["fgconfig"]!,
-    110000,
-  ).timeout(
-    Duration(milliseconds: timeout),
-    onTimeout: () {
-      LogOverlay.showLog("Connection to Auto mode timed out.", type: "error");
-      return connect.isConnected;
+      200000;
+  connStat = await PromiseRunner.runWithTimeout(
+    () async {
+      final ok = await connect.ConnectFG(
+        defSet["fgconfig"]!,
+        timeout,
+      );
+      if (!ok) return false;
+
+      final result = await Tools().testNet();
+      return result['connected'] == true;
     },
+    timeout: Duration(milliseconds: timeout),
   );
+
   return connStat;
 }
 
