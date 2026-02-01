@@ -8,7 +8,6 @@ import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-
 Future<bool> connectAutoMode(BuildContext context) async {
   GlobalFGB.connStatText.value = "🤖 Trying to connect automatically…";
   if (await connectFlMode(context)) return true;
@@ -20,10 +19,7 @@ Future<bool> connectAutoMode(BuildContext context) async {
 Future<bool> connectFlMode(BuildContext context) async {
   LogOverlay.addLog("Starting FL mode connection");
   return await PromiseRunner.runWithTimeout(
-    (port) async {
-      final ok = await connectFL();
-      port.send(IsolateMessage('result', ok));
-    },
+    connectFL,
     timeout: const Duration(seconds: 120),
   );
 }
@@ -36,10 +32,7 @@ Future<bool> connectRepoMode(BuildContext context) async {
           200000;
 
   return await PromiseRunner.runWithTimeout(
-    (port) async {
-      final ok = await connect.ConnectFG(defSet["fgconfig"]!, timeout);
-      port.send(IsolateMessage('result', ok));
-    },
+    (token) => connect.ConnectFG(defSet["fgconfig"]!, timeout, token: token),
     timeout: Duration(milliseconds: timeout),
   );
 }

@@ -10,7 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:Freedom_Guard/components/fsecure.dart';
 import 'dart:async';
-import 'dart:isolate';
 
 Future<String> getDeviceId() async {
   final prefs = await SharedPreferences.getInstance();
@@ -387,22 +386,20 @@ Future<void> rating(String docID) async {
   }
 }
 
-Future<bool> connectFL() async {
+Future<bool> connectFL(CancellationToken token) async {
   try {
     final configs = await restoreConfigs();
     for (var config in configs) {
+      if (token.isCancelled) {
+        LogOverlay.addLog('Operation cancelled: ConnectFL');
+        return false;
+      }
       final configStr = config['config'] as String;
       final message = config['message'] ?? "";
       final telegramLink = config['telegramLink'] ?? "";
       final docId = config['id'];
 
-      final success = await PromiseRunner.runWithTimeout(
-        (SendPort sendPort) async {
-          bool res = await tryConnect(configStr, docId, message, telegramLink);
-          sendPort.send(IsolateMessage('result', res));
-        },
-        timeout: Duration(seconds: 100),
-      );
+      final success = await tryConnect(configStr, docId, message, telegramLink);
 
       if (success) {
         if (message.isNotEmpty) {

@@ -1,62 +1,49 @@
 import 'dart:async';
-import 'dart:isolate';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 
-typedef IsolateTask = Future<void> Function(SendPort sendPort);
+typedef Task = Future<void> Function(CancellationToken token);
 
-class IsolateMessage {
-  final String type;
-  final dynamic data;
+class CancellationToken {
+  bool _isCancelled = false;
+  final Completer<void> _completer = Completer<void>();
 
-  IsolateMessage(this.type, this.data);
+  bool get isCancelled => _isCancelled;
+
+  Future<void> get whenCancelled => _completer.future;
+
+  void cancel() {
+    if (!_isCancelled) {
+      _isCancelled = true;
+      _completer.complete();
+    }
+  }
 }
 
 class PromiseRunner {
   static Future<bool> runWithTimeout(
-    IsolateTask task, {
+    Task task, {
     required Duration timeout,
   }) async {
-    final receivePort = ReceivePort();
-    late Isolate isolate;
+    final token = CancellationToken();
     bool result = false;
 
-    isolate = await Isolate.spawn<_IsolatePayload>(
-      _isolateEntry,
-      _IsolatePayload(task, receivePort.sendPort),
-    );
+    final timer = Timer(timeout, () {
+      token.cancel();
+    });
 
     try {
-      await receivePort.cast<IsolateMessage>().timeout(timeout).forEach((msg) {
-        if (msg.type == 'log') {
-          LogOverlay.addLog(msg.data.toString());
-        } else if (msg.type == 'result') {
-          result = msg.data == true;
-          isolate.kill(priority: Isolate.immediate);
-        }
-      });
-    } on TimeoutException {
-      isolate.kill(priority: Isolate.immediate);
+      await task(token);
+      result = true;
+    } catch (e) {
+      LogOverlay.addLog(e.toString());
       result = false;
     } finally {
-      receivePort.close();
+      timer.cancel();
+      if (!token.isCancelled) {
+        token.cancel();
+      }
     }
 
     return result;
-  }
-}
-
-class _IsolatePayload {
-  final IsolateTask task;
-  final SendPort sendPort;
-
-  _IsolatePayload(this.task, this.sendPort);
-}
-
-void _isolateEntry(_IsolatePayload payload) async {
-  try {
-    await payload.task(payload.sendPort);
-  } catch (e) {
-    payload.sendPort.send(IsolateMessage('log', e.toString()));
-    payload.sendPort.send(IsolateMessage('result', false));
   }
 }

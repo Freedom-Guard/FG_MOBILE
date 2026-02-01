@@ -203,15 +203,15 @@ class Connect extends Tools {
   Future<bool> ConnectSub(
     String config,
     String type, {
+    CancellationToken? token,
     String typeC = "normal",
     int depth = 0,
-    SendPort? port,
   }) async {
-    safeLog('ConnectSub start', port: port);
+    GlobalFGB.connStatText.value = "Connecting to SUB...";
 
     await disConnect();
     if (depth > 5) {
-      safeLog('Max depth reached', port: port);
+      safeLog('Max depth reached');
       return false;
     }
 
@@ -224,10 +224,14 @@ class Connect extends Tools {
     if (cached.isNotEmpty && useCache) {
       cached.sort((a, b) => a.ping.compareTo(b.ping));
       for (final c in cached) {
-        safeLog('Trying cached config (${c.ping} ms)', port: port);
+        if (token?.isCancelled == true) {
+          safeLog('Operation cancelled: ConnectSUB');
+          return false;
+        }
+        safeLog('Trying cached config (${c.ping} ms)');
         if (await connectAndTest(c.configLink, {"type": type})) {
-          safeLog('Connected via cache', port: port);
-          if (await settings.getBool("smart_guard")) {
+          safeLog('Connected via cache');
+          if (await settings.getBool("guard_mode")) {
             List<String> allConfigs = cached.map((e) => e.configLink).toList();
             _startGuardModeMonitoring(c.configLink, allConfigs);
           }
@@ -240,7 +244,7 @@ class Connect extends Tools {
 
     final response = await NetworkService.get(config);
     if (response.statusCode != 200) {
-      safeLog('Sub request failed', port: port);
+      safeLog('Sub request failed');
       return false;
     }
 
@@ -258,10 +262,18 @@ class Connect extends Tools {
     List<ConfigPingResult> results = [];
 
     for (final cfg in configs) {
+      if (token?.isCancelled == true) {
+        safeLog('Operation cancelled: ConnectSUB');
+        return false;
+      }
       final ping = await testConfig(cfg, type: typeC);
       if (ping > 0) {
         results.add(ConfigPingResult(configLink: cfg, ping: ping));
-        safeLog('Ping OK: $ping ms', port: port);
+        if (!_isConnected) {
+          final result = await connectAndTest(cfg, {});
+          if (!result) await disConnect();
+        }
+        safeLog('Ping OK: $ping ms');
       }
     }
 
@@ -269,10 +281,14 @@ class Connect extends Tools {
     await _saveConfigPings(results);
 
     for (final r in results) {
-      safeLog('Connecting (${r.ping} ms)', port: port);
+      if (token?.isCancelled == true) {
+        safeLog('Operation cancelled: ConnectSUB');
+        return false;
+      }
+      safeLog('Connecting (${r.ping} ms)');
       if (await connectAndTest(r.configLink, {"type": type})) {
-        safeLog('Connected successfully', port: port);
-        if (await settings.getBool("smart_guard")) {
+        safeLog('Connected successfully');
+        if (await settings.getBool("guard_mode")) {
           List<String> allConfigs = results.map((e) => e.configLink).toList();
           _startGuardModeMonitoring(r.configLink, allConfigs);
         }
@@ -280,7 +296,7 @@ class Connect extends Tools {
       }
     }
 
-    safeLog('All configs failed', port: port);
+    safeLog('All configs failed');
     return false;
   }
 
@@ -405,42 +421,34 @@ class Connect extends Tools {
     _guardModeTimer = null;
   }
 
-  Future<bool> ConnectFG(
-    String fgconfig,
-    int timeout, {
-    SendPort? port,
-  }) async {
+  Future<bool> ConnectFG(String fgconfig, int timeout,
+      {CancellationToken? token}) async {
     try {
+      GlobalFGB.connStatText.value = "Connecting to Repo Mode...";
+
       final uri = fgconfig;
       http.Response? response;
-      int attempt = 0;
       int delayMs = 800;
       bool usedCache = false;
       String? cachedData;
 
-      while (attempt < 3) {
-        try {
-          response = await NetworkService.get(uri).timeout(
-            Duration(milliseconds: timeout),
-          );
-          break;
-        } catch (e) {
-          attempt++;
-          if (attempt >= 3) {
-            final prefs = await SharedPreferences.getInstance();
-            cachedData = prefs.getString('cached_fg_config');
-            if (cachedData != null) {
-              usedCache = true;
-              safeLog('Using cached config', port: port);
-              break;
-            } else {
-              safeLog('No cached config available', port: port);
-              return false;
-            }
-          }
-          await Future.delayed(Duration(milliseconds: delayMs));
-          delayMs *= 2;
+      try {
+        response = await NetworkService.get(uri).timeout(
+          Duration(milliseconds: timeout),
+        );
+      } catch (e) {
+        final prefs = await SharedPreferences.getInstance();
+        cachedData = prefs.getString('cached_fg_config');
+        if (cachedData != null) {
+          usedCache = true;
+          safeLog('Using cached config');
+        } else {
+          safeLog('No cached config available');
+          return false;
         }
+
+        await Future.delayed(Duration(milliseconds: delayMs));
+        delayMs *= 2;
       }
 
       dynamic data;
@@ -448,7 +456,7 @@ class Connect extends Tools {
         data = jsonDecode(cachedData!);
       } else {
         if (response == null || response.statusCode != 200) {
-          safeLog('Failed to load config', port: port);
+          safeLog('Failed to load config');
           return false;
         }
         data = jsonDecode(response.body);
@@ -459,42 +467,26 @@ class Connect extends Tools {
       List publicServers = data["MOBILE"];
       List<String> allConfigs = [];
       for (var entry in publicServers) {
+        if (token!.isCancelled) {
+          safeLog('Operation cancelled: ConnectFG');
+          return false;
+        }
         var parts = entry.split(",;,");
         if (parts[0] == "vibe") {
           var config = parts[1].split("#")[0];
           if (config.startsWith("http") || config.startsWith("freedom-guard")) {
             String subUrl = config.replaceAll("freedom-guard://", "");
             try {
-              final response = await NetworkService.get(subUrl)
-                  .timeout(Duration(seconds: 10));
-              if (response.statusCode == 200) {
-                String raw = response.body.trim();
-                String decoded;
-                try {
-                  decoded = utf8.decode(base64Decode(raw));
-                } catch (_) {
-                  decoded = raw;
-                }
-                List<String> subs = decoded
-                    .split('\n')
-                    .where((e) => e.trim().isNotEmpty)
-                    .toList();
-                allConfigs.addAll(subs);
-                safeLog('Added ${subs.length} configs from sub: $subUrl',
-                    port: port);
-              } else {
-                safeLog(
-                    'Failed to fetch sub: $subUrl, status: ${response.statusCode}',
-                    port: port);
-              }
-            } catch (e) {
-              safeLog('Error fetching sub: $subUrl, $e', port: port);
-            }
+              var Result = await PromiseRunner.runWithTimeout((token) async {
+                (token) => ConnectSub(config, "sub", token: token);
+              }, timeout: Duration(seconds: 45));
+              if (Result == true) return true;
+            } catch (_) {}
+            ;
           } else {
             allConfigs.add(config);
           }
         }
-        await Future.delayed(const Duration(milliseconds: 400));
       }
 
       List<ConfigPingResult> results = [];
@@ -502,21 +494,21 @@ class Connect extends Tools {
         final ping = await testConfig(cfg);
         if (ping > 0) {
           results.add(ConfigPingResult(configLink: cfg, ping: ping));
-          safeLog('Ping OK: $ping ms', port: port);
+          safeLog('Ping OK: $ping ms');
         }
       }
 
       results.sort((a, b) => a.ping.compareTo(b.ping));
       if (results.isEmpty) {
-        safeLog('No valid configs', port: port);
+        safeLog('No valid configs');
         return false;
       }
 
       for (final r in results) {
-        safeLog('Connecting (${r.ping} ms)', port: port);
+        safeLog('Connecting (${r.ping} ms)');
         if (await connectAndTest(r.configLink, {"type": "fgAuto"})) {
-          safeLog('Connected successfully', port: port);
-          if (await settings.getBool("smart_guard")) {
+          safeLog('Connected successfully');
+          if (await settings.getBool("guard_mode")) {
             List<String> allSortedConfigs =
                 results.map((e) => e.configLink).toList();
             _startGuardModeMonitoring(r.configLink, allSortedConfigs);
@@ -525,10 +517,10 @@ class Connect extends Tools {
         }
       }
 
-      safeLog('All configs failed', port: port);
+      safeLog('All configs failed');
       return false;
     } catch (e) {
-      safeLog(e.toString(), port: port);
+      safeLog(e.toString());
       return false;
     }
   }
@@ -580,11 +572,7 @@ class Tools {
   }
 
   void safeLog(String message, {SendPort? port}) {
-    if (port != null) {
-      port.send(IsolateMessage('log', message));
-    } else {
-      LogOverlay.addLog(message);
-    }
+    LogOverlay.addLog(message);
   }
 
   Future<int> getConnectedDelay() async {
