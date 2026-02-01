@@ -17,18 +17,17 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   final TextEditingController searchController = TextEditingController();
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
     _loadLogs();
     _startRefresh();
-    _controller =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 600));
-    _fadeAnimation =
-        CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: 600));
+    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
     _controller.forward();
-    searchController.addListener(_filterLogs);
+    searchController.addListener(_handleSearch);
   }
 
   @override
@@ -47,21 +46,40 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
         .toList()
         .reversed
         .toList();
+    final query = searchController.text.toLowerCase();
     setState(() {
       logs = logList;
-      filteredLogs = logList;
+      filteredLogs = query.isEmpty
+          ? logList
+          : logList.where((log) => log.toLowerCase().contains(query)).toList();
     });
   }
 
   void _startRefresh() {
+    _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(Duration(seconds: 1), (_) => _loadLogs());
+  }
+
+  void _pauseRefresh() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+  }
+
+  void _handleSearch() {
+    final query = searchController.text;
+    _isSearching = query.isNotEmpty;
+    if (_isSearching) {
+      _pauseRefresh();
+    } else {
+      _startRefresh();
+    }
+    _filterLogs();
   }
 
   void _filterLogs() {
     final query = searchController.text.toLowerCase();
     setState(() {
-      filteredLogs =
-          logs.where((log) => log.toLowerCase().contains(query)).toList();
+      filteredLogs = logs.where((log) => log.toLowerCase().contains(query)).toList();
     });
   }
 
@@ -91,12 +109,14 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
         extendBodyBehindAppBar: true,
         backgroundColor: Colors.black,
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
+          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
           elevation: 0,
           title: Text(tr("logs"),
-              style:
-                  GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.bold)),
+              style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.bold)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+          ),
         ),
         body: Stack(
           children: [
@@ -131,13 +151,20 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(30),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.06),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(30),
             border: Border.all(color: Colors.white.withOpacity(0.15)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 10,
+                offset: Offset(0, 5),
+              ),
+            ],
           ),
           child: TextField(
             controller: searchController,
@@ -147,6 +174,15 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
               hintText: "Search logs...",
               hintStyle: TextStyle(color: Colors.white60),
               icon: Icon(Icons.search, color: Colors.white70),
+              suffixIcon: _isSearching
+                  ? IconButton(
+                      icon: Icon(Icons.clear, color: Colors.white70),
+                      onPressed: () {
+                        searchController.clear();
+                        _handleSearch();
+                      },
+                    )
+                  : null,
             ),
           ),
         ),
@@ -172,10 +208,16 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildList() {
-    return ListView.builder(
-      padding: EdgeInsets.all(16),
-      itemCount: filteredLogs.length,
-      itemBuilder: (context, index) => _logTile(filteredLogs[index], index),
+    return RefreshIndicator(
+      onRefresh: _loadLogs,
+      color: Theme.of(context).colorScheme.primary,
+      backgroundColor: Colors.black,
+      child: ListView.builder(
+        physics: BouncingScrollPhysics(),
+        padding: EdgeInsets.all(16),
+        itemCount: filteredLogs.length,
+        itemBuilder: (context, index) => _logTile(filteredLogs[index], index),
+      ),
     );
   }
 
@@ -183,7 +225,7 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
     return FadeTransition(
       opacity: Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
         parent: _controller,
-        curve: Interval(0.05 * index, 1, curve: Curves.easeOut),
+        curve: Interval(0.05 * index.clamp(0, 20), 1, curve: Curves.easeOutCubic),
       )),
       child: GestureDetector(
         onLongPress: () => _copySingle(log),
@@ -196,6 +238,13 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
               color: Colors.white.withOpacity(0.08),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Colors.white.withOpacity(0.15)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 5,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
             child: Text(
               log,
@@ -217,15 +266,21 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
         padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.06),
-          border:
-              Border(top: BorderSide(color: Colors.white.withOpacity(0.15))),
+          border: Border(top: BorderSide(color: Colors.white.withOpacity(0.15))),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: Offset(0, -5),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _menuButton(Icons.copy, tr("copy"), Colors.blueAccent, _copyAll),
+            _menuButton(Icons.copy_all, tr("copy"), Colors.blueAccent, _copyAll),
             _menuButton(
-                Icons.delete, tr("clear"), Colors.redAccent, _clearLogs),
+                Icons.delete_forever, tr("clear"), Colors.redAccent, _clearLogs),
           ],
         ),
       ),
@@ -242,6 +297,13 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
           color: color.withOpacity(0.15),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: color.withOpacity(0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.2),
+              blurRadius: 5,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
