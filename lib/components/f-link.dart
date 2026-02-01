@@ -9,6 +9,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:Freedom_Guard/components/fsecure.dart';
+import 'dart:async';
+import 'dart:isolate';
 
 Future<String> getDeviceId() async {
   final prefs = await SharedPreferences.getInstance();
@@ -284,14 +286,6 @@ Future<bool> _tryConnectInternal(
         await saveFailedUpdate(docId, 1);
       }
 
-      if (message.isNotEmpty) {
-        LogOverlay.showModal(
-          message,
-          isValidTelegramLink(telegramLink) ? telegramLink : "",
-        );
-      }
-
-      rating(docId);
       return true;
     }
   }
@@ -314,16 +308,13 @@ Future<bool> tryConnect(
   String docId,
   String message_old,
   String telegramLink,
-) {
-  return PromiseRunner.runWithTimeout(
-    () => _tryConnectInternal(
-      config,
-      docId,
-      message_old,
-      telegramLink,
-    ),
-    timeout: Duration(seconds: 40),
-  );
+) async {
+  return ((_tryConnectInternal(
+    config,
+    docId,
+    message_old,
+    telegramLink,
+  )));
 }
 
 Future<void> refreshCache() async {
@@ -406,11 +397,21 @@ Future<bool> connectFL() async {
       final docId = config['id'];
 
       final success = await PromiseRunner.runWithTimeout(
-        () => tryConnect(configStr, docId, message, telegramLink),
+        (SendPort sendPort) async {
+          bool res = await tryConnect(configStr, docId, message, telegramLink);
+          sendPort.send(IsolateMessage('result', res));
+        },
         timeout: Duration(seconds: 100),
       );
 
       if (success) {
+        if (message.isNotEmpty) {
+          LogOverlay.showModal(
+            message,
+            isValidTelegramLink(telegramLink) ? telegramLink : "",
+          );
+        }
+        rating(docId);
         final isp = await SettingsApp().getValue("isp");
         await addISPToConfig(docId, isp == "" ? await getUserISP() : isp);
         SettingsApp()

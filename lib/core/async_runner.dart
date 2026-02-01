@@ -1,15 +1,24 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'package:Freedom_Guard/utils/LOGLOG.dart';
 
-typedef Task = Future<bool> Function();
+typedef IsolateTask = Future<void> Function(SendPort sendPort);
+
+class IsolateMessage {
+  final String type;
+  final dynamic data;
+
+  IsolateMessage(this.type, this.data);
+}
 
 class PromiseRunner {
   static Future<bool> runWithTimeout(
-    Task task, {
+    IsolateTask task, {
     required Duration timeout,
   }) async {
     final receivePort = ReceivePort();
     late Isolate isolate;
+    bool result = false;
 
     isolate = await Isolate.spawn<_IsolatePayload>(
       _isolateEntry,
@@ -17,20 +26,27 @@ class PromiseRunner {
     );
 
     try {
-      final result = await receivePort.first.timeout(timeout);
-      isolate.kill(priority: Isolate.immediate);
-      return result as bool;
+      await receivePort.cast<IsolateMessage>().timeout(timeout).forEach((msg) {
+        if (msg.type == 'log') {
+          LogOverlay.addLog(msg.data.toString());
+        } else if (msg.type == 'result') {
+          result = msg.data == true;
+          isolate.kill(priority: Isolate.immediate);
+        }
+      });
     } on TimeoutException {
       isolate.kill(priority: Isolate.immediate);
-      return false;
+      result = false;
     } finally {
       receivePort.close();
     }
+
+    return result;
   }
 }
 
 class _IsolatePayload {
-  final Task task;
+  final IsolateTask task;
   final SendPort sendPort;
 
   _IsolatePayload(this.task, this.sendPort);
@@ -38,9 +54,9 @@ class _IsolatePayload {
 
 void _isolateEntry(_IsolatePayload payload) async {
   try {
-    final result = await payload.task();
-    payload.sendPort.send(result);
-  } catch (_) {
-    payload.sendPort.send(false);
+    await payload.task(payload.sendPort);
+  } catch (e) {
+    payload.sendPort.send(IsolateMessage('log', e.toString()));
+    payload.sendPort.send(IsolateMessage('result', false));
   }
 }

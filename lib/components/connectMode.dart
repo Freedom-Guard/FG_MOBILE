@@ -1,4 +1,3 @@
-import 'package:Freedom_Guard/components/connect.dart';
 import 'package:Freedom_Guard/components/f-link.dart';
 import 'package:Freedom_Guard/components/servers.dart';
 import 'package:Freedom_Guard/components/settings.dart';
@@ -9,89 +8,63 @@ import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-connectAutoMode(BuildContext context) async {
+
+Future<bool> connectAutoMode(BuildContext context) async {
   GlobalFGB.connStatText.value = "🤖 Trying to connect automatically…";
-  final settings = Provider.of<SettingsApp>(context, listen: false);
-  var connStat = false;
-  connStat = await connectFlMode(context);
-  if (!connStat) {
-    connStat = await connectRepoMode(context);
-  }
-  return connStat;
+  if (await connectFlMode(context)) return true;
+  if (await connectRepoMode(context)) return true;
+  LogOverlay.addLog("Auto connection attempts failed");
+  return false;
 }
 
-connectFlMode(BuildContext context) async {
-  GlobalFGB.connStatText.value = "⚡ Connecting via F-Link (FL mode)…";
-  var connStat = false;
-  LogOverlay.addLog("connecting to FL mode...");
-  connStat = await PromiseRunner.runWithTimeout(
-    () async {
+Future<bool> connectFlMode(BuildContext context) async {
+  LogOverlay.addLog("Starting FL mode connection");
+  return await PromiseRunner.runWithTimeout(
+    (port) async {
       final ok = await connectFL();
-      if (!ok) return false;
-
-      final result = await Tools().testNet();
-      return result['connected'] == true;
+      port.send(IsolateMessage('result', ok));
     },
-    timeout: Duration(seconds: 120),
+    timeout: const Duration(seconds: 120),
   );
-
-  return connStat;
 }
 
-connectRepoMode(BuildContext context) async {
-  GlobalFGB.connStatText.value = "📦 Connecting via Repository mode…";
+Future<bool> connectRepoMode(BuildContext context) async {
+  LogOverlay.addLog("Starting Repo mode connection");
   final settings = Provider.of<SettingsApp>(context, listen: false);
-  var connStat = false;
-  LogOverlay.addLog(
-    "connecting to Repo mode...",
-  );
-  var timeout = int.tryParse(
-        await settings.getValue("timeout_auto").toString(),
-      ) ??
-      200000;
-  connStat = await PromiseRunner.runWithTimeout(
-    () async {
-      final ok = await connect.ConnectFG(
-        defSet["fgconfig"]!,
-        timeout,
-      );
-      if (!ok) return false;
+  int timeout =
+      int.tryParse(await settings.getValue("timeout_auto").toString()) ??
+          200000;
 
-      final result = await Tools().testNet();
-      return result['connected'] == true;
+  return await PromiseRunner.runWithTimeout(
+    (port) async {
+      final ok = await connect.ConnectFG(defSet["fgconfig"]!, timeout);
+      port.send(IsolateMessage('result', ok));
     },
     timeout: Duration(milliseconds: timeout),
   );
-
-  return connStat;
 }
 
-connectAutoMy(BuildContext context) async {
-  GlobalFGB.connStatText.value = "Connecting using Auto User mode...";
+Future<bool> connectAutoMy(BuildContext context) async {
   final serverM = Provider.of<ServersM>(context, listen: false);
-  List servers = await serverM.oldServers();
-  var connStat = false;
-  connStat = await connectAutoVibe(servers);
-  return connStat;
+  final servers = await serverM.oldServers();
+  return await connectAutoVibe(servers);
 }
 
-connectAutoVibe(List listConfigs) async {
-  GlobalFGB.connStatText.value = "";
+Future<bool> connectAutoVibe(List listConfigs) async {
+  LogOverlay.addLog("Starting Auto Vibe connection");
+  listConfigs.shuffle();
   for (String config in listConfigs) {
-    bool connStat = false;
-
+    bool ok = false;
     if (config.startsWith("http")) {
-      connStat = await connect.ConnectSub(config, "sub");
-    } else if (connect.testConfig(config) != -1) {
-      connStat = await connect.ConnectVibe(config, {});
+      ok = await connect.ConnectSub(config, "sub");
+    } else if (await connect.testConfig(config) != -1) {
+      ok = await connect.ConnectVibe(config, {});
     }
-
-    if (connStat) {
-      LogOverlay.addLog("Connected successfully.");
+    if (ok) {
+      LogOverlay.addLog("Connected successfully via Auto Vibe");
       return true;
     }
   }
-
-  LogOverlay.showLog("No working user configs found.", type: "warn");
+  LogOverlay.addLog("Auto Vibe connection failed");
   return false;
 }

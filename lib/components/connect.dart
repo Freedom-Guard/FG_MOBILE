@@ -1,14 +1,13 @@
 import 'dart:async';
-
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'package:Freedom_Guard/core/async_runner.dart';
 import 'package:Freedom_Guard/core/global.dart';
 import 'package:Freedom_Guard/core/network/network_service.dart';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:Freedom_Guard/components/safe_mode.dart';
 import 'package:Freedom_Guard/components/settings.dart';
-import 'package:dart_promise/dart_promise.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_v2ray_client/flutter_v2ray.dart';
@@ -201,213 +200,87 @@ class Connect extends Tools {
     return false;
   }
 
-  Future<bool> ConnectSub(String config, String type,
-      {String typeC = "normal", int depth = 0}) async {
+  Future<bool> ConnectSub(
+    String config,
+    String type, {
+    String typeC = "normal",
+    int depth = 0,
+    SendPort? port,
+  }) async {
+    safeLog('ConnectSub start', port: port);
+
     await disConnect();
     if (depth > 5) {
-      LogOverlay.addLog(
-          "Max recursion depth reached in ConnectSub to prevent infinite loop.");
+      safeLog('Max depth reached', port: port);
       return false;
     }
-    GlobalFGB.connStatText.value = "📡 Fetching subscription configurations…";
-    LogOverlay.addLog("Trying cached configs first...");
-    List<ConfigPingResult> cachedConfigs = await loadConfigPings();
-    bool isCache = (await settings.getValue("selectedServer")) ==
+
+    List<ConfigPingResult> cached = await loadConfigPings();
+    bool useCache = (await settings.getValue("selectedServer")) ==
         (await settings.getValue("saved_sub"));
+
     await settings.setValue("saved_sub", config);
 
-    if (cachedConfigs.isNotEmpty && isCache) {
-      cachedConfigs.sort((a, b) => a.ping.compareTo(b.ping));
-
-      for (var cachedResult in cachedConfigs) {
-        LogOverlay.addLog(
-          "Testing cached config with ping: ${cachedResult.ping}ms",
-        );
-        int currentPing = await testConfig(
-          cachedResult.configLink,
-          type: typeC,
-        );
-
-        if (currentPing != -1) {
-          if (await ConnectVibe(cachedResult.configLink, {
-            "type": type,
-            "link": config,
-          })) {
-            final netResult = await testNet();
-            if (netResult['connected'] == true) {
-              final guardModeEnabled =
-                  (await settings.getValue("guard_mode")) == "true";
-              if (guardModeEnabled) {
-                List<String> allConfigs =
-                    cachedConfigs.map((c) => c.configLink).toList();
-                _startGuardModeMonitoring(cachedResult.configLink, allConfigs);
-              }
-              LogOverlay.addLog("Connected using cached config.");
-              return true;
-            } else {
-              LogOverlay.addLog(
-                  "ConnectVibe succeeded but internet test failed (cached config).");
-            }
+    if (cached.isNotEmpty && useCache) {
+      cached.sort((a, b) => a.ping.compareTo(b.ping));
+      for (final c in cached) {
+        safeLog('Trying cached config (${c.ping} ms)', port: port);
+        if (await connectAndTest(c.configLink, {"type": type})) {
+          safeLog('Connected via cache', port: port);
+          if (await settings.getBool("smart_guard")) {
+            List<String> allConfigs = cached.map((e) => e.configLink).toList();
+            _startGuardModeMonitoring(c.configLink, allConfigs);
           }
-        } else {
-          LogOverlay.addLog(
-            "Cached config failed or ping is ($currentPing ms).",
-          );
+          return true;
         }
       }
-      LogOverlay.addLog("All cached configs failed. Fetching new list.");
-    } else {
-      _clearConfigPings();
-      LogOverlay.addLog("No cached configs found. Fetching new list.");
     }
-
-    List fetchedConfigs = [];
-    const int maxRetries = 6;
-    int attempt = 1;
-
-    while (attempt <= maxRetries) {
-      try {
-        final response = await NetworkService.get(config);
-        if (response.statusCode == 200) {
-          String raw = response.body.trim();
-          String decoded;
-          try {
-            decoded = utf8.decode(base64Decode(raw));
-            LogOverlay.addLog("Base64 decoded successfully, Attempt: $attempt");
-          } catch (e) {
-            decoded = raw;
-            LogOverlay.addLog(
-              "Base64 decode failed, using raw text, Attempt: $attempt",
-            );
-          }
-          fetchedConfigs = type == "sub" || type == "f_link"
-              ? decoded.split('\n')
-              : jsonDecode(decoded)["MOBILE"];
-          break;
-        } else {
-          LogOverlay.addLog(
-            "Request failed with status ${response.statusCode}, Attempt: $attempt",
-          );
-          if (attempt == maxRetries) {
-            LogOverlay.addLog("Max retries reached, giving up");
-            return false;
-          }
-        }
-      } catch (e) {
-        LogOverlay.addLog("Config error on attempt $attempt: $e");
-        if (attempt == maxRetries) {
-          LogOverlay.addLog("Max retries reached, giving up");
-          return false;
-        }
-      }
-      int delaySeconds = 1 << (attempt - 1);
-      LogOverlay.addLog("Retrying after $delaySeconds seconds...");
-      await Future.delayed(Duration(seconds: delaySeconds));
-      attempt++;
-    }
-
-    if (fetchedConfigs.isEmpty) {
-      LogOverlay.addLog("No valid configs retrieved after retries");
-      return false;
-    }
-
-    LogOverlay.addLog(
-      "Fetched ${fetchedConfigs.length} new configs. Clearing old cache and testing all sequentially...",
-    );
 
     await _clearConfigPings();
 
-    List<ConfigPingResult> newPingResults = [];
-    List<String> httpSubConfigs = [];
-    List<String> directConfigs = [];
-    final guardModeEnabled = (await settings.getValue("guard_mode")) == "true";
-
-    for (String cfg in fetchedConfigs) {
-      cfg = cfg.replaceAll("vibe,;,", "").trim();
-      if (cfg.isEmpty || cfg.startsWith("warp")) {
-        continue;
-      }
-
-      if (cfg.startsWith("http")) {
-        httpSubConfigs.add(cfg);
-      } else {
-        directConfigs.add(cfg);
-      }
+    final response = await NetworkService.get(config);
+    if (response.statusCode != 200) {
+      safeLog('Sub request failed', port: port);
+      return false;
     }
 
-    LogOverlay.addLog(
-      "Starting sequential ping test on ${directConfigs.length} direct configs.",
-    );
+    String raw = response.body.trim();
+    String decoded;
+    try {
+      decoded = utf8.decode(base64Decode(raw));
+    } catch (_) {
+      decoded = raw;
+    }
 
-    directConfigs.shuffle();
+    List<String> configs =
+        decoded.split('\n').where((e) => e.trim().isNotEmpty).toList();
 
-    Iterable<List<T>> chunk<T>(List<T> list, int size) sync* {
-      for (int i = 0; i < list.length; i += size) {
-        final chunkSize = (i + size > list.length) ? list.length - i : size;
-        yield list.sublist(i, i + chunkSize);
+    List<ConfigPingResult> results = [];
+
+    for (final cfg in configs) {
+      final ping = await testConfig(cfg, type: typeC);
+      if (ping > 0) {
+        results.add(ConfigPingResult(configLink: cfg, ping: ping));
+        safeLog('Ping OK: $ping ms', port: port);
       }
     }
 
-    for (List<String> batch in chunk(directConfigs, 3)) {
-      List<Future<ConfigPingResult?>> pingFutures = batch.map((cfg) async {
-        int ping = await testConfig(cfg, type: typeC);
-        if (ping != -1) {
-          return ConfigPingResult(
-            configLink: cfg,
-            ping: ping,
-          );
-        }
-        return null;
-      }).toList();
+    results.sort((a, b) => a.ping.compareTo(b.ping));
+    await _saveConfigPings(results);
 
-      List<ConfigPingResult?> results = await Future.wait(pingFutures);
-      newPingResults.addAll(results.whereType<ConfigPingResult>());
-    }
-    newPingResults.sort((a, b) => a.ping.compareTo(b.ping));
-
-    await _saveConfigPings(newPingResults);
-
-    List<String> allSortedConfigsForGuardMode =
-        newPingResults.map((c) => c.configLink).toList();
-
-    for (var result in newPingResults) {
-      LogOverlay.addLog("Trying new config with ping: ${result.ping}ms");
-
-      if (await connectAndTest(
-          result.configLink, {"type": type, "link": config})) {
-        if (guardModeEnabled) {
-          _startGuardModeMonitoring(
-            result.configLink,
-            allSortedConfigsForGuardMode,
-          );
+    for (final r in results) {
+      safeLog('Connecting (${r.ping} ms)', port: port);
+      if (await connectAndTest(r.configLink, {"type": type})) {
+        safeLog('Connected successfully', port: port);
+        if (await settings.getBool("smart_guard")) {
+          List<String> allConfigs = results.map((e) => e.configLink).toList();
+          _startGuardModeMonitoring(r.configLink, allConfigs);
         }
         return true;
       }
     }
 
-    LogOverlay.addLog(
-        "All new direct configs failed. Trying http/sub configs...");
-
-    for (String httpCfg in httpSubConfigs) {
-      bool connStat = await PromiseRunner.runWithTimeout(
-        () async {
-          final ok = await ConnectSub(
-            config.replaceAll("freedom-guard://", ""),
-            config.startsWith("freedom-guard") ? "fgAuto" : "sub",
-            depth: depth + 1,
-          );
-          if (!ok) return false;
-
-          final result = await testNet();
-          return result['connected'] == true;
-        },
-        timeout: Duration(seconds: 45),
-      );
-
-      if (connStat) return true;
-    }
-
-    LogOverlay.addLog("Failed to connect to any config from subscription.");
+    safeLog('All configs failed', port: port);
     return false;
   }
 
@@ -500,13 +373,17 @@ class Connect extends Tools {
             LogOverlay.addLog(
                 "Guard mode: trying better config with ping $newPing");
             bool result = await ConnectVibe(nextCfg, {}, typeDis: "guard");
-
             if (result) {
-              onConfigSwitched(nextCfg);
-              connected = true;
-              LogOverlay.showLog("Guard mode: switched to new config",
-                  type: "success");
-              break;
+              final netResult = await testNet();
+              if (netResult['connected']) {
+                onConfigSwitched(nextCfg);
+                connected = true;
+                LogOverlay.showLog("Guard mode: switched to new config",
+                    type: "success");
+                break;
+              } else {
+                await disConnect(typeDis: "guard");
+              }
             }
           }
         }
@@ -528,109 +405,132 @@ class Connect extends Tools {
     _guardModeTimer = null;
   }
 
-  Future<bool> ConnectFG(String fgconfig, int timeout) {
-    return Promise<bool>((resolve, reject) async {
-      try {
-        final uri = fgconfig;
-        http.Response? response;
-        int attempt = 0;
-        int delayMs = 800;
-        bool usedCache = false;
-        String? cachedData;
+  Future<bool> ConnectFG(
+    String fgconfig,
+    int timeout, {
+    SendPort? port,
+  }) async {
+    try {
+      final uri = fgconfig;
+      http.Response? response;
+      int attempt = 0;
+      int delayMs = 800;
+      bool usedCache = false;
+      String? cachedData;
 
-        while (attempt < 3) {
-          try {
-            response = await NetworkService.get(uri).timeout(
-              Duration(milliseconds: timeout),
-              onTimeout: () => throw TimeoutException('Request timed out'),
-            );
-            break;
-          } catch (e) {
-            attempt++;
-            if (attempt >= 3) {
-              final prefs = await SharedPreferences.getInstance();
-              cachedData = prefs.getString('cached_fg_config');
-              if (cachedData != null) {
-                usedCache = true;
-                LogOverlay.addLog('Using cached config due to failure: $e');
-                break;
-              } else {
-                LogOverlay.addLog('No cached config found. Network error: $e');
-                resolve(false);
-                return;
-              }
-            }
-            await Future.delayed(Duration(milliseconds: delayMs));
-            delayMs *= 2;
-          }
-        }
-
-        dynamic data;
-        if (usedCache) {
-          data = jsonDecode(cachedData!);
-        } else {
-          if (response == null || response.statusCode != 200) {
-            LogOverlay.showLog(
-              'Failed to load config: ${response?.statusCode ?? "unknown"}',
-              type: "error",
-            );
-            resolve(false);
-            return;
-          }
-          data = jsonDecode(response.body);
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('cached_fg_config', response.body);
-        }
-
-        List publicServers = data["MOBILE"];
-        for (var entry in publicServers) {
-          var parts = entry.split(",;,");
-
-          if (parts[0] == "vibe") {
-            var config = parts[1].split("#")[0];
-            if (config.startsWith("http") ||
-                config.startsWith("freedom-guard")) {
-              bool connStat = await PromiseRunner.runWithTimeout(
-                () async {
-                  final ok = await ConnectSub(
-                    config.replaceAll("freedom-guard://", ""),
-                    config.startsWith("freedom-guard") ? "fgAuto" : "sub",
-                    depth: 1,
-                  );
-                  if (!ok) return false;
-
-                  final result = await testNet();
-                  return result['connected'] == true;
-                },
-                timeout: Duration(seconds: 45),
-              );
-
-              if (connStat) {
-                resolve(true);
-                return;
-              }
+      while (attempt < 3) {
+        try {
+          response = await NetworkService.get(uri).timeout(
+            Duration(milliseconds: timeout),
+          );
+          break;
+        } catch (e) {
+          attempt++;
+          if (attempt >= 3) {
+            final prefs = await SharedPreferences.getInstance();
+            cachedData = prefs.getString('cached_fg_config');
+            if (cachedData != null) {
+              usedCache = true;
+              safeLog('Using cached config', port: port);
+              break;
             } else {
-              if (await testConfig(config) != -1) {
-                await ConnectVibe(config, {});
-                final result = await testNet();
-                if (result['connected']) {
-                  resolve(true);
-                  return;
-                }
-              }
+              safeLog('No cached config available', port: port);
+              return false;
             }
-          } else if (parts[0] == "warp") {
-            continue;
           }
-          await Future.delayed(const Duration(milliseconds: 400));
+          await Future.delayed(Duration(milliseconds: delayMs));
+          delayMs *= 2;
         }
-
-        resolve(false);
-      } catch (e, stack) {
-        LogOverlay.addLog('Error in ConnectFG: $e\n$stack');
-        resolve(false);
       }
-    }).toFuture();
+
+      dynamic data;
+      if (usedCache) {
+        data = jsonDecode(cachedData!);
+      } else {
+        if (response == null || response.statusCode != 200) {
+          safeLog('Failed to load config', port: port);
+          return false;
+        }
+        data = jsonDecode(response.body);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('cached_fg_config', response.body);
+      }
+
+      List publicServers = data["MOBILE"];
+      List<String> allConfigs = [];
+      for (var entry in publicServers) {
+        var parts = entry.split(",;,");
+        if (parts[0] == "vibe") {
+          var config = parts[1].split("#")[0];
+          if (config.startsWith("http") || config.startsWith("freedom-guard")) {
+            String subUrl = config.replaceAll("freedom-guard://", "");
+            try {
+              final response = await NetworkService.get(subUrl)
+                  .timeout(Duration(seconds: 10));
+              if (response.statusCode == 200) {
+                String raw = response.body.trim();
+                String decoded;
+                try {
+                  decoded = utf8.decode(base64Decode(raw));
+                } catch (_) {
+                  decoded = raw;
+                }
+                List<String> subs = decoded
+                    .split('\n')
+                    .where((e) => e.trim().isNotEmpty)
+                    .toList();
+                allConfigs.addAll(subs);
+                safeLog('Added ${subs.length} configs from sub: $subUrl',
+                    port: port);
+              } else {
+                safeLog(
+                    'Failed to fetch sub: $subUrl, status: ${response.statusCode}',
+                    port: port);
+              }
+            } catch (e) {
+              safeLog('Error fetching sub: $subUrl, $e', port: port);
+            }
+          } else {
+            allConfigs.add(config);
+          }
+        }
+        await Future.delayed(const Duration(milliseconds: 400));
+      }
+
+      List<ConfigPingResult> results = [];
+      for (final cfg in allConfigs) {
+        final ping = await testConfig(cfg);
+        if (ping > 0) {
+          results.add(ConfigPingResult(configLink: cfg, ping: ping));
+          safeLog('Ping OK: $ping ms', port: port);
+        }
+      }
+
+      results.sort((a, b) => a.ping.compareTo(b.ping));
+      if (results.isEmpty) {
+        safeLog('No valid configs', port: port);
+        return false;
+      }
+
+      for (final r in results) {
+        safeLog('Connecting (${r.ping} ms)', port: port);
+        if (await connectAndTest(r.configLink, {"type": "fgAuto"})) {
+          safeLog('Connected successfully', port: port);
+          if (await settings.getBool("smart_guard")) {
+            List<String> allSortedConfigs =
+                results.map((e) => e.configLink).toList();
+            _startGuardModeMonitoring(r.configLink, allSortedConfigs);
+          }
+          return true;
+        }
+      }
+
+      safeLog('All configs failed', port: port);
+      return false;
+    } catch (e) {
+      safeLog(e.toString(), port: port);
+      return false;
+    }
   }
 }
 
@@ -677,6 +577,14 @@ class Tools {
 
   debugPrint(message) {
     LogOverlay.addLog(message);
+  }
+
+  void safeLog(String message, {SendPort? port}) {
+    if (port != null) {
+      port.send(IsolateMessage('log', message));
+    } else {
+      LogOverlay.addLog(message);
+    }
   }
 
   Future<int> getConnectedDelay() async {
@@ -868,13 +776,11 @@ class Tools {
                 if (stream is Map<String, dynamic>) {
                   final security = stream["security"];
 
-                  // TLS
                   if (security == "tls") {
                     stream["tlsSettings"] ??= {};
                     stream["tlsSettings"]["serverName"] = sniJson["serverName"];
                   }
 
-                  // Reality
                   if (security == "reality") {
                     stream["realitySettings"] ??= {};
                     stream["realitySettings"]["serverName"] =
@@ -937,12 +843,12 @@ class Tools {
     if (await settings.getValue("bypass_lan") == "true") {
       LogOverlay.showLog("Bypass LAN Enabled");
       return [
-        "10.0.0.0/8", // Private
-        "172.16.0.0/12", // Private
-        "192.168.0.0/16", // Private
-        "127.0.0.0/8", // Loopback
-        "169.254.0.0/16", // Link-local
-        "fc00::/7", // IPv6 unique local
+        "10.0.0.0/8",
+        "172.16.0.0/12",
+        "192.168.0.0/16",
+        "127.0.0.0/8",
+        "169.254.0.0/16",
+        "fc00::/7",
       ];
     } else {
       return null;
