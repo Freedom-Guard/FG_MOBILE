@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 Future<bool> connectAutoMode(BuildContext context) async {
-  GlobalFGB.connStatText.value = "🤖 Trying to connect automatically…";
+  GlobalFGB.connStatText.value = "🤖 Smart connection in progress…";
   if (await connectFlMode(context)) return true;
   if (await connectRepoMode(context)) return true;
   LogOverlay.addLog("Auto connection attempts failed");
@@ -17,15 +17,17 @@ Future<bool> connectAutoMode(BuildContext context) async {
 }
 
 Future<bool> connectFlMode(BuildContext context) async {
-  LogOverlay.addLog("Starting FL mode connection");
+  GlobalFGB.connStatText.value =
+      "🚀 Searching for the best configuration (FL Mode)…";
   return await PromiseRunner.runWithTimeout(
     connectFL,
-    timeout: const Duration(seconds: 120),
+    timeout: const Duration(seconds: 150),
   );
 }
 
 Future<bool> connectRepoMode(BuildContext context) async {
-  LogOverlay.addLog("Starting Repo mode connection");
+  GlobalFGB.connStatText.value =
+      "📡 Evaluating available configurations (Repo Mode)…";
   final settings = Provider.of<SettingsApp>(context, listen: false);
   int timeout =
       int.tryParse(await settings.getValue("timeout_auto").toString()) ??

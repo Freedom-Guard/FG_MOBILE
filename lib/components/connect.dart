@@ -106,7 +106,8 @@ class Connect extends Tools {
   }) async {
     await disConnect(typeDis: typeDis);
     final stopwatch = Stopwatch()..start();
-    GlobalFGB.connStatText.value = "Connecting to VIBE...";
+    GlobalFGB.connStatText.value =
+        "⚡ Applying configuration and preparing connection…";
 
     LogOverlay.addLog(
       "Connecting To VIBE...",
@@ -140,6 +141,7 @@ class Connect extends Tools {
 
         if (ping != -1) {
           LogOverlay.addLog('Ping connecting $ping ms');
+          GlobalFGB.connStatText.value = "📡 Configuration latency: ${ping} ms";
         }
         String parsedJson = await addOptionsToVibe(jsonDecode(parser));
         if ((await settings.getBool("safe_mode")) == true) {
@@ -207,7 +209,7 @@ class Connect extends Tools {
     String typeC = "normal",
     int depth = 0,
   }) async {
-    GlobalFGB.connStatText.value = "Connecting to SUB...";
+    GlobalFGB.connStatText.value = "📥 Fetching subscription configurations…";
 
     await disConnect();
     if (depth > 5) {
@@ -222,6 +224,9 @@ class Connect extends Tools {
     await settings.setValue("saved_sub", config);
 
     if (cached.isNotEmpty && useCache) {
+      GlobalFGB.connStatText.value =
+          "🧠 Using cached configurations (${cached.length} tested)";
+
       cached.sort((a, b) => a.ping.compareTo(b.ping));
       for (final c in cached) {
         if (token?.isCancelled == true) {
@@ -262,6 +267,9 @@ class Connect extends Tools {
     List<ConfigPingResult> results = [];
 
     for (final cfg in configs) {
+      GlobalFGB.connStatText.value =
+          "🔍 Testing configuration ${results.length + 1} of ${configs.length}…";
+
       if (token?.isCancelled == true) {
         safeLog('Operation cancelled: ConnectSUB');
         return false;
@@ -269,18 +277,30 @@ class Connect extends Tools {
       final ping = await testConfig(cfg, type: typeC);
       if (ping > 0) {
         results.add(ConfigPingResult(configLink: cfg, ping: ping));
-        if (!_isConnected) {
-          final result = await connectAndTest(cfg, {});
-          if (!result) await disConnect();
-        }
         safeLog('Ping OK: $ping ms');
+        if (!_isConnected) {
+          GlobalFGB.connStatText.value =
+              "⚡ Connecting using tested configuration (${ping} ms)…";
+          final result = await connectAndTest(cfg, {});
+          if (!result) {
+            GlobalFGB.connStatText.value =
+                "🔄 Configuration failed. Trying the next one…";
+            await disConnect();
+          }
+          ;
+        }
       }
     }
 
     results.sort((a, b) => a.ping.compareTo(b.ping));
     await _saveConfigPings(results);
+    GlobalFGB.connStatText.value =
+        "📊 ${results.length} valid configurations found. Connecting…";
 
     for (final r in results) {
+      GlobalFGB.connStatText.value =
+          "⚡ Connecting using configuration (${r.ping} ms)…";
+
       if (token?.isCancelled == true) {
         safeLog('Operation cancelled: ConnectSUB');
         return false;
@@ -297,6 +317,9 @@ class Connect extends Tools {
     }
 
     safeLog('All configs failed');
+    GlobalFGB.connStatText.value =
+        "🛑 All configurations were tested. No stable connection found";
+
     return false;
   }
 
@@ -477,12 +500,15 @@ class Connect extends Tools {
           if (config.startsWith("http") || config.startsWith("freedom-guard")) {
             String subUrl = config.replaceAll("freedom-guard://", "");
             try {
+              GlobalFGB.connStatText.value =
+                  "📥 Repository contains subscription. Processing it…";
+
               var Result = await PromiseRunner.runWithTimeout((token) async {
                 (token) => ConnectSub(config, "sub", token: token);
               }, timeout: Duration(seconds: 45));
               if (Result == true) return true;
+              GlobalFGB.connStatText.value = "🔄 Trying the next subscription…";
             } catch (_) {}
-            ;
           } else {
             allConfigs.add(config);
           }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:Freedom_Guard/components/connect.dart';
+import 'package:Freedom_Guard/utils/LOGLOG.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -94,7 +95,7 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent> {
       print("[Downloader] Download completed: $filePath");
       return File(filePath);
     } catch (e) {
-      print("[Downloader] Download failed: $e");
+      LogOverlay.addLog("[Downloader] Download failed: $e");
       return null;
     }
   }
@@ -129,7 +130,8 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent> {
   }
 
   Future<void> _launchWebsite(String? url) async {
-    final targetUrl = url ?? "https://github.com/Freedom-Guard/Freedom-Guard/releases";
+    final targetUrl =
+        url ?? "https://github.com/Freedom-Guard/Freedom-Guard/releases";
     final uri = Uri.parse(targetUrl);
     try {
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
@@ -211,7 +213,8 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent> {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: () => _launchWebsite(widget.data['website_url']),
+                            onPressed: () =>
+                                _launchWebsite(widget.data['website_url']),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.blueAccent,
                               side: const BorderSide(color: Colors.blueAccent),
@@ -225,7 +228,8 @@ class _UpdateDialogContentState extends State<_UpdateDialogContent> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () => startUpdate(widget.data['apk_url']),
+                            onPressed: () =>
+                                startUpdate(widget.data['apk_url']),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blueAccent,
                               foregroundColor: Colors.white,
