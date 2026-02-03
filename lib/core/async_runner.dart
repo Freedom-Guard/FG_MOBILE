@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:Freedom_Guard/utils/LOGLOG.dart';
 
-typedef Task = Future<void> Function(CancellationToken token);
+typedef Task<T> = Future<T> Function(CancellationToken token);
 
 class CancellationToken {
   bool _isCancelled = false;
@@ -20,30 +20,25 @@ class CancellationToken {
 }
 
 class PromiseRunner {
-  static Future<bool> runWithTimeout(
-    Task task, {
+  static Future<T?> runWithTimeout<T>(
+    Task<T> task, {
     required Duration timeout,
   }) async {
     final token = CancellationToken();
-    bool result = false;
-
     final timer = Timer(timeout, () {
       token.cancel();
     });
 
     try {
-      await task(token);
-      result = true;
+      return await task(token);
     } catch (e) {
       LogOverlay.addLog(e.toString());
-      result = false;
+      return null;
     } finally {
       timer.cancel();
       if (!token.isCancelled) {
         token.cancel();
       }
     }
-
-    return result;
   }
 }
