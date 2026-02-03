@@ -503,17 +503,18 @@ class Connect extends Tools {
               GlobalFGB.connStatText.value =
                   "📥 Repository contains subscription. Processing it…";
 
-              var result = await PromiseRunner.runWithTimeout(
-  (token) async {
-    return await connect.ConnectSub(
-      config,
-      "f_link",
-      token: token,
-      typeC: "f_link",
-    );
-  },
+              final bool? connected = await PromiseRunner.runWithTimeout<bool>(
+  (token) => connect.ConnectSub(
+    config,
+    "f_link",
+    token: token,
+    
+  ),
   timeout: Duration(seconds: 60),
 );
+
+final result = connected == true && connect.isConnected;
+
               if (result == true || _isConnected) return true;
               GlobalFGB.connStatText.value = "🔄 Trying the next subscription…";
             } catch (_) {}
