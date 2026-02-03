@@ -505,8 +505,8 @@ class Connect extends Tools {
 
               var Result = await PromiseRunner.runWithTimeout((token) async {
                 (token) => ConnectSub(config, "sub", token: token);
-              }, timeout: Duration(seconds: 45));
-              if (Result == true) return true;
+              }, timeout: Duration(seconds: 60));
+              if (Result == true || _isConnected) return true;
               GlobalFGB.connStatText.value = "🔄 Trying the next subscription…";
             } catch (_) {}
           } else {
