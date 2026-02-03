@@ -19,10 +19,10 @@ Future<bool> connectAutoMode(BuildContext context) async {
 Future<bool> connectFlMode(BuildContext context) async {
   GlobalFGB.connStatText.value =
       "🚀 Searching for the best configuration (FL Mode)…";
-  return await PromiseRunner.runWithTimeout(
+  return await (PromiseRunner.runWithTimeout(
     connectFL,
     timeout: const Duration(seconds: 150),
-  );
+  )) ?? false;
 }
 
 Future<bool> connectRepoMode(BuildContext context) async {
@@ -33,10 +33,10 @@ Future<bool> connectRepoMode(BuildContext context) async {
       int.tryParse(await settings.getValue("timeout_auto").toString()) ??
           200000;
 
-  return await PromiseRunner.runWithTimeout(
+  return await (PromiseRunner.runWithTimeout(
     (token) => connect.ConnectFG(defSet["fgconfig"]!, timeout, token: token),
     timeout: Duration(milliseconds: timeout),
-  );
+  )) ?? false;
 }
 
 Future<bool> connectAutoMy(BuildContext context) async {
