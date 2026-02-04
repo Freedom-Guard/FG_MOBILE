@@ -194,7 +194,7 @@ Future<List> getConfigsByISP({type = "normal"}) async {
         .where('ispList', arrayContains: userISP)
         .orderBy('connected', descending: true)
         .orderBy('addedAt', descending: true)
-        .limit(15);
+        .limit(25);
 
     var snapshot = await query.get();
 
