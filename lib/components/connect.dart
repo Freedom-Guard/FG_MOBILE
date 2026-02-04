@@ -265,11 +265,11 @@ class Connect extends Tools {
         decoded.split('\n').where((e) => e.trim().isNotEmpty).toList();
 
     List<ConfigPingResult> results = [];
-
+    int counter = 1;
     for (final cfg in configs) {
       GlobalFGB.connStatText.value =
-          "🔍 Testing configuration ${results.length + 1} of ${configs.length}…";
-
+          "🔍 Testing configuration ${counter} of ${configs.length}…";
+      counter++;
       if (token?.isCancelled == true) {
         safeLog('Operation cancelled: ConnectSUB');
         return false;
@@ -504,16 +504,15 @@ class Connect extends Tools {
                   "📥 Repository contains subscription. Processing it…";
 
               final bool? connected = await PromiseRunner.runWithTimeout<bool>(
-  (token) => connect.ConnectSub(
-    config,
-    "f_link",
-    token: token,
-    
-  ),
-  timeout: Duration(seconds: 60),
-);
+                (token) => connect.ConnectSub(
+                  config,
+                  "f_link",
+                  token: token,
+                ),
+                timeout: Duration(seconds: 60),
+              );
 
-final result = connected == true && connect.isConnected;
+              final result = connected == true && connect.isConnected;
 
               if (result == true || _isConnected) return true;
               GlobalFGB.connStatText.value = "🔄 Trying the next subscription…";
