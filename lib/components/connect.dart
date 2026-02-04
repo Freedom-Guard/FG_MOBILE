@@ -270,6 +270,7 @@ class Connect extends Tools {
       GlobalFGB.connStatText.value =
           "🔍 Testing configuration ${counter} of ${configs.length}…";
       counter++;
+
       if (token?.isCancelled == true) {
         safeLog('Operation cancelled: ConnectSUB');
         return false;
@@ -512,9 +513,9 @@ class Connect extends Tools {
                 timeout: Duration(seconds: 60),
               );
 
-              final result = connected == true && connect.isConnected;
+              final result = connected == true || _isConnected;
 
-              if (result == true || _isConnected) return true;
+              if (result == true) return true;
               GlobalFGB.connStatText.value = "🔄 Trying the next subscription…";
             } catch (_) {}
           } else {

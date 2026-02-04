@@ -253,16 +253,16 @@ Future<bool> _tryConnectInternal(
 
   if (config.startsWith("http")) {
     final bool? connected = await PromiseRunner.runWithTimeout<bool>(
-  (token) => connect.ConnectSub(
-    config,
-    "f_link",
-    token: token,
-    typeC: "f_link",
-  ),
-  timeout: Duration(seconds: 60),
-);
+      (token) => connect.ConnectSub(
+        config,
+        "f_link",
+        token: token,
+        typeC: "f_link",
+      ),
+      timeout: Duration(seconds: 60),
+    );
 
-final result = connected == true && connect.isConnected;
+    final result = connected == true || connect.isConnected;
 
     resPing = (result) ? 999 : -1;
   } else {
