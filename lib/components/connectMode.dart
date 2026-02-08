@@ -20,9 +20,10 @@ Future<bool> connectFlMode(BuildContext context) async {
   GlobalFGB.connStatText.value =
       "🚀 Searching for the best configuration (FL Mode)…";
   return await (PromiseRunner.runWithTimeout(
-    connectFL,
-    timeout: const Duration(seconds: 150),
-  )) ?? false;
+        connectFL,
+        timeout: const Duration(seconds: 250),
+      )) ??
+      false;
 }
 
 Future<bool> connectRepoMode(BuildContext context) async {
@@ -34,9 +35,11 @@ Future<bool> connectRepoMode(BuildContext context) async {
           200000;
 
   return await (PromiseRunner.runWithTimeout(
-    (token) => connect.ConnectFG(defSet["fgconfig"]!, timeout, token: token),
-    timeout: Duration(milliseconds: timeout),
-  )) ?? false;
+        (token) =>
+            connect.ConnectFG(defSet["fgconfig"]!, timeout, token: token),
+        timeout: Duration(milliseconds: timeout),
+      )) ??
+      false;
 }
 
 Future<bool> connectAutoMy(BuildContext context) async {

@@ -259,7 +259,7 @@ Future<bool> _tryConnectInternal(
         token: token,
         typeC: "f_link",
       ),
-      timeout: Duration(seconds: 60),
+      timeout: Duration(seconds: 75),
     );
 
     final result = connected == true || connect.isConnected;

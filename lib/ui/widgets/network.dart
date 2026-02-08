@@ -169,13 +169,22 @@ class _NetworkStatusWidgetState extends State<NetworkStatusWidget>
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.3)),
         const SizedBox(height: 2),
-        Text(ipAddress ?? "0.0.0.0",
+        Text(_maskIp(ipAddress),
             style: TextStyle(
                 color: Colors.white.withOpacity(0.3),
                 fontSize: 11,
                 fontFamily: 'monospace')),
       ],
     );
+  }
+
+  String _maskIp(String? ip) {
+    if (ip == null || ip.isEmpty) return "0.0.0.0";
+
+    final parts = ip.split('.');
+    if (parts.length != 4) return ip;
+
+    return "${parts[0]}.***.***.${parts[3]}";
   }
 
   Widget _buildProtocolBadge() {
