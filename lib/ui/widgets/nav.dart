@@ -14,26 +14,46 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).padding.bottom + 16,
-        ),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          decoration: const BoxDecoration(
-            color: Colors.transparent,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              _buildNavItem(Icons.settings_rounded, 0, context),
-              _buildNavItem(Icons.shield_rounded, 1, context),
-              _buildNavItem(Icons.dns_rounded, 2, context),
-            ],
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 70,
+        right: 70,
+        bottom: MediaQuery.of(context).padding.bottom + 8,
+        top: 6,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            height: 70,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.surface.withOpacity(0.25),
+                  Theme.of(context).colorScheme.surface.withOpacity(0.15),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.12),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildNavItem(Icons.settings_rounded, 0, context),
+                _buildNavItem(Icons.shield, 1, context),
+                _buildNavItem(Icons.dns_outlined, 2, context),
+              ],
+            ),
           ),
         ),
       ),
@@ -46,70 +66,106 @@ class BottomNavBar extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        if (!isActive) {
-          HapticFeedback.mediumImpact();
-          onTap(index);
-        }
+        HapticFeedback.mediumImpact();
+        onTap(index);
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 600),
-        margin: EdgeInsets.symmetric(horizontal: 8),
-        padding: EdgeInsets.only(bottom: isActive ? 30 : 0),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 400),
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: isActive
-                ? LinearGradient(
-                    colors: [
-                      theme.colorScheme.primary,
-                      theme.colorScheme.secondary,
+      child: TweenAnimationBuilder<double>(
+        duration: Duration(milliseconds: 250),
+        curve: Curves.easeInOutCubicEmphasized,
+        tween: Tween(begin: isActive ? 1.0 : 0.0, end: isActive ? 1.0 : 0.0),
+        builder: (context, value, child) {
+          return Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: isActive
+                  ? LinearGradient(
+                      colors: [
+                        theme.colorScheme.primary.withOpacity(0.95),
+                        theme.colorScheme.secondary.withOpacity(0.85),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      stops: [0.3, 1.0],
+                    )
+                  : null,
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withOpacity(0.35),
+                        blurRadius: 14,
+                        spreadRadius: 2,
+                        offset: Offset(0, 4),
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 6,
+                        spreadRadius: 0,
+                        offset: Offset(0, 2),
+                      ),
                     ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
-            color: isActive ? null : theme.colorScheme.surface.withOpacity(0.2),
-            boxShadow: isActive
-                ? [
-                    BoxShadow(
-                      color: theme.colorScheme.primary.withOpacity(0.4),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 10),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isActive
+                          ? Colors.white.withOpacity(0.4)
+                          : Colors.transparent,
+                      width: 1.0,
                     ),
-                  ]
-                : [],
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              if (isActive)
+                  ),
+                ),
                 TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 500),
-                  builder: (context, value, child) => Container(
-                    width: 56 * value,
-                    height: 56 * value,
+                  duration: Duration(milliseconds: 250),
+                  curve: Curves.easeInOutCubicEmphasized,
+                  tween: Tween(
+                      begin: isActive ? 1.2 : 1.0, end: isActive ? 1.2 : 1.0),
+                  builder: (context, scale, child) {
+                    return Transform.scale(
+                      scale: scale,
+                      child: Icon(
+                        icon,
+                        size: isActive ? 32 : 28,
+                        color: isActive
+                            ? Colors.white
+                            : theme.colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    );
+                  },
+                ),
+                AnimatedOpacity(
+                  opacity: isActive ? 0.5 : 0.0,
+                  duration: Duration(milliseconds: 250),
+                  curve: Curves.easeInOutCubicEmphasized,
+                  child: Container(
+                    width: 60,
+                    height: 60,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.4),
-                        width: 1.5,
+                      gradient: RadialGradient(
+                        colors: [
+                          theme.colorScheme.primary.withOpacity(0.5),
+                          Colors.transparent,
+                        ],
+                        radius: 0.6,
+                        center: Alignment.center,
                       ),
                     ),
                   ),
                 ),
-              Icon(
-                icon,
-                size: isActive ? 32 : 28,
-                color: isActive ? Colors.white : theme.colorScheme.onSurface,
-              ),
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

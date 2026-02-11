@@ -4,6 +4,7 @@ import 'package:Freedom_Guard/ui/widgets/fragment.dart';
 import 'package:Freedom_Guard/utils/status_texts.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import 'package:Freedom_Guard/components/connectMode.dart';
@@ -334,15 +335,29 @@ class _HomeContentState extends State<HomeContent>
                               ]
                             : [],
                       ),
-                      child: Icon(
-                        isConnected
-                            ? Icons.verified_user_rounded
-                            : Icons.shield_outlined,
-                        size: 60,
-                        color: isConnected
-                            ? const Color(0xFF00D1FF)
-                            : Colors.white,
-                      ),
+                      child: isConnecting
+                          ? Lottie.asset(
+                              'assets/animations/connecting.json',
+                              width: 80,
+                              height: 80,
+                            )
+                          : isConnected
+                              ? Lottie.asset(
+                                  'assets/animations/connected.json',
+                                  key: const ValueKey('connected'),
+                                  width: 80,
+                                  height: 80,
+                                  repeat: false,
+                                  animate: true,
+                                  onLoaded: (composition) {},
+                                )
+                              : Icon(
+                                  Icons.shield_outlined,
+                                  size: 60,
+                                  color: isConnected
+                                      ? const Color(0xFF00D1FF)
+                                      : Colors.white,
+                                ),
                     ),
                   ),
                 ),
