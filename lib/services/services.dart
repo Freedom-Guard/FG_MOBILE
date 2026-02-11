@@ -35,7 +35,7 @@ class checker {
   static SettingsApp settings = new SettingsApp();
 
   static checkVPN() async {
-    initSettings();
+    await initSettings();
     return await checkForVPN();
   }
 

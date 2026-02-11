@@ -1,3 +1,4 @@
+import 'package:Freedom_Guard/core/global.dart';
 import 'package:Freedom_Guard/core/local.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,48 +12,49 @@ class LogPage extends StatefulWidget {
 }
 
 class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
-  List<String> logs = [];
+  List<String> appLogs = [];
+  List<String> coreLogs = [];
   List<String> filteredLogs = [];
   Timer? _refreshTimer;
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
   final TextEditingController searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  late TabController _tabController;
   bool _isSearching = false;
+  bool _autoScroll = false;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_applyFilter);
+    searchController.addListener(_handleSearch);
     _loadLogs();
     _startRefresh();
-    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: 600));
-    _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
-    _controller.forward();
-    searchController.addListener(_handleSearch);
   }
 
   @override
   void dispose() {
     _refreshTimer?.cancel();
-    _controller.dispose();
+    _tabController.dispose();
+    _scrollController.dispose();
     searchController.dispose();
     super.dispose();
   }
 
   Future<void> _loadLogs() async {
     String result = await LogOverlay.loadLogs();
-    List<String> logList = result
-        .split("\n")
-        .where((e) => e.trim().isNotEmpty)
-        .toList()
-        .reversed
-        .toList();
-    final query = searchController.text.toLowerCase();
+    List<String> app =
+        result.split("\n").where((e) => e.trim().isNotEmpty).toList();
+    List<String> core = [];
+    try {
+      core = await connect.vibeCoreMain.getLogs();
+    } catch (_) {}
     setState(() {
-      logs = logList;
-      filteredLogs = query.isEmpty
-          ? logList
-          : logList.where((log) => log.toLowerCase().contains(query)).toList();
+      appLogs = app;
+      coreLogs = core;
     });
+    _applyFilter();
+    if (_autoScroll) _scrollToBottom();
   }
 
   void _startRefresh() {
@@ -73,74 +75,81 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
     } else {
       _startRefresh();
     }
-    _filterLogs();
+    _applyFilter();
   }
 
-  void _filterLogs() {
+  void _applyFilter() {
     final query = searchController.text.toLowerCase();
+    final current = _tabController.index == 0 ? appLogs : coreLogs;
     setState(() {
-      filteredLogs = logs.where((log) => log.toLowerCase().contains(query)).toList();
+      filteredLogs = query.isEmpty
+          ? current
+          : current.where((log) => log.toLowerCase().contains(query)).toList();
     });
+  }
+
+  void _scrollToBottom() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
   }
 
   Future<void> _copySingle(String log) async {
     await Clipboard.setData(ClipboardData(text: log));
-    LogOverlay.showLog("Log copied!", type: "success");
+    LogOverlay.showLog("Copied", type: "success");
   }
 
   void _copyAll() {
-    LogOverlay.copyLogs().then((success) {
-      LogOverlay.showLog(success ? "All logs copied!" : "No logs to copy!",
-          type: success ? "success" : "error");
-    });
+    final text = filteredLogs.join("\n");
+    Clipboard.setData(ClipboardData(text: text));
+    LogOverlay.showLog(text.isEmpty ? "Empty!" : "All Copied",
+        type: text.isEmpty ? "error" : "success");
   }
 
   Future<void> _clearLogs() async {
-    LogOverlay.clearLogs();
-    setState(() => logs = filteredLogs = []);
-    LogOverlay.showLog("Logs cleared!", type: "success");
+    if (_tabController.index == 0) {
+      LogOverlay.clearLogs();
+      appLogs = [];
+    } else {
+      await connect.vibeCoreMain.clearLogs();
+      coreLogs = [];
+    }
+    _applyFilter();
+    LogOverlay.showLog("Cleared!", type: "success");
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Directionality(
       textDirection: getDir() == "rtl" ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
-        extendBodyBehindAppBar: true,
         backgroundColor: Colors.black,
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          backgroundColor: Colors.black,
           elevation: 0,
-          title: Text(tr("logs"),
-              style: GoogleFonts.inter(fontSize: 26, fontWeight: FontWeight.bold)),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+          title: Text("Logs",
+              style: GoogleFonts.sourceCodePro(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.greenAccent)),
+          bottom: TabBar(
+            controller: _tabController,
+            indicatorColor: Colors.greenAccent,
+            labelColor: Colors.greenAccent,
+            unselectedLabelColor: Colors.white54,
+            tabs: [
+              Tab(text: "App"),
+              Tab(text: "Core"),
+            ],
           ),
         ),
-        body: Stack(
+        body: Column(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.black, Colors.grey.shade900],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
+            _buildSearchBar(),
+            Expanded(
+              child: filteredLogs.isEmpty ? _emptyState() : _buildTerminal(),
             ),
-            Column(
-              children: [
-                SizedBox(
-                    height: MediaQuery.of(context).padding.top +
-                        kToolbarHeight +
-                        12),
-                _buildSearchBar(),
-                Expanded(
-                    child: filteredLogs.isEmpty ? _emptyState() : _buildList()),
-                _buildBottomMenu(),
-              ],
-            ),
+            _buildBottomBar(theme),
           ],
         ),
       ),
@@ -149,169 +158,122 @@ class _LogPageState extends State<LogPage> with SingleTickerProviderStateMixin {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.06),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.white.withOpacity(0.15)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 10,
-                offset: Offset(0, 5),
-              ),
-            ],
-          ),
-          child: TextField(
-            controller: searchController,
-            style: TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: "Search logs...",
-              hintStyle: TextStyle(color: Colors.white60),
-              icon: Icon(Icons.search, color: Colors.white70),
-              suffixIcon: _isSearching
-                  ? IconButton(
-                      icon: Icon(Icons.clear, color: Colors.white70),
-                      onPressed: () {
-                        searchController.clear();
-                        _handleSearch();
-                      },
-                    )
-                  : null,
-            ),
+      padding: EdgeInsets.all(12),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade900,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.greenAccent.withOpacity(0.4)),
+        ),
+        child: TextField(
+          controller: searchController,
+          style: GoogleFonts.sourceCodePro(color: Colors.greenAccent),
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: "Search...",
+            hintStyle: TextStyle(color: Colors.greenAccent.withOpacity(0.4)),
+            icon: Icon(Icons.search, color: Colors.greenAccent),
+            suffixIcon: _isSearching
+                ? IconButton(
+                    icon: Icon(Icons.clear, color: Colors.greenAccent),
+                    onPressed: () {
+                      searchController.clear();
+                      _handleSearch();
+                    },
+                  )
+                : null,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTerminal() {
+    return Container(
+      padding: EdgeInsets.all(12),
+      color: Colors.black,
+      child: ListView.builder(
+        controller: _scrollController,
+        itemCount: filteredLogs.length,
+        itemBuilder: (context, index) {
+          final log = filteredLogs[index];
+          return GestureDetector(
+            onLongPress: () => _copySingle(log),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 2),
+              child: Text(
+                log,
+                style: GoogleFonts.sourceCodePro(
+                    color: Colors.greenAccent, fontSize: 13, height: 1.4),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
   Widget _emptyState() {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.info_outline, size: 55, color: Colors.white38),
-            SizedBox(height: 12),
-            Text("No logs available",
-                style: GoogleFonts.inter(color: Colors.white54, fontSize: 18)),
-          ],
-        ),
-      ),
+    return Center(
+      child: Text("No logs available",
+          style:
+              GoogleFonts.sourceCodePro(color: Colors.white38, fontSize: 16)),
     );
   }
 
-  Widget _buildList() {
-    return RefreshIndicator(
-      onRefresh: _loadLogs,
-      color: Theme.of(context).colorScheme.primary,
-      backgroundColor: Colors.black,
-      child: ListView.builder(
-        physics: BouncingScrollPhysics(),
-        padding: EdgeInsets.all(16),
-        itemCount: filteredLogs.length,
-        itemBuilder: (context, index) => _logTile(filteredLogs[index], index),
+  Widget _buildBottomBar(ThemeData theme) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade900,
+        border:
+            Border(top: BorderSide(color: Colors.greenAccent.withOpacity(0.3))),
       ),
-    );
-  }
-
-  Widget _logTile(String log, int index) {
-    return FadeTransition(
-      opacity: Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
-        parent: _controller,
-        curve: Interval(0.05 * index.clamp(0, 20), 1, curve: Curves.easeOutCubic),
-      )),
-      child: GestureDetector(
-        onLongPress: () => _copySingle(log),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            margin: EdgeInsets.only(bottom: 12),
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.white.withOpacity(0.15)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 5,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Text(
-              log,
-              style: GoogleFonts.sourceCodePro(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 13,
-                  height: 1.5),
-            ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              _actionButton(Icons.copy_all, "Copy", _copyAll),
+              SizedBox(width: 12),
+              _actionButton(Icons.delete, "Clear", _clearLogs),
+            ],
           ),
-        ),
+          Row(
+            children: [
+              Text("AutoScroll",
+                  style: GoogleFonts.sourceCodePro(color: Colors.greenAccent)),
+              Switch(
+                value: _autoScroll,
+                activeColor: Colors.greenAccent,
+                onChanged: (v) {
+                  setState(() => _autoScroll = v);
+                  if (v) _scrollToBottom();
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildBottomMenu() {
-    return ClipRRect(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+  Widget _actionButton(IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
-          border: Border(top: BorderSide(color: Colors.white.withOpacity(0.15))),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-              offset: Offset(0, -5),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _menuButton(Icons.copy_all, tr("copy"), Colors.blueAccent, _copyAll),
-            _menuButton(
-                Icons.delete_forever, tr("clear"), Colors.redAccent, _clearLogs),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _menuButton(
-      IconData icon, String label, Color color, VoidCallback action) {
-    return GestureDetector(
-      onTap: action,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: color.withOpacity(0.3)),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.2),
-              blurRadius: 5,
-              offset: Offset(0, 2),
-            ),
-          ],
+          border: Border.all(color: Colors.greenAccent.withOpacity(0.4)),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
-            Icon(icon, color: color, size: 20),
-            SizedBox(width: 8),
+            Icon(icon, size: 18, color: Colors.greenAccent),
+            SizedBox(width: 6),
             Text(label,
-                style: GoogleFonts.inter(
-                    color: color, fontSize: 15, fontWeight: FontWeight.w600)),
+                style: GoogleFonts.sourceCodePro(color: Colors.greenAccent)),
           ],
         ),
       ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:Freedom_Guard/ui/widgets/fragment.dart';
 import 'package:Freedom_Guard/utils/status_texts.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -162,6 +163,14 @@ class _HomeContentState extends State<HomeContent>
     super.dispose();
   }
 
+  Color _hexToColor(String hex) {
+    hex = hex.replaceAll("#", "");
+    if (hex.length == 6) {
+      hex = "FF$hex";
+    }
+    return Color(int.parse(hex, radix: 16));
+  }
+
   Future<void> toggleConnection() async {
     final serverM = Provider.of<ServersM>(context, listen: false);
     final settings = Provider.of<SettingsApp>(context, listen: false);
@@ -253,17 +262,30 @@ class _HomeContentState extends State<HomeContent>
 
   @override
   Widget build(BuildContext context) {
+    final bgValue = context.watch<BackgroundNotifier>().background;
+
     return Stack(
       fit: StackFit.expand,
       children: [
         Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment(0, -0.2),
-              radius: 1.2,
-              colors: [Color(0xFF1A2A44), Color(0xFF080E17)],
-            ),
-          ),
+          decoration: bgValue.isEmpty
+              ? const BoxDecoration(
+                  gradient: RadialGradient(
+                    center: Alignment(0, -0.2),
+                    radius: 1.2,
+                    colors: [Color(0xFF1A2A44), Color(0xFF080E17)],
+                  ),
+                )
+              : bgValue.startsWith("#")
+                  ? BoxDecoration(
+                      color: _hexToColor(bgValue),
+                    )
+                  : BoxDecoration(
+                      image: DecorationImage(
+                        image: FileImage(File(bgValue)),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
         ),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
