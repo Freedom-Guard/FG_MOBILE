@@ -109,6 +109,7 @@ class _HomeContentState extends State<HomeContent>
   bool isConnected = false;
   bool isConnecting = false;
   late AnimationController _rippleController;
+  late AnimationController _connectedController;
   late AnimationController _pulseController;
 
   @override
@@ -122,6 +123,7 @@ class _HomeContentState extends State<HomeContent>
         lowerBound: 0.9,
         upperBound: 1.0)
       ..repeat(reverse: true);
+    _connectedController = AnimationController(vsync: this);
 
     Future.microtask(() async {
       final bgNotifier =
@@ -343,14 +345,17 @@ class _HomeContentState extends State<HomeContent>
                             )
                           : isConnected
                               ? Lottie.asset(
-                                  'assets/animations/connected.json',
-                                  key: const ValueKey('connected'),
-                                  width: 80,
-                                  height: 80,
-                                  repeat: false,
-                                  animate: true,
-                                  onLoaded: (composition) {},
-                                )
+  'assets/animations/connected.json',
+  controller: _connectedController,
+  width: 80,
+  height: 80,
+  repeat: false,
+  onLoaded: (composition) {
+    _connectedController
+      ..duration = composition.duration
+      ..forward();
+  },
+)
                               : Icon(
                                   Icons.shield_outlined,
                                   size: 60,
