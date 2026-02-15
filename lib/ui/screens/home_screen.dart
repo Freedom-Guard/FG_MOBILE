@@ -122,7 +122,6 @@ class _HomeContentState extends State<HomeContent>
         lowerBound: 0.9,
         upperBound: 1.0)
       ..repeat(reverse: true);
-    _connectedController = AnimationController(vsync: this);
 
     Future.microtask(() async {
       final bgNotifier =
