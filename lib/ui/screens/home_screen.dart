@@ -109,7 +109,6 @@ class _HomeContentState extends State<HomeContent>
   bool isConnected = false;
   bool isConnecting = false;
   late AnimationController _rippleController;
-  late AnimationController _connectedController;
   late AnimationController _pulseController;
 
   @override
@@ -344,18 +343,11 @@ class _HomeContentState extends State<HomeContent>
                               height: 80,
                             )
                           : isConnected
-                              ? Lottie.asset(
-  'assets/animations/connected.json',
-  controller: _connectedController,
-  width: 80,
-  height: 80,
-  repeat: false,
-  onLoaded: (composition) {
-    _connectedController
-      ..duration = composition.duration
-      ..forward();
-  },
-)
+                          ? Lottie.asset(
+                                'assets/animations/connected.json',
+                                width: 80,
+                                height: 80,
+                              )
                               : Icon(
                                   Icons.shield_outlined,
                                   size: 60,
