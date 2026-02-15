@@ -344,8 +344,8 @@ class _HomeContentState extends State<HomeContent>
                           : isConnected
                           ? Lottie.asset(
                                 'assets/animations/connected.json',
-                                width: 80,
-                                height: 80,
+                                width: 120,
+                                height: 120,
                               )
                               : Icon(
                                   Icons.shield_outlined,
