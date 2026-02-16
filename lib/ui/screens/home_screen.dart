@@ -340,6 +340,18 @@ class _HomeContentState extends State<HomeContent>
                               'assets/animations/connecting.json',
                               width: 80,
                               height: 80,
+                              delegates: LottieDelegates(
+                                values: [
+                                  ValueDelegate.strokeColor(
+                                    const ['**'], 
+                                    value: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  ValueDelegate.color(
+                                    const ['**'],
+                                    value: Theme.of(context).colorScheme.primary,
+                                  ),
+                                ],
+                              ),
                             )
                           : isConnected
                           ? Lottie.asset(
