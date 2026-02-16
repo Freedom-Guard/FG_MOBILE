@@ -344,7 +344,7 @@ class _HomeContentState extends State<HomeContent>
                                 values: [
                                   ValueDelegate.strokeColor(
                                     const ['**'], 
-                                    value: Theme.of(context).colorScheme.primary,
+                                    value: Theme.of(context).colorScheme.onPrimary,
                                   ),
                                   ValueDelegate.color(
                                     const ['**'],
